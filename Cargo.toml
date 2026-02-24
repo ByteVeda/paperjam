@@ -1,0 +1,20 @@
+[workspace]
+resolver = "2"
+members = [
+    "crates/paperjam-core",
+    "crates/paperjam-python",
+]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.75"
+license = "MIT OR Apache-2.0"
+
+[workspace.dependencies]
+thiserror = "2"
+log = "0.4"
+flate2 = "1"
+encoding_rs = "0.8"
+rayon = "1"
+memmap2 = "0.9"

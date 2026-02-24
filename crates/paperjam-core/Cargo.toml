@@ -1,0 +1,23 @@
+[package]
+name = "paperjam-core"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+description = "Pure Rust PDF engine — parsing, text extraction, table detection, manipulation"
+
+[dependencies]
+lopdf = "0.34"
+# Note: pinned to 0.34 for now; 0.39 changes API significantly.
+# We work around any missing features at the wrapper level.
+thiserror = { workspace = true }
+log = { workspace = true }
+flate2 = { workspace = true }
+encoding_rs = { workspace = true }
+rayon = { workspace = true, optional = true }
+memmap2 = { workspace = true, optional = true }
+
+[features]
+default = ["parallel"]
+parallel = ["dep:rayon"]
+mmap = ["dep:memmap2"]
