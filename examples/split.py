@@ -1,92 +1,65 @@
-"""Split examples: extract page ranges, individual pages."""
+"""Split a PDF into parts by page ranges."""
 
-import time
+import argparse
 from pathlib import Path
 
 import paperjam
 
-PDF_PATH = Path(__file__).resolve().parent.parent / "file" / "Learning_Python.pdf"
-OUTPUT_DIR = Path(__file__).resolve().parent.parent / "results" / "split"
 
-
-def timed(label: str):
-    class Timer:
-        def __enter__(self):
-            self.t0 = time.perf_counter()
-            return self
-
-        def __exit__(self, *_):
-            self.elapsed = time.perf_counter() - self.t0
-            print(f"  [{label}: {self.elapsed:.4f}s]")
-
-    return Timer()
-
-
-def section(title: str) -> None:
-    print(f"\n{'=' * 60}")
-    print(f"  {title}")
-    print(f"{'=' * 60}")
+def parse_range(spec: str) -> tuple[int, int]:
+    """Parse '1-5' into (1, 5) or '3' into (3, 3)."""
+    if "-" in spec:
+        start, end = spec.split("-", 1)
+        return int(start), int(end)
+    n = int(spec)
+    return n, n
 
 
 def main() -> None:
-    OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
-    t_start = time.perf_counter()
+    parser = argparse.ArgumentParser(
+        description="Split a PDF into parts by page ranges.",
+    )
+    parser.add_argument("input", help="Path to the input PDF")
+    parser.add_argument(
+        "-o", "--output", default="./output",
+        help="Output directory (default: ./output)",
+    )
+    group = parser.add_mutually_exclusive_group(required=True)
+    group.add_argument(
+        "-r", "--ranges", nargs="+",
+        help="Page ranges to extract, e.g. '1-5 10-20 25'",
+    )
+    group.add_argument(
+        "--each", action="store_true",
+        help="Split into individual single-page PDFs",
+    )
+    args = parser.parse_args()
 
-    with timed("open"):
-        doc = paperjam.open(str(PDF_PATH))
-    print(f"  Document: {PDF_PATH.name} ({doc.page_count} pages)")
+    output = Path(args.output)
+    output.mkdir(parents=True, exist_ok=True)
 
-    # ── Split by range ───────────────────────────────────────────
-    section("Split by range — pages 1-5")
-    with timed("split [(1, 5)]"):
-        parts = doc.split([(1, 5)])
-    part = parts[0]
-    out = OUTPUT_DIR / "pages_1_to_5.pdf"
-    part.save(str(out))
-    print(f"  Pages: {part.page_count}")
-    print(f"  Saved: {out}")
-    print(f"  Size:  {out.stat().st_size:,} bytes")
-    print(f"  Text preview: {part.pages[0].extract_text()[:100]}...")
+    doc = paperjam.open(args.input)
+    print(f"Opened: {args.input} ({doc.page_count} pages)")
 
-    # ── Split multiple ranges at once ────────────────────────────
-    section("Split multiple ranges — pages 1-10, 500-510, 1200-1213")
-    ranges = [(1, 10), (500, 510), (1200, doc.page_count)]
-    with timed(f"split {ranges}"):
-        parts = doc.split(ranges)
-    for i, (r, part) in enumerate(zip(ranges, parts, strict=True)):
-        out = OUTPUT_DIR / f"range_{r[0]}_{r[1]}.pdf"
+    if args.each:
+        ranges = [(i, i) for i in range(1, doc.page_count + 1)]
+    else:
+        ranges = [parse_range(r) for r in args.ranges]
+
+    parts = doc.split(ranges)
+
+    for (start, end), part in zip(ranges, parts, strict=True):
+        if start == end:
+            name = f"page_{start}.pdf"
+        else:
+            name = f"pages_{start}_{end}.pdf"
+        out = output / name
         part.save(str(out))
-        print(f"  Part {i}: pages {r[0]}-{r[1]} → {part.page_count} pages")
-        print(f"    Saved: {out} ({out.stat().st_size:,} bytes)")
+        size = out.stat().st_size
+        print(f"  Pages {start}-{end}: {part.page_count} page(s) "
+              f"-> {out.name} ({size:,} bytes)")
 
-    # ── Split single pages ───────────────────────────────────────
-    section("Split single pages — pages 1, 100, 607, 1213")
-    targets = [1, 100, 607, doc.page_count]
-    with timed(f"split {len(targets)} single pages"):
-        singles = doc.split([(p, p) for p in targets])
-    for p, single in zip(targets, singles, strict=True):
-        out = OUTPUT_DIR / f"single_page_{p}.pdf"
-        single.save(str(out))
-        text = single.pages[0].extract_text()
-        print(f"  Page {p}: {single.page_count} page, {out.stat().st_size:,} bytes")
-        print(f"    Text: {text[:80].replace(chr(10), ' ')}...")
-        print(f"    Saved: {out}")
-
-    # ── Save bytes round-trip ────────────────────────────────────
-    section("Save bytes round-trip")
-    with timed("save_bytes"):
-        data = singles[0].save_bytes()
-    print(f"  Bytes: {len(data):,}")
-    with timed("reopen from bytes"):
-        reopened = paperjam.open(data)
-    print(f"  Reopened: {reopened.page_count} page(s)")
-    print(f"  Text: {reopened.pages[0].extract_text()[:80]}...")
-
-    # ── Summary ──────────────────────────────────────────────────
-    total_time = time.perf_counter() - t_start
-    print(f"\n{'=' * 60}")
-    print(f"  Total: {total_time:.3f}s")
-    print(f"{'=' * 60}")
+    print(f"\nSplit into {len(parts)} part(s) in {output}/")
 
 
 if __name__ == "__main__":
