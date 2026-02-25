@@ -40,6 +40,9 @@ python-source = "python"
 module-name = "paperjam._paperjam"
 features = ["pyo3/extension-module"]
 manifest-path = "crates/paperjam-python/Cargo.toml"
+include = [
+    { path = "python/paperjam/libpdfium.so", format = "wheel" },
+]
 
 [tool.pytest.ini_options]
 testpaths = ["tests/python"]
