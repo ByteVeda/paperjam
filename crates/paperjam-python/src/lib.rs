@@ -20,6 +20,10 @@ fn _paperjam(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(manipulation::py_split, m)?)?;
     m.add_function(wrap_pyfunction!(manipulation::py_rotate_pages, m)?)?;
     m.add_function(wrap_pyfunction!(manipulation::py_reorder_pages, m)?)?;
+    m.add_function(wrap_pyfunction!(manipulation::py_optimize, m)?)?;
+    m.add_function(wrap_pyfunction!(manipulation::py_add_annotation, m)?)?;
+    m.add_function(wrap_pyfunction!(manipulation::py_remove_annotations, m)?)?;
+    m.add_function(wrap_pyfunction!(manipulation::py_add_watermark, m)?)?;
 
     Ok(())
 }

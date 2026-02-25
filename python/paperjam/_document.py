@@ -6,8 +6,9 @@ import os
 from typing import TYPE_CHECKING, overload
 
 from paperjam import _paperjam
+from paperjam._enums import AnnotationType, WatermarkLayer, WatermarkPosition
 from paperjam._page import Page
-from paperjam._types import Bookmark, Metadata, SearchResult
+from paperjam._types import Annotation, Bookmark, Metadata, OptimizeResult, SearchResult
 
 if TYPE_CHECKING:
     from collections.abc import Iterator
@@ -156,6 +157,91 @@ class Document:
         """
         inner = self._ensure_open()
         result = _paperjam.reorder_pages(inner, page_order)
+        doc = object.__new__(Document)
+        doc._inner = result
+        doc._closed = False
+        return doc
+
+    def optimize(
+        self,
+        *,
+        compress_streams: bool = True,
+        remove_unused: bool = True,
+        remove_duplicates: bool = True,
+        strip_metadata: bool = False,
+    ) -> tuple[Document, OptimizeResult]:
+        """Optimize the PDF to reduce file size.
+
+        Returns a tuple of (optimized_document, result_stats).
+        """
+        inner = self._ensure_open()
+        optimized, stats = _paperjam.optimize(
+            inner, compress_streams, remove_unused, remove_duplicates, strip_metadata
+        )
+        doc = object.__new__(Document)
+        doc._inner = optimized
+        doc._closed = False
+        return doc, OptimizeResult(**stats)
+
+    def add_annotation(
+        self,
+        page: int,
+        annotation_type: AnnotationType | str,
+        rect: tuple[float, float, float, float],
+        *,
+        contents: str | None = None,
+        author: str | None = None,
+        color: tuple[float, float, float] | None = None,
+        opacity: float | None = None,
+        quad_points: tuple[float, ...] | None = None,
+        url: str | None = None,
+    ) -> Document:
+        """Add an annotation to a page, returning a new Document."""
+        inner = self._ensure_open()
+        type_str = annotation_type.value if isinstance(annotation_type, AnnotationType) else str(annotation_type)
+        result = _paperjam.add_annotation(
+            inner, page, type_str, list(rect),
+            contents, author,
+            list(color) if color else None,
+            opacity,
+            list(quad_points) if quad_points else None,
+            url,
+        )
+        doc = object.__new__(Document)
+        doc._inner = result
+        doc._closed = False
+        return doc
+
+    def remove_annotations(self, page: int) -> Document:
+        """Remove all annotations from a page, returning a new Document."""
+        inner = self._ensure_open()
+        result, _count = _paperjam.remove_annotations(inner, page)
+        doc = object.__new__(Document)
+        doc._inner = result
+        doc._closed = False
+        return doc
+
+    def add_watermark(
+        self,
+        text: str,
+        *,
+        font_size: float = 60.0,
+        rotation: float = 45.0,
+        opacity: float = 0.3,
+        color: tuple[float, float, float] = (0.5, 0.5, 0.5),
+        font: str = "Helvetica",
+        position: WatermarkPosition | str = WatermarkPosition.CENTER,
+        layer: WatermarkLayer | str = WatermarkLayer.OVER,
+        pages: list[int] | None = None,
+    ) -> Document:
+        """Add a text watermark to pages, returning a new Document."""
+        inner = self._ensure_open()
+        pos_str = position.value if isinstance(position, WatermarkPosition) else str(position)
+        layer_str = layer.value if isinstance(layer, WatermarkLayer) else str(layer)
+        result = _paperjam.add_watermark(
+            inner, text, font_size, rotation, opacity,
+            list(color), font, pos_str, layer_str, pages,
+        )
         doc = object.__new__(Document)
         doc._inner = result
         doc._closed = False
