@@ -31,10 +31,7 @@ def render_fast(args: argparse.Namespace) -> None:
     total = doc.page_count
     print(f"Opened: {args.input} ({total} pages)")
 
-    if args.pages:
-        page_nums = parse_pages(args.pages, total)
-    else:
-        page_nums = list(range(1, total + 1))
+    page_nums = parse_pages(args.pages, total) if args.pages else list(range(1, total + 1))
 
     scaling = ""
     if args.width:
@@ -66,7 +63,7 @@ def render_batch(args: argparse.Namespace) -> None:
     doc = paperjam.open(args.input)
     print(f"Opened: {args.input} ({doc.page_count} pages)")
 
-    if args.pages:
+    if args.pages:  # noqa: SIM108
         page_nums = parse_pages(args.pages, doc.page_count)
     else:
         page_nums = None  # render_pages treats None as all pages

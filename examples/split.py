@@ -41,18 +41,12 @@ def main() -> None:
     doc = paperjam.open(args.input)
     print(f"Opened: {args.input} ({doc.page_count} pages)")
 
-    if args.each:
-        ranges = [(i, i) for i in range(1, doc.page_count + 1)]
-    else:
-        ranges = [parse_range(r) for r in args.ranges]
+    ranges = [(i, i) for i in range(1, doc.page_count + 1)] if args.each else [parse_range(r) for r in args.ranges]
 
     parts = doc.split(ranges)
 
     for (start, end), part in zip(ranges, parts, strict=True):
-        if start == end:
-            name = f"page_{start}.pdf"
-        else:
-            name = f"pages_{start}_{end}.pdf"
+        name = f"page_{start}.pdf" if start == end else f"pages_{start}_{end}.pdf"
         out = output / name
         part.save(str(out))
         size = out.stat().st_size

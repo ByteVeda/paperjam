@@ -46,7 +46,7 @@ def main() -> None:
         remove_links=not args.keep_links,
     )
 
-    print(f"\nSanitization results:")
+    print("\nSanitization results:")
     print(f"  JavaScript removed:      {result.javascript_removed}")
     print(f"  Embedded files removed:  {result.embedded_files_removed}")
     print(f"  Actions removed:         {result.actions_removed}")
@@ -54,7 +54,7 @@ def main() -> None:
     print(f"  Total items removed:     {result.total_removed}")
 
     if result.items:
-        print(f"\nDetails:")
+        print("\nDetails:")
         for item in result.items:
             loc = f" (page {item.page})" if item.page else ""
             print(f"  [{item.category}]{loc} {item.description}")

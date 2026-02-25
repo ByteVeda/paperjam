@@ -27,7 +27,7 @@ def main():
         strip_metadata=args.strip_metadata,
     )
 
-    print(f"\nOptimization results:")
+    print("\nOptimization results:")
     print(f"  Original size:      {result.original_size:,} bytes")
     print(f"  Optimized size:     {result.optimized_size:,} bytes")
     print(f"  Reduction:          {result.reduction_percent:.1f}%")
