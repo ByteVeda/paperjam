@@ -6,7 +6,7 @@ from typing import Any
 
 from paperjam import _paperjam  # noqa: TC001
 from paperjam._enums import TableStrategy
-from paperjam._types import Cell, Image, PageInfo, Row, SearchResult, Table, TextLine, TextSpan
+from paperjam._types import Annotation, Cell, Image, PageInfo, Row, SearchResult, Table, TextLine, TextSpan
 
 
 class Page:
@@ -90,6 +90,25 @@ class Page:
         """Extract text as individually positioned spans."""
         raw_spans = self._inner.extract_text_spans()
         return [TextSpan(**s) for s in raw_spans]
+
+    @property
+    def annotations(self) -> list[Annotation]:
+        """Get all annotations on this page."""
+        if self._doc is None:
+            raise RuntimeError("Page has no document reference; cannot get annotations")
+        raw = self._doc.annotations(self.number)
+        return [
+            Annotation(
+                type=a["type"],
+                rect=tuple(a["rect"]),
+                contents=a["contents"],
+                author=a["author"],
+                color=tuple(a["color"]) if a["color"] else None,
+                creation_date=a["creation_date"],
+                opacity=a["opacity"],
+            )
+            for a in raw
+        ]
 
     def extract_images(self) -> list[Image]:
         """Extract all images embedded in this page."""

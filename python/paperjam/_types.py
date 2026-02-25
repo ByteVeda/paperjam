@@ -185,3 +185,33 @@ class SearchResult:
     text: str
     line_number: int
     bbox: tuple[float, float, float, float] | None
+
+
+@dataclasses.dataclass(frozen=True, slots=True)
+class OptimizeResult:
+    """Statistics from PDF optimization."""
+
+    original_size: int
+    optimized_size: int
+    objects_removed: int
+    streams_compressed: int
+
+    @property
+    def reduction_percent(self) -> float:
+        """Percentage size reduction achieved."""
+        if self.original_size == 0:
+            return 0.0
+        return (1 - self.optimized_size / self.original_size) * 100
+
+
+@dataclasses.dataclass(frozen=True, slots=True)
+class Annotation:
+    """A PDF annotation extracted from a page."""
+
+    type: str
+    rect: tuple[float, float, float, float]
+    contents: str | None = None
+    author: str | None = None
+    color: tuple[float, float, float] | None = None
+    creation_date: str | None = None
+    opacity: float | None = None

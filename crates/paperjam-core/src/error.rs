@@ -32,6 +32,15 @@ pub enum PdfError {
     #[error("Table extraction failed: {0}")]
     TableExtraction(String),
 
+    #[error("Optimization failed: {0}")]
+    Optimization(String),
+
+    #[error("Annotation error: {0}")]
+    Annotation(String),
+
+    #[error("Watermark error: {0}")]
+    Watermark(String),
+
     #[error("Object ({0}, {1}) not found")]
     ObjectNotFound(u32, u16),
 

@@ -11,6 +11,9 @@ class InvalidPassword(PaperJamError): ...  # noqa: N818
 class PageOutOfRange(PaperJamError): ...  # noqa: N818
 class UnsupportedFeature(PaperJamError): ...  # noqa: N818
 class TableExtractionError(PaperJamError): ...
+class OptimizationError(PaperJamError): ...
+class AnnotationError(PaperJamError): ...
+class WatermarkError(PaperJamError): ...
 
 # --- Classes ---
 
@@ -30,6 +33,7 @@ class RustDocument:
     def save(self, path: str) -> None: ...
     def extract_images(self, page_number: int) -> list[dict[str, Any]]: ...
     def bookmarks(self) -> list[dict[str, Any]]: ...
+    def annotations(self, page_number: int) -> list[dict[str, Any]]: ...
 
 class RustPage:
     def number(self) -> int: ...
@@ -70,4 +74,43 @@ def rotate_pages(
 def reorder_pages(
     document: RustDocument,
     page_order: list[int],
+) -> RustDocument: ...
+
+def optimize(
+    document: RustDocument,
+    compress_streams: bool,
+    remove_unused: bool,
+    remove_duplicates: bool,
+    strip_metadata: bool,
+) -> tuple[RustDocument, dict[str, Any]]: ...
+
+def add_annotation(
+    document: RustDocument,
+    page_number: int,
+    annotation_type: str,
+    rect: list[float],
+    contents: str | None = None,
+    author: str | None = None,
+    color: list[float] | None = None,
+    opacity: float | None = None,
+    quad_points: list[float] | None = None,
+    url: str | None = None,
+) -> RustDocument: ...
+
+def remove_annotations(
+    document: RustDocument,
+    page_number: int,
+) -> tuple[RustDocument, int]: ...
+
+def add_watermark(
+    document: RustDocument,
+    text: str,
+    font_size: float,
+    rotation: float,
+    opacity: float,
+    color: list[float],
+    font: str,
+    position: str,
+    layer: str,
+    pages: list[int] | None = None,
 ) -> RustDocument: ...

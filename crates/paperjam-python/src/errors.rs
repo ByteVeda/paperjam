@@ -35,6 +35,24 @@ create_exception!(
     PaperJamError,
     "Table extraction error."
 );
+create_exception!(
+    _paperjam,
+    OptimizationError,
+    PaperJamError,
+    "Optimization error."
+);
+create_exception!(
+    _paperjam,
+    AnnotationError,
+    PaperJamError,
+    "Annotation error."
+);
+create_exception!(
+    _paperjam,
+    WatermarkError,
+    PaperJamError,
+    "Watermark error."
+);
 
 /// Convert a Rust PdfError into the appropriate Python exception.
 pub fn to_py_err(err: PdfError) -> PyErr {
@@ -52,6 +70,9 @@ pub fn to_py_err(err: PdfError) -> PyErr {
         }
         PdfError::Unsupported(msg) => UnsupportedFeature::new_err(msg),
         PdfError::TableExtraction(msg) => TableExtractionError::new_err(msg),
+        PdfError::Optimization(msg) => OptimizationError::new_err(msg),
+        PdfError::Annotation(msg) => AnnotationError::new_err(msg),
+        PdfError::Watermark(msg) => WatermarkError::new_err(msg),
         PdfError::FontDecode { font_name, message } => {
             ParseError::new_err(format!("Font '{}': {}", font_name, message))
         }
@@ -75,5 +96,11 @@ pub fn register_exceptions(m: &Bound<'_, PyModule>) -> PyResult<()> {
         "TableExtractionError",
         m.py().get_type::<TableExtractionError>(),
     )?;
+    m.add(
+        "OptimizationError",
+        m.py().get_type::<OptimizationError>(),
+    )?;
+    m.add("AnnotationError", m.py().get_type::<AnnotationError>())?;
+    m.add("WatermarkError", m.py().get_type::<WatermarkError>())?;
     Ok(())
 }

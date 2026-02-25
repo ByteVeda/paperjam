@@ -2,6 +2,7 @@ use std::collections::BTreeMap;
 use std::path::Path;
 use std::sync::{Arc, Mutex};
 
+use crate::annotations::{self, AddAnnotationOptions, Annotation};
 use crate::bookmarks::{self, BookmarkItem};
 use crate::error::{PdfError, Result};
 use crate::image::{self, ImageInfo};
@@ -126,6 +127,27 @@ impl Document {
     /// Extract the document's bookmark/outline tree as a flat list.
     pub fn bookmarks(&self) -> Result<Vec<BookmarkItem>> {
         bookmarks::extract_bookmarks(&self.inner)
+    }
+
+    /// Extract annotations from a specific page (1-indexed).
+    pub fn extract_annotations(&self, page_number: u32) -> Result<Vec<Annotation>> {
+        annotations::extract_annotations(&self.inner, page_number, &self.page_map)
+    }
+
+    /// Add an annotation to a specific page.
+    pub fn add_annotation(
+        &mut self,
+        page_number: u32,
+        options: &AddAnnotationOptions,
+    ) -> Result<()> {
+        let page_map = self.page_map.clone();
+        annotations::add_annotation(&mut self.inner, page_number, &page_map, options)
+    }
+
+    /// Remove all annotations from a specific page. Returns count removed.
+    pub fn remove_annotations(&mut self, page_number: u32) -> Result<usize> {
+        let page_map = self.page_map.clone();
+        annotations::remove_annotations(&mut self.inner, page_number, &page_map)
     }
 
     /// Access the underlying lopdf Document (for manipulation operations).
