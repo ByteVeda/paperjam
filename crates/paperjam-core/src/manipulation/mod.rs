@@ -2,6 +2,7 @@ pub mod merge;
 pub mod reorder;
 pub mod rotate;
 pub mod split;
+pub(crate) mod utils;
 
 pub use merge::{merge, merge_files, MergeOptions};
 pub use reorder::reorder_pages;
