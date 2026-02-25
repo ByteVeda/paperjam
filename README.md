@@ -30,7 +30,7 @@ pip install paperjam
 ### From source
 
 ```bash
-git clone https://github.com/user/paperjam.git
+git clone https://github.com/pratyush618/paperjam.git
 cd paperjam
 pip install maturin
 maturin develop --release
