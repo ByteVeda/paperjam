@@ -19,6 +19,9 @@ paperjam is a Python library with a Rust core for reading, manipulating, and ana
 - **Optimization** — compress streams, remove unused objects, deduplicate, strip metadata
 - **Sanitization** — remove JavaScript, embedded files, auto-launch actions, link annotations
 - **PDF diff** — text-level comparison of two documents using LCS algorithm
+- **Redaction** — true content-stream redaction (removes text operators, not just cosmetic overlay)
+- **Layout-aware reading order** — multi-column detection, header/footer identification, correct reading order
+- **PDF to Markdown** — convert structured content to clean markdown for LLM/RAG pipelines
 - **Password-protected PDFs** — open encrypted documents with password
 
 ## Installation
@@ -337,6 +340,86 @@ for page_diff in result.page_diffs:
             print(f"  ~ {op.text_a} → {op.text_b}")
 ```
 
+### Redaction
+
+True content-stream redaction — removes text operators from the PDF, not just cosmetic overlays:
+
+```python
+# Redact by text search
+redacted, result = doc.redact_text(
+    "SSN: 123-45-6789",
+    case_sensitive=True,
+    fill_color=(0.0, 0.0, 0.0),  # black rectangle overlay
+)
+
+print(f"Pages modified: {result.pages_modified}")
+print(f"Items redacted: {result.items_redacted}")
+for item in result.items:
+    print(f"  Page {item.page}: {item.text!r}")
+
+redacted.save("redacted.pdf")
+```
+
+Redact by region (bounding box coordinates):
+
+```python
+from paperjam import RedactRegion
+
+redacted, result = doc.redact(
+    regions=[
+        RedactRegion(page=1, rect=(100, 700, 200, 20)),
+        RedactRegion(page=2, rect=(50, 500, 300, 30)),
+    ],
+    fill_color=(0.0, 0.0, 0.0),
+)
+```
+
+### Layout-Aware Reading Order
+
+Detect columns, headers, and footers for correct reading order in multi-column PDFs:
+
+```python
+page = doc.pages[0]
+
+# Analyze page layout
+layout = page.analyze_layout(min_gutter_width=20.0)
+print(f"Columns: {layout.column_count}")
+print(f"Gutters: {layout.gutters}")
+
+for region in layout.regions:
+    col = f" col={region.column_index}" if region.column_index is not None else ""
+    print(f"  {region.kind}{col}: {len(region.lines)} lines")
+
+# Extract text in correct reading order
+text = page.extract_text_layout(min_gutter_width=20.0)
+```
+
+Use layout-aware ordering with structured content extraction:
+
+```python
+blocks = doc.extract_structure(layout_aware=True)
+```
+
+### PDF to Markdown
+
+Convert PDF content to clean Markdown for LLM/RAG pipelines:
+
+```python
+# Whole document
+md = doc.to_markdown()
+
+# With options
+md = doc.to_markdown(
+    heading_offset=1,            # shift heading levels up
+    include_page_numbers=True,   # insert <!-- page N --> comments
+    html_tables=True,            # use HTML tables instead of pipe tables
+    layout_aware=True,           # use layout-aware reading order
+)
+
+# Single page
+md = doc.pages[0].to_markdown()
+```
+
 ### Saving
 
 ```python
@@ -372,6 +455,11 @@ All types are frozen dataclasses with `__slots__`.
 | `DiffResult` | Complete diff with page_diffs and summary |
 | `SanitizedItem` | Item removed during sanitization (category, description, page) |
 | `SanitizeResult` | Sanitization stats with `total_removed` property |
+| `RedactRegion` | Redaction target with page number and bounding rect |
+| `RedactedItem` | Item removed during redaction (page, text, rect) |
+| `RedactResult` | Redaction stats with `pages_modified`, `items_redacted` |
+| `LayoutRegion` | Page region with kind, bbox, lines, and column index |
+| `PageLayout` | Layout analysis result with columns, gutters, and regions |
 
 ## Enums
 
