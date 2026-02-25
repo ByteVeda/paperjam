@@ -14,6 +14,7 @@ class TableExtractionError(PaperJamError): ...
 class OptimizationError(PaperJamError): ...
 class AnnotationError(PaperJamError): ...
 class WatermarkError(PaperJamError): ...
+class SanitizeError(PaperJamError): ...
 
 # --- Classes ---
 
@@ -34,6 +35,13 @@ class RustDocument:
     def extract_images(self, page_number: int) -> list[dict[str, Any]]: ...
     def bookmarks(self) -> list[dict[str, Any]]: ...
     def annotations(self, page_number: int) -> list[dict[str, Any]]: ...
+    def extract_structure(
+        self,
+        *,
+        heading_size_ratio: float = 1.2,
+        detect_lists: bool = True,
+        include_tables: bool = True,
+    ) -> list[dict[str, Any]]: ...
 
 class RustPage:
     def number(self) -> int: ...
@@ -52,6 +60,13 @@ class RustPage:
         snap_tolerance: float = 3.0,
         row_tolerance: float = 0.5,
         min_col_gap: float = 10.0,
+    ) -> list[dict[str, Any]]: ...
+    def extract_structure(
+        self,
+        *,
+        heading_size_ratio: float = 1.2,
+        detect_lists: bool = True,
+        include_tables: bool = True,
     ) -> list[dict[str, Any]]: ...
 
 # --- Module-level functions ---
@@ -114,3 +129,16 @@ def add_watermark(
     layer: str,
     pages: list[int] | None = None,
 ) -> RustDocument: ...
+
+def diff_documents(
+    document_a: RustDocument,
+    document_b: RustDocument,
+) -> dict[str, Any]: ...
+
+def sanitize(
+    document: RustDocument,
+    remove_javascript: bool = True,
+    remove_embedded_files: bool = True,
+    remove_actions: bool = True,
+    remove_links: bool = True,
+) -> tuple[RustDocument, dict[str, Any]]: ...
