@@ -6,7 +6,7 @@ from typing import Any
 
 from paperjam import _paperjam  # noqa: TC001
 from paperjam._enums import TableStrategy
-from paperjam._types import Cell, PageInfo, Row, Table, TextLine, TextSpan
+from paperjam._types import Cell, Image, PageInfo, Row, SearchResult, Table, TextLine, TextSpan
 
 
 class Page:
@@ -16,9 +16,10 @@ class Page:
     extraction methods like extract_text() or extract_tables().
     """
 
-    __slots__ = ("_inner",)
+    __slots__ = ("_doc", "_inner")
 
     _inner: Any
+    _doc: Any  # RustDocument reference for document-level operations
 
     def __init__(self) -> None:
         raise TypeError(
@@ -26,9 +27,14 @@ class Page:
         )
 
     @classmethod
-    def _from_rust(cls, rust_page: _paperjam.RustPage) -> Page:
+    def _from_rust(
+        cls,
+        rust_page: _paperjam.RustPage,
+        rust_doc: _paperjam.RustDocument | None = None,
+    ) -> Page:
         obj = object.__new__(cls)
         obj._inner = rust_page
+        obj._doc = rust_doc
         return obj
 
     def __repr__(self) -> str:
@@ -84,6 +90,46 @@ class Page:
         """Extract text as individually positioned spans."""
         raw_spans = self._inner.extract_text_spans()
         return [TextSpan(**s) for s in raw_spans]
+
+    def extract_images(self) -> list[Image]:
+        """Extract all images embedded in this page."""
+        if self._doc is None:
+            raise RuntimeError("Page has no document reference; cannot extract images")
+        raw = self._doc.extract_images(self.number)
+        return [
+            Image(
+                width=img["width"],
+                height=img["height"],
+                color_space=img["color_space"],
+                bits_per_component=img["bits_per_component"],
+                filters=img["filters"],
+                data=bytes(img["data"]),
+            )
+            for img in raw
+        ]
+
+    def search(
+        self,
+        query: str,
+        *,
+        case_sensitive: bool = True,
+    ) -> list[SearchResult]:
+        """Search for text in this page, returning matches with line info."""
+        lines = self.extract_text_lines()
+        results: list[SearchResult] = []
+        q = query if case_sensitive else query.lower()
+        for i, line in enumerate(lines):
+            text = line.text if case_sensitive else line.text.lower()
+            if q in text:
+                results.append(
+                    SearchResult(
+                        page=self.number,
+                        text=line.text,
+                        line_number=i + 1,
+                        bbox=line.bbox,
+                    )
+                )
+        return results
 
     def extract_tables(
         self,

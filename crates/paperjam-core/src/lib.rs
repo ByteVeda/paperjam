@@ -1,5 +1,7 @@
+pub mod bookmarks;
 pub mod document;
 pub mod error;
+pub mod image;
 pub mod io;
 pub mod manipulation;
 pub mod metadata;

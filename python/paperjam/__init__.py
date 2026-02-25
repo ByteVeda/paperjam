@@ -20,18 +20,23 @@ from paperjam._paperjam import (
     PaperJamError as PdfError,
 )
 from paperjam._types import (
+    Bookmark,
     Cell,
+    Image,
     Metadata,
     PageInfo,
     Row,
+    SearchResult,
     Table,
     TextLine,
     TextSpan,
 )
 
 __all__ = [
+    "Bookmark",
     "Cell",
     "Document",
+    "Image",
     "InvalidPassword",
     "Metadata",
     "Page",
@@ -42,6 +47,7 @@ __all__ = [
     "PdfError",
     "Rotation",
     "Row",
+    "SearchResult",
     "Table",
     "TableExtractionError",
     "TableStrategy",

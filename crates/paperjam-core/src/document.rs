@@ -2,7 +2,9 @@ use std::collections::BTreeMap;
 use std::path::Path;
 use std::sync::{Arc, Mutex};
 
+use crate::bookmarks::{self, BookmarkItem};
 use crate::error::{PdfError, Result};
+use crate::image::{self, ImageInfo};
 use crate::metadata::Metadata;
 use crate::page::Page;
 
@@ -114,6 +116,16 @@ impl Document {
         let meta = Arc::new(meta);
         *cache = Some(Arc::clone(&meta));
         Ok(meta)
+    }
+
+    /// Extract images from a specific page (1-indexed).
+    pub fn extract_images(&self, page_number: u32) -> Result<Vec<ImageInfo>> {
+        image::extract_page_images(&self.inner, page_number, &self.page_map)
+    }
+
+    /// Extract the document's bookmark/outline tree as a flat list.
+    pub fn bookmarks(&self) -> Result<Vec<BookmarkItem>> {
+        bookmarks::extract_bookmarks(&self.inner)
     }
 
     /// Access the underlying lopdf Document (for manipulation operations).

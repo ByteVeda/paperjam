@@ -87,3 +87,20 @@ pub fn py_rotate_pages(
         inner: std::sync::Arc::new(doc),
     })
 }
+
+#[pyfunction]
+#[pyo3(name = "reorder_pages")]
+pub fn py_reorder_pages(
+    py: Python<'_>,
+    document: &PyDocument,
+    page_order: Vec<u32>,
+) -> PyResult<PyDocument> {
+    let inner = std::sync::Arc::clone(&document.inner);
+    let result = py
+        .allow_threads(move || paperjam_core::manipulation::reorder_pages(&inner, &page_order))
+        .map_err(to_py_err)?;
+
+    Ok(PyDocument {
+        inner: std::sync::Arc::new(result),
+    })
+}

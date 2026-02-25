@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING, overload
 
 from paperjam import _paperjam
 from paperjam._page import Page
-from paperjam._types import Metadata
+from paperjam._types import Bookmark, Metadata, SearchResult
 
 if TYPE_CHECKING:
     from collections.abc import Iterator
@@ -119,6 +119,80 @@ class Document:
         """Split into individual single-page documents."""
         return self.split([(i, i) for i in range(1, self.page_count + 1)])
 
+    @property
+    def bookmarks(self) -> list[Bookmark]:
+        """Document bookmarks/table of contents as a nested tree."""
+        raw = self._ensure_open().bookmarks()
+        return _build_bookmark_tree(raw)
+
+    def search(
+        self,
+        query: str,
+        *,
+        case_sensitive: bool = True,
+        max_results: int = 0,
+    ) -> list[SearchResult]:
+        """Search for text across all pages.
+
+        Args:
+            query: The text to search for.
+            case_sensitive: Whether the search is case-sensitive (default True).
+            max_results: Maximum number of results to return (0 = unlimited).
+        """
+        results: list[SearchResult] = []
+        for page in self.pages:
+            matches = page.search(query, case_sensitive=case_sensitive)
+            results.extend(matches)
+            if max_results > 0 and len(results) >= max_results:
+                return results[:max_results]
+        return results
+
+    def reorder(self, page_order: list[int]) -> Document:
+        """Reorder pages, returning a new Document.
+
+        Args:
+            page_order: List of 1-indexed page numbers in desired order.
+                        Can subset (drop pages) or repeat (duplicate pages).
+        """
+        inner = self._ensure_open()
+        result = _paperjam.reorder_pages(inner, page_order)
+        doc = object.__new__(Document)
+        doc._inner = result
+        doc._closed = False
+        return doc
+
+
+def _build_bookmark_tree(flat_items: list[dict]) -> list[Bookmark]:
+    """Build a nested bookmark tree from a flat level-annotated list."""
+    if not flat_items:
+        return []
+
+    result: list[Bookmark] = []
+    i = 0
+    while i < len(flat_items):
+        item = flat_items[i]
+        level = item["level"]
+
+        # Collect all children (items with higher level immediately following)
+        children_items: list[dict] = []
+        j = i + 1
+        while j < len(flat_items) and flat_items[j]["level"] > level:
+            children_items.append(flat_items[j])
+            j += 1
+
+        children = _build_bookmark_tree(children_items)
+        result.append(
+            Bookmark(
+                title=item["title"],
+                page=item["page"],
+                level=level,
+                children=tuple(children),
+            )
+        )
+        i = j
+
+    return result
+
 
 class _PageAccessor:
     """Provides both indexing and iteration over pages."""
@@ -144,10 +218,10 @@ class _PageAccessor:
                 index += len(self)
             if index < 0 or index >= len(self):
                 raise IndexError(f"page index {index} out of range")
-            return Page._from_rust(inner.page(index + 1))
+            return Page._from_rust(inner.page(index + 1), inner)
         elif isinstance(index, slice):
             indices = range(*index.indices(len(self)))
-            return [Page._from_rust(inner.page(i + 1)) for i in indices]
+            return [Page._from_rust(inner.page(i + 1), inner) for i in indices]
         else:
             raise TypeError(
                 f"indices must be integers or slices, not {type(index).__name__}"
@@ -156,4 +230,4 @@ class _PageAccessor:
     def __iter__(self) -> Iterator[Page]:
         inner = self._doc._ensure_open()
         for i in range(1, len(self) + 1):
-            yield Page._from_rust(inner.page(i))
+            yield Page._from_rust(inner.page(i), inner)
