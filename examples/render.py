@@ -36,10 +36,20 @@ def render_fast(args: argparse.Namespace) -> None:
     else:
         page_nums = list(range(1, total + 1))
 
-    print(f"Rendering {len(page_nums)} page(s) at {args.dpi} DPI ({args.format}) [fast mode]...")
+    scaling = ""
+    if args.width:
+        scaling += f", width={args.width}px"
+    if args.height:
+        scaling += f", height={args.height}px"
+    print(f"Rendering {len(page_nums)} page(s) at {args.dpi} DPI ({args.format}{scaling}) [fast mode]...")
 
     for num in page_nums:
-        img = paperjam.render(data, page=num, dpi=args.dpi, format=args.format, quality=args.quality)
+        img = paperjam.render(
+            data, page=num, dpi=args.dpi, format=args.format, quality=args.quality,
+            background_color=args.bg_tuple,
+            scale_to_width=args.width,
+            scale_to_height=args.height,
+        )
         filename = f"{basename}_page_{num}.{img.format}"
         output_path = os.path.join(args.output, filename)
         img.save(output_path)
@@ -62,13 +72,21 @@ def render_batch(args: argparse.Namespace) -> None:
         page_nums = None  # render_pages treats None as all pages
 
     page_desc = f"{len(page_nums)} page(s)" if page_nums else f"all {doc.page_count} page(s)"
-    print(f"Rendering {page_desc} at {args.dpi} DPI ({args.format})...")
+    scaling = ""
+    if args.width:
+        scaling += f", width={args.width}px"
+    if args.height:
+        scaling += f", height={args.height}px"
+    print(f"Rendering {page_desc} at {args.dpi} DPI ({args.format}{scaling})...")
 
     images = doc.render_pages(
         pages=page_nums,
         dpi=args.dpi,
         format=args.format,
         quality=args.quality,
+        background_color=args.bg_tuple,
+        scale_to_width=args.width,
+        scale_to_height=args.height,
     )
     for img in images:
         filename = f"{basename}_page_{img.page}.{img.format}"
@@ -105,10 +123,27 @@ def main() -> None:
         help="JPEG quality 1-100 (default: 85, ignored for PNG/BMP)",
     )
     parser.add_argument(
+        "--width", type=int, default=None,
+        help="Scale output to this pixel width (overrides DPI)",
+    )
+    parser.add_argument(
+        "--height", type=int, default=None,
+        help="Scale output to this pixel height (overrides DPI)",
+    )
+    parser.add_argument(
+        "--background-color", default=None,
+        help="Background color as 'R,G,B' with 0-255 values (e.g. '255,255,255')",
+    )
+    parser.add_argument(
         "--fast", action="store_true",
         help="Use standalone render() fast path (bytes -> image, no Document needed)",
     )
     args = parser.parse_args()
+
+    if args.background_color:
+        args.bg_tuple = tuple(int(c) for c in args.background_color.split(","))
+    else:
+        args.bg_tuple = None
 
     if args.fast:
         render_fast(args)

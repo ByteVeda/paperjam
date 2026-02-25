@@ -24,6 +24,10 @@ def main() -> None:
         "-i", "--case-insensitive", action="store_true",
         help="Case-insensitive search",
     )
+    parser.add_argument(
+        "-r", "--regex", action="store_true",
+        help="Treat query as a regular expression",
+    )
     args = parser.parse_args()
 
     output = Path(args.output)
@@ -37,11 +41,13 @@ def main() -> None:
     redacted, result = doc.redact_text(
         args.query,
         case_sensitive=not args.case_insensitive,
+        use_regex=args.regex,
         fill_color=fill_color,
     )
 
+    mode = "regex" if args.regex else "literal"
     print("\nRedaction results:")
-    print(f"  Query:          {args.query!r}")
+    print(f"  Query ({mode}):  {args.query!r}")
     print(f"  Pages modified: {result.pages_modified}")
     print(f"  Items redacted: {result.items_redacted}")
 
