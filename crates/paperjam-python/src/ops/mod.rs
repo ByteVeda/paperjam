@@ -1,0 +1,21 @@
+pub mod annotate;
+pub mod diff;
+pub mod forms;
+pub mod merge;
+pub mod optimize;
+pub mod render;
+pub mod security;
+pub mod signature;
+pub mod transform;
+pub mod watermark;
+
+pub use annotate::{py_add_annotation, py_remove_annotations};
+pub use diff::py_diff_documents;
+pub use forms::py_fill_form;
+pub use merge::{py_merge, py_split};
+pub use optimize::py_optimize;
+pub use render::{py_render_file, py_render_page, py_render_pages, py_render_pages_bytes};
+pub use security::{py_redact, py_redact_text, py_sanitize};
+pub use signature::{py_extract_signatures, py_sign_document, py_verify_signatures};
+pub use transform::{py_reorder_pages, py_rotate_pages};
+pub use watermark::py_add_watermark;

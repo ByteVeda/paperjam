@@ -84,3 +84,17 @@ def diff(doc_a: Document, doc_b: Document) -> DiffResult:
     Returns a DiffResult with per-page changes and summary statistics.
     """
     return doc_a.diff(doc_b)
+
+
+def to_markdown(
+    path_or_bytes: str | os.PathLike[str] | bytes,
+    *,
+    password: str | None = None,
+    **kwargs,
+) -> str:
+    """Open a PDF and convert it to Markdown in one call.
+
+    All keyword arguments are forwarded to Document.to_markdown().
+    """
+    doc = Document(path_or_bytes, password=password)
+    return doc.to_markdown(**kwargs)

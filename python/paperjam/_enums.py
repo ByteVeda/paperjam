@@ -47,6 +47,26 @@ class WatermarkPosition(enum.Enum):
     BOTTOM_RIGHT = "bottom_right"
 
 
+class ImageFormat(enum.Enum):
+    """Image format for rendered output."""
+
+    PNG = "png"
+    JPEG = "jpeg"
+    BMP = "bmp"
+
+
+class FormFieldType(enum.Enum):
+    """Type of PDF form field."""
+
+    TEXT = "text"
+    CHECKBOX = "checkbox"
+    RADIO_BUTTON = "radio_button"
+    COMBO_BOX = "combo_box"
+    LIST_BOX = "list_box"
+    PUSH_BUTTON = "push_button"
+    SIGNATURE = "signature"
+
+
 class WatermarkLayer(enum.Enum):
     """Whether watermark appears over or under content."""
 

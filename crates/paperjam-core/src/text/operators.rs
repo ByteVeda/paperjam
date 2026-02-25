@@ -44,6 +44,9 @@ pub enum ContentOperator {
     FillEvenOdd,
     ClosePath,
     SetLineWidth(f64),
+
+    /// Unrecognized operator preserved as raw bytes for lossless round-trip.
+    RawOperator { raw: Vec<u8> },
 }
 
 #[derive(Debug, Clone)]
@@ -87,11 +90,17 @@ pub fn parse_content_stream(bytes: &[u8]) -> Result<Vec<ContentOperator>> {
     let mut ops = Vec::new();
     let mut operand_stack: Vec<Operand> = Vec::new();
     let mut pos = 0;
+    let mut operand_group_start: usize = 0;
 
     while pos < bytes.len() {
         skip_whitespace(bytes, &mut pos);
         if pos >= bytes.len() {
             break;
+        }
+
+        // Track start position of the current operand group
+        if operand_stack.is_empty() {
+            operand_group_start = pos;
         }
 
         let b = bytes[pos];
@@ -151,6 +160,11 @@ pub fn parse_content_stream(bytes: &[u8]) -> Result<Vec<ContentOperator>> {
 
             if let Some(op) = build_operator(&keyword, &mut operand_stack) {
                 ops.push(op);
+            } else {
+                // Preserve unrecognized operator with its operands as raw bytes
+                ops.push(ContentOperator::RawOperator {
+                    raw: bytes[operand_group_start..pos].to_vec(),
+                });
             }
             operand_stack.clear();
             continue;

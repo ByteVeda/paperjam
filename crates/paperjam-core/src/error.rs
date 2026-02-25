@@ -44,6 +44,18 @@ pub enum PdfError {
     #[error("Sanitization error: {0}")]
     Sanitize(String),
 
+    #[error("Redaction error: {0}")]
+    Redact(String),
+
+    #[error("Form error: {0}")]
+    Form(String),
+
+    #[error("Render error: {0}")]
+    Render(String),
+
+    #[error("Signature error: {0}")]
+    Signature(String),
+
     #[error("Object ({0}, {1}) not found")]
     ObjectNotFound(u32, u16),
 

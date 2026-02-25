@@ -193,19 +193,39 @@ impl PyDocument {
         Ok(list)
     }
 
-    #[pyo3(signature = (*, heading_size_ratio=1.2, detect_lists=true, include_tables=true))]
+    fn has_form(&self) -> bool {
+        paperjam_core::forms::has_form(self.inner.inner())
+    }
+
+    fn form_fields<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyList>> {
+        let inner = Arc::clone(&self.inner);
+        let fields = py
+            .allow_threads(move || paperjam_core::forms::extract_form_fields(inner.inner()))
+            .map_err(to_py_err)?;
+
+        let list = PyList::empty(py);
+        for field in &fields {
+            let dict = crate::convert::form_field_to_py(py, field)?;
+            list.append(dict)?;
+        }
+        Ok(list)
+    }
+
+    #[pyo3(signature = (*, heading_size_ratio=1.2, detect_lists=true, include_tables=true, layout_aware=false))]
     fn extract_structure<'py>(
         &self,
         py: Python<'py>,
         heading_size_ratio: f64,
         detect_lists: bool,
         include_tables: bool,
+        layout_aware: bool,
     ) -> PyResult<Bound<'py, PyList>> {
         let inner = Arc::clone(&self.inner);
         let options = paperjam_core::structure::StructureOptions {
             heading_size_ratio,
             detect_lists,
             include_tables,
+            layout_aware,
         };
         let blocks = py
             .allow_threads(move || {
@@ -219,5 +239,54 @@ impl PyDocument {
             list.append(dict)?;
         }
         Ok(list)
+    }
+
+    #[pyo3(signature = (
+        *,
+        heading_offset=0,
+        page_separator="---",
+        include_page_numbers=false,
+        page_number_format="<!-- page {n} -->",
+        html_tables=false,
+        table_header_first_row=true,
+        normalize_list_markers=true,
+        heading_size_ratio=1.2,
+        detect_lists=true,
+        include_tables=true,
+        layout_aware=false,
+    ))]
+    fn to_markdown(
+        &self,
+        py: Python<'_>,
+        heading_offset: u8,
+        page_separator: &str,
+        include_page_numbers: bool,
+        page_number_format: &str,
+        html_tables: bool,
+        table_header_first_row: bool,
+        normalize_list_markers: bool,
+        heading_size_ratio: f64,
+        detect_lists: bool,
+        include_tables: bool,
+        layout_aware: bool,
+    ) -> PyResult<String> {
+        let inner = Arc::clone(&self.inner);
+        let options = paperjam_core::markdown::MarkdownOptions {
+            heading_offset,
+            page_separator: page_separator.to_string(),
+            include_page_numbers,
+            page_number_format: page_number_format.to_string(),
+            html_tables,
+            table_header_first_row,
+            normalize_list_markers,
+            structure_options: paperjam_core::structure::StructureOptions {
+                heading_size_ratio,
+                detect_lists,
+                include_tables,
+                layout_aware,
+            },
+        };
+        py.allow_threads(move || paperjam_core::markdown::document_to_markdown(&inner, &options))
+            .map_err(to_py_err)
     }
 }

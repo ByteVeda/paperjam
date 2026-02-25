@@ -309,3 +309,165 @@ class SanitizeResult:
             + self.actions_removed
             + self.links_removed
         )
+
+
+# --- Redaction types ---
+
+
+@dataclasses.dataclass(frozen=True, slots=True)
+class RedactRegion:
+    """A rectangular region to redact on a specific page."""
+
+    page: int
+    rect: tuple[float, float, float, float]  # (x1, y1, x2, y2) in PDF coordinates
+
+
+@dataclasses.dataclass(frozen=True, slots=True)
+class RedactedItem:
+    """A single item that was redacted."""
+
+    page: int
+    text: str
+    rect: tuple[float, float, float, float]
+
+
+@dataclasses.dataclass(frozen=True, slots=True)
+class RedactResult:
+    """Statistics from PDF redaction."""
+
+    pages_modified: int
+    items_redacted: int
+    items: tuple[RedactedItem, ...]
+
+
+# --- Render types ---
+
+
+@dataclasses.dataclass(frozen=True, slots=True)
+class RenderedImage:
+    """A rendered page image."""
+
+    data: bytes
+    width: int
+    height: int
+    format: str  # "png", "jpeg", "bmp"
+    page: int
+
+    def save(self, path: str) -> None:
+        """Write the image data to a file."""
+        with open(path, "wb") as f:
+            f.write(self.data)
+
+
+# --- Form types ---
+
+
+@dataclasses.dataclass(frozen=True, slots=True)
+class ChoiceOption:
+    """An option in a choice field (combo box or list box)."""
+
+    display: str
+    export_value: str
+
+
+@dataclasses.dataclass(frozen=True, slots=True)
+class FormField:
+    """A form field extracted from the PDF's AcroForm."""
+
+    name: str
+    field_type: str  # "text", "checkbox", "radio_button", "combo_box", "list_box", etc.
+    value: str | None = None
+    default_value: str | None = None
+    page: int | None = None
+    rect: tuple[float, float, float, float] | None = None
+    read_only: bool = False
+    required: bool = False
+    max_length: int = 0
+    options: tuple[ChoiceOption, ...] = ()
+
+
+@dataclasses.dataclass(frozen=True, slots=True)
+class FillFormResult:
+    """Result of a form fill operation."""
+
+    fields_filled: int
+    fields_not_found: int
+    not_found_names: tuple[str, ...] = ()
+
+
+# --- Signature types ---
+
+
+@dataclasses.dataclass(frozen=True, slots=True)
+class CertificateInfo:
+    """Basic X.509 certificate information."""
+
+    subject: str
+    issuer: str
+    serial_number: str
+    not_before: str
+    not_after: str
+    is_self_signed: bool
+
+
+@dataclasses.dataclass(frozen=True, slots=True)
+class SignatureInfo:
+    """Information about a digital signature found in the PDF."""
+
+    name: str
+    signer: str | None = None
+    reason: str | None = None
+    location: str | None = None
+    date: str | None = None
+    contact_info: str | None = None
+    byte_range: tuple[int, int, int, int] | None = None
+    certificate: CertificateInfo | None = None
+    covers_whole_document: bool = False
+
+
+@dataclasses.dataclass(frozen=True, slots=True)
+class SignatureValidity:
+    """Result of signature verification."""
+
+    name: str
+    integrity_ok: bool
+    certificate_valid: bool
+    message: str
+    signer: str | None = None
+
+
+# --- Layout types ---
+
+
+@dataclasses.dataclass(frozen=True, slots=True)
+class LayoutRegion:
+    """A rectangular region of the page with classified content."""
+
+    kind: str  # "header", "footer", "body_column", "full_width"
+    column_index: int | None
+    bbox: tuple[float, float, float, float]
+    lines: tuple[TextLine, ...]
+
+
+@dataclasses.dataclass(frozen=True, slots=True)
+class PageLayout:
+    """Layout analysis result for a single page."""
+
+    page_width: float
+    page_height: float
+    column_count: int
+    gutters: tuple[float, ...]
+    regions: tuple[LayoutRegion, ...]
+
+    @property
+    def is_multi_column(self) -> bool:
+        """True if page has more than one column."""
+        return self.column_count > 1
+
+    def text(self) -> str:
+        """Get all text in reading order."""
+        lines = []
+        for region in self.regions:
+            for line in region.lines:
+                lines.append(line.text)
+        return "\n".join(lines)

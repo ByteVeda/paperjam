@@ -30,5 +30,8 @@ junk/
 .DS_Store
 Thumbs.db
 
+# Bundled native libraries (binary artifacts)
+python/paperjam/libpdfium.so
+
 # Test fixtures (generated)
 tests/fixtures/large_*.pdf
