@@ -75,7 +75,7 @@ def main() -> None:
     # Also print first 20 blocks
     for block in blocks[:20]:
         if block.type == "heading":
-            print(f"  [H{block.level}] {block.text[:80]}")
+            print(f"  [H{block.level}] {(block.text or '')[:80]}")
         elif block.type == "paragraph":
             text = (block.text or "")[:80]
             print(f"  [P]  {text}")
