@@ -120,4 +120,30 @@ impl PyPage {
         }
         Ok(list)
     }
+
+    #[pyo3(signature = (*, heading_size_ratio=1.2, detect_lists=true, include_tables=true))]
+    fn extract_structure<'py>(
+        &self,
+        py: Python<'py>,
+        heading_size_ratio: f64,
+        detect_lists: bool,
+        include_tables: bool,
+    ) -> PyResult<Bound<'py, PyList>> {
+        let page = Arc::clone(&self.inner);
+        let options = paperjam_core::structure::StructureOptions {
+            heading_size_ratio,
+            detect_lists,
+            include_tables,
+        };
+        let blocks = py
+            .allow_threads(move || paperjam_core::structure::extract_structure(&page, &options))
+            .map_err(to_py_err)?;
+
+        let list = PyList::empty(py);
+        for block in &blocks {
+            let dict = crate::convert::content_block_to_py(py, block)?;
+            list.append(dict)?;
+        }
+        Ok(list)
+    }
 }

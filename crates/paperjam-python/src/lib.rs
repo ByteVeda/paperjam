@@ -24,6 +24,8 @@ fn _paperjam(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(manipulation::py_add_annotation, m)?)?;
     m.add_function(wrap_pyfunction!(manipulation::py_remove_annotations, m)?)?;
     m.add_function(wrap_pyfunction!(manipulation::py_add_watermark, m)?)?;
+    m.add_function(wrap_pyfunction!(manipulation::py_diff_documents, m)?)?;
+    m.add_function(wrap_pyfunction!(manipulation::py_sanitize, m)?)?;
 
     Ok(())
 }

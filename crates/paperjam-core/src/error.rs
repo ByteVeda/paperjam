@@ -41,6 +41,9 @@ pub enum PdfError {
     #[error("Watermark error: {0}")]
     Watermark(String),
 
+    #[error("Sanitization error: {0}")]
+    Sanitize(String),
+
     #[error("Object ({0}, {1}) not found")]
     ObjectNotFound(u32, u16),
 

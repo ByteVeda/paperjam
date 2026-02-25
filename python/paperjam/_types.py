@@ -215,3 +215,97 @@ class Annotation:
     color: tuple[float, float, float] | None = None
     creation_date: str | None = None
     opacity: float | None = None
+
+
+# --- Structure extraction types ---
+
+
+@dataclasses.dataclass(frozen=True, slots=True)
+class ContentBlock:
+    """A block of structured content extracted from a page."""
+
+    type: str  # "heading", "paragraph", "list_item", "table"
+    page: int
+    text: str | None = None
+    level: int | None = None  # heading level (1-6), only for headings
+    indent_level: int | None = None  # only for list items
+    bbox: tuple[float, float, float, float] | None = None
+    table: Table | None = None  # only for type="table"
+
+
+# --- Diff types ---
+
+
+@dataclasses.dataclass(frozen=True, slots=True)
+class DiffOp:
+    """A single change detected between two documents."""
+
+    kind: str  # "added", "removed", "changed"
+    page: int
+    text_a: str | None = None
+    text_b: str | None = None
+    bbox_a: tuple[float, float, float, float] | None = None
+    bbox_b: tuple[float, float, float, float] | None = None
+    line_index_a: int | None = None
+    line_index_b: int | None = None
+
+
+@dataclasses.dataclass(frozen=True, slots=True)
+class PageDiff:
+    """Diff results for a single page."""
+
+    page: int
+    ops: tuple[DiffOp, ...]
+
+
+@dataclasses.dataclass(frozen=True, slots=True)
+class DiffSummary:
+    """Summary statistics from a document diff."""
+
+    pages_changed: int
+    pages_added: int
+    pages_removed: int
+    total_additions: int
+    total_removals: int
+    total_changes: int
+
+
+@dataclasses.dataclass(frozen=True, slots=True)
+class DiffResult:
+    """Complete diff result between two documents."""
+
+    page_diffs: tuple[PageDiff, ...]
+    summary: DiffSummary
+
+
+# --- Sanitize types ---
+
+
+@dataclasses.dataclass(frozen=True, slots=True)
+class SanitizedItem:
+    """A single item found and removed during sanitization."""
+
+    category: str
+    description: str
+    page: int | None = None
+
+
+@dataclasses.dataclass(frozen=True, slots=True)
+class SanitizeResult:
+    """Statistics from PDF sanitization."""
+
+    javascript_removed: int
+    embedded_files_removed: int
+    actions_removed: int
+    links_removed: int
+    items: tuple[SanitizedItem, ...]
+
+    @property
+    def total_removed(self) -> int:
+        """Total number of items removed."""
+        return (
+            self.javascript_removed
+            + self.embedded_files_removed
+            + self.actions_removed
+            + self.links_removed
+        )

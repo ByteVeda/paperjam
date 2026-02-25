@@ -8,6 +8,8 @@ if TYPE_CHECKING:
     import os
     from collections.abc import Sequence
 
+    from paperjam._types import DiffResult
+
 from paperjam._document import Document
 
 
@@ -74,3 +76,11 @@ def merge_files(
     """
     docs = [Document(p) for p in paths]
     return merge(docs, deduplicate_resources=deduplicate_resources)
+
+
+def diff(doc_a: Document, doc_b: Document) -> DiffResult:
+    """Compare two PDF documents at the text level.
+
+    Returns a DiffResult with per-page changes and summary statistics.
+    """
+    return doc_a.diff(doc_b)

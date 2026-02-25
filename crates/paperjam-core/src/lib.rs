@@ -1,5 +1,6 @@
 pub mod annotations;
 pub mod bookmarks;
+pub mod diff;
 pub mod document;
 pub mod error;
 pub mod image;
@@ -8,6 +9,8 @@ pub mod manipulation;
 pub mod metadata;
 pub mod optimization;
 pub mod page;
+pub mod sanitize;
+pub mod structure;
 pub mod table;
 pub mod text;
 pub mod watermark;

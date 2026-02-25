@@ -8,7 +8,21 @@ from typing import TYPE_CHECKING, overload
 from paperjam import _paperjam
 from paperjam._enums import AnnotationType, WatermarkLayer, WatermarkPosition
 from paperjam._page import Page
-from paperjam._types import Annotation, Bookmark, Metadata, OptimizeResult, SearchResult
+from paperjam._page import _raw_block_to_content_block
+from paperjam._types import (
+    Annotation,
+    Bookmark,
+    ContentBlock,
+    DiffOp,
+    DiffResult,
+    DiffSummary,
+    Metadata,
+    OptimizeResult,
+    PageDiff,
+    SanitizedItem,
+    SanitizeResult,
+    SearchResult,
+)
 
 if TYPE_CHECKING:
     from collections.abc import Iterator
@@ -246,6 +260,69 @@ class Document:
         doc._inner = result
         doc._closed = False
         return doc
+
+    def extract_structure(
+        self,
+        *,
+        heading_size_ratio: float = 1.2,
+        detect_lists: bool = True,
+        include_tables: bool = True,
+    ) -> list[ContentBlock]:
+        """Extract structured content (headings, paragraphs, lists, tables) from all pages."""
+        inner = self._ensure_open()
+        raw_blocks = inner.extract_structure(
+            heading_size_ratio=heading_size_ratio,
+            detect_lists=detect_lists,
+            include_tables=include_tables,
+        )
+        return [_raw_block_to_content_block(b) for b in raw_blocks]
+
+    def diff(self, other: Document) -> DiffResult:
+        """Compare this document with another at the text level.
+
+        Returns a DiffResult with per-page changes and summary statistics.
+        """
+        inner_a = self._ensure_open()
+        inner_b = other._ensure_open()
+        raw = _paperjam.diff_documents(inner_a, inner_b)
+        return DiffResult(
+            page_diffs=tuple(
+                PageDiff(
+                    page=pd["page"],
+                    ops=tuple(DiffOp(**op) for op in pd["ops"]),
+                )
+                for pd in raw["page_diffs"]
+            ),
+            summary=DiffSummary(**raw["summary"]),
+        )
+
+    def sanitize(
+        self,
+        *,
+        remove_javascript: bool = True,
+        remove_embedded_files: bool = True,
+        remove_actions: bool = True,
+        remove_links: bool = True,
+    ) -> tuple[Document, SanitizeResult]:
+        """Remove potentially dangerous objects from the PDF.
+
+        Returns a tuple of (sanitized_document, result_stats).
+        """
+        inner = self._ensure_open()
+        sanitized, stats = _paperjam.sanitize(
+            inner, remove_javascript, remove_embedded_files,
+            remove_actions, remove_links,
+        )
+        doc = object.__new__(Document)
+        doc._inner = sanitized
+        doc._closed = False
+        return doc, SanitizeResult(
+            javascript_removed=stats["javascript_removed"],
+            embedded_files_removed=stats["embedded_files_removed"],
+            actions_removed=stats["actions_removed"],
+            links_removed=stats["links_removed"],
+            items=tuple(SanitizedItem(**item) for item in stats["items"]),
+        )
 
 
 def _build_bookmark_tree(flat_items: list[dict]) -> list[Bookmark]:

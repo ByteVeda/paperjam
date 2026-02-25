@@ -53,6 +53,12 @@ create_exception!(
     PaperJamError,
     "Watermark error."
 );
+create_exception!(
+    _paperjam,
+    SanitizeError,
+    PaperJamError,
+    "Sanitization error."
+);
 
 /// Convert a Rust PdfError into the appropriate Python exception.
 pub fn to_py_err(err: PdfError) -> PyErr {
@@ -73,6 +79,7 @@ pub fn to_py_err(err: PdfError) -> PyErr {
         PdfError::Optimization(msg) => OptimizationError::new_err(msg),
         PdfError::Annotation(msg) => AnnotationError::new_err(msg),
         PdfError::Watermark(msg) => WatermarkError::new_err(msg),
+        PdfError::Sanitize(msg) => SanitizeError::new_err(msg),
         PdfError::FontDecode { font_name, message } => {
             ParseError::new_err(format!("Font '{}': {}", font_name, message))
         }
@@ -102,5 +109,6 @@ pub fn register_exceptions(m: &Bound<'_, PyModule>) -> PyResult<()> {
     )?;
     m.add("AnnotationError", m.py().get_type::<AnnotationError>())?;
     m.add("WatermarkError", m.py().get_type::<WatermarkError>())?;
+    m.add("SanitizeError", m.py().get_type::<SanitizeError>())?;
     Ok(())
 }
