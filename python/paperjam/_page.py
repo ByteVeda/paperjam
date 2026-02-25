@@ -6,7 +6,7 @@ from typing import Any
 
 from paperjam import _paperjam  # noqa: TC001
 from paperjam._enums import TableStrategy
-from paperjam._types import Annotation, Cell, Image, PageInfo, Row, SearchResult, Table, TextLine, TextSpan
+from paperjam._types import Annotation, Cell, ContentBlock, Image, PageInfo, Row, SearchResult, Table, TextLine, TextSpan
 
 
 class Page:
@@ -150,6 +150,21 @@ class Page:
                 )
         return results
 
+    def extract_structure(
+        self,
+        *,
+        heading_size_ratio: float = 1.2,
+        detect_lists: bool = True,
+        include_tables: bool = True,
+    ) -> list[ContentBlock]:
+        """Extract structured content (headings, paragraphs, lists, tables)."""
+        raw_blocks = self._inner.extract_structure(
+            heading_size_ratio=heading_size_ratio,
+            detect_lists=detect_lists,
+            include_tables=include_tables,
+        )
+        return [_raw_block_to_content_block(b) for b in raw_blocks]
+
     def extract_tables(
         self,
         *,
@@ -197,3 +212,44 @@ class Page:
                 )
             )
         return tables
+
+
+def _raw_block_to_content_block(raw: dict) -> ContentBlock:
+    """Convert a raw dict from Rust into a ContentBlock dataclass."""
+    block_type = raw["type"]
+    page = raw.get("page", 0)
+
+    if block_type == "table":
+        raw_table = raw["table"]
+        rows = tuple(
+            Row(
+                cells=tuple(
+                    Cell(
+                        text=c["text"],
+                        bbox=tuple(c["bbox"]),
+                        col_span=c.get("col_span", 1),
+                        row_span=c.get("row_span", 1),
+                    )
+                    for c in r["cells"]
+                ),
+                y_min=r["y_min"],
+                y_max=r["y_max"],
+            )
+            for r in raw_table["rows"]
+        )
+        table = Table(
+            rows=rows,
+            col_count=raw_table["col_count"],
+            bbox=tuple(raw_table["bbox"]),
+            strategy=raw_table["strategy"],
+        )
+        return ContentBlock(type="table", page=page, table=table, bbox=table.bbox)
+
+    return ContentBlock(
+        type=block_type,
+        page=page,
+        text=raw.get("text"),
+        level=raw.get("level"),
+        indent_level=raw.get("indent_level"),
+        bbox=tuple(raw["bbox"]) if "bbox" in raw else None,
+    )
