@@ -97,6 +97,9 @@ class RustPage:
         min_gutter_width: float = 20.0,
         max_columns: int = 4,
         detect_headers_footers: bool = True,
+        header_zone_fraction: float = 0.08,
+        footer_zone_fraction: float = 0.08,
+        min_column_line_fraction: float = 0.1,
     ) -> dict[str, Any]: ...
     def extract_text_layout(
         self,
@@ -104,6 +107,9 @@ class RustPage:
         min_gutter_width: float = 20.0,
         max_columns: int = 4,
         detect_headers_footers: bool = True,
+        header_zone_fraction: float = 0.08,
+        footer_zone_fraction: float = 0.08,
+        min_column_line_fraction: float = 0.1,
     ) -> str: ...
     def to_markdown(
         self,
@@ -167,6 +173,8 @@ def add_annotation(
 def remove_annotations(
     document: RustDocument,
     page_number: int,
+    annotation_types: list[str] | None = None,
+    indices: list[int] | None = None,
 ) -> tuple[RustDocument, int]: ...
 
 def add_watermark(
@@ -180,6 +188,8 @@ def add_watermark(
     position: str,
     layer: str,
     pages: list[int] | None = None,
+    custom_x: float | None = None,
+    custom_y: float | None = None,
 ) -> RustDocument: ...
 
 def diff_documents(
@@ -205,6 +215,7 @@ def redact_text(
     document: RustDocument,
     query: str,
     case_sensitive: bool = True,
+    use_regex: bool = False,
     fill_color: list[float] | None = None,
 ) -> tuple[RustDocument, dict[str, Any]]: ...
 
@@ -220,6 +231,9 @@ def render_page(
     dpi: float = 150.0,
     format: str = "png",
     quality: int = 85,
+    background_color: list[int] | None = None,
+    scale_to_width: int | None = None,
+    scale_to_height: int | None = None,
     library_path: str | None = None,
 ) -> dict[str, Any]: ...
 
@@ -229,6 +243,9 @@ def render_pages(
     dpi: float = 150.0,
     format: str = "png",
     quality: int = 85,
+    background_color: list[int] | None = None,
+    scale_to_width: int | None = None,
+    scale_to_height: int | None = None,
     library_path: str | None = None,
 ) -> list[dict[str, Any]]: ...
 
@@ -238,6 +255,9 @@ def render_file(
     dpi: float = 150.0,
     format: str = "png",
     quality: int = 85,
+    background_color: list[int] | None = None,
+    scale_to_width: int | None = None,
+    scale_to_height: int | None = None,
     library_path: str | None = None,
 ) -> dict[str, Any]: ...
 
@@ -247,6 +267,9 @@ def render_pages_bytes(
     dpi: float = 150.0,
     format: str = "png",
     quality: int = 85,
+    background_color: list[int] | None = None,
+    scale_to_width: int | None = None,
+    scale_to_height: int | None = None,
     library_path: str | None = None,
 ) -> list[dict[str, Any]]: ...
 

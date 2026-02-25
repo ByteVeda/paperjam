@@ -4,7 +4,7 @@ use crate::document::PyDocument;
 use crate::errors::to_py_err;
 
 #[pyfunction]
-#[pyo3(name = "add_watermark", signature = (document, text, font_size, rotation, opacity, color, font, position, layer, pages=None))]
+#[pyo3(name = "add_watermark", signature = (document, text, font_size, rotation, opacity, color, font, position, layer, pages=None, custom_x=None, custom_y=None))]
 pub fn py_add_watermark(
     py: Python<'_>,
     document: &PyDocument,
@@ -17,6 +17,8 @@ pub fn py_add_watermark(
     position: String,
     layer: String,
     pages: Option<Vec<u32>>,
+    custom_x: Option<f64>,
+    custom_y: Option<f64>,
 ) -> PyResult<PyDocument> {
     let inner_clone = document.inner.inner().clone();
     let mut doc =
@@ -30,6 +32,12 @@ pub fn py_add_watermark(
         arr
     };
 
+    let pos = if let (Some(x), Some(y)) = (custom_x, custom_y) {
+        paperjam_core::watermark::WatermarkPosition::Custom { x, y }
+    } else {
+        paperjam_core::watermark::WatermarkPosition::from_str(&position)
+    };
+
     let options = paperjam_core::watermark::WatermarkOptions {
         text,
         font_size,
@@ -37,7 +45,7 @@ pub fn py_add_watermark(
         opacity,
         color: color_arr,
         font: paperjam_core::watermark::BuiltinFont::from_str(&font),
-        position: paperjam_core::watermark::WatermarkPosition::from_str(&position),
+        position: pos,
         layer: paperjam_core::watermark::WatermarkLayer::from_str(&layer),
         pages,
     };

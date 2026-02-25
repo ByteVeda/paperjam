@@ -124,12 +124,13 @@ pub fn py_redact<'py>(
 }
 
 #[pyfunction]
-#[pyo3(name = "redact_text", signature = (document, query, case_sensitive=true, fill_color=None))]
+#[pyo3(name = "redact_text", signature = (document, query, case_sensitive=true, use_regex=false, fill_color=None))]
 pub fn py_redact_text<'py>(
     py: Python<'py>,
     document: &PyDocument,
     query: String,
     case_sensitive: bool,
+    use_regex: bool,
     fill_color: Option<Vec<f64>>,
 ) -> PyResult<(PyDocument, Bound<'py, PyDict>)> {
     let inner = std::sync::Arc::clone(&document.inner);
@@ -144,7 +145,7 @@ pub fn py_redact_text<'py>(
 
     let (redacted, result) = py
         .allow_threads(move || {
-            paperjam_core::redact::redact_text(&inner, &query, case_sensitive, color_arr)
+            paperjam_core::redact::redact_text(&inner, &query, case_sensitive, use_regex, color_arr)
         })
         .map_err(to_py_err)?;
 

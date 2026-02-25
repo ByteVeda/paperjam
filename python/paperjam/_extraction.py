@@ -1,10 +1,11 @@
-"""Extraction methods for Document: extract_structure, to_markdown, search."""
+"""Extraction methods for Document: extract_structure, to_markdown, search, extract_tables."""
 
 from __future__ import annotations
 
 from paperjam._document import Document
+from paperjam._enums import TableStrategy
 from paperjam._page import _raw_block_to_content_block
-from paperjam._types import ContentBlock, SearchResult
+from paperjam._types import ContentBlock, SearchResult, Table
 
 
 def _extract_structure(
@@ -64,23 +65,47 @@ def _search(
     *,
     case_sensitive: bool = True,
     max_results: int = 0,
+    use_regex: bool = False,
 ) -> list[SearchResult]:
     """Search for text across all pages.
 
     Args:
-        query: The text to search for.
+        query: The text or regex pattern to search for.
         case_sensitive: Whether the search is case-sensitive (default True).
         max_results: Maximum number of results to return (0 = unlimited).
+        use_regex: If True, treat query as a regular expression.
     """
     results: list[SearchResult] = []
     for page in self.pages:
-        matches = page.search(query, case_sensitive=case_sensitive)
+        matches = page.search(query, case_sensitive=case_sensitive, use_regex=use_regex)
         results.extend(matches)
         if max_results > 0 and len(results) >= max_results:
             return results[:max_results]
     return results
 
 
+def _extract_tables(
+    self: Document,
+    *,
+    strategy: TableStrategy | str = TableStrategy.AUTO,
+    min_rows: int = 2,
+    min_cols: int = 2,
+    snap_tolerance: float = 3.0,
+    row_tolerance: float = 0.5,
+    min_col_gap: float = 10.0,
+) -> list[Table]:
+    """Extract tables from all pages."""
+    tables: list[Table] = []
+    for page in self.pages:
+        tables.extend(page.extract_tables(
+            strategy=strategy, min_rows=min_rows, min_cols=min_cols,
+            snap_tolerance=snap_tolerance, row_tolerance=row_tolerance,
+            min_col_gap=min_col_gap,
+        ))
+    return tables
+
+
 Document.extract_structure = _extract_structure  # type: ignore[method-assign]
 Document.to_markdown = _to_markdown  # type: ignore[method-assign]
 Document.search = _search  # type: ignore[method-assign]
+Document.extract_tables = _extract_tables  # type: ignore[method-assign]

@@ -306,11 +306,18 @@ pub fn add_annotation(
     Ok(())
 }
 
-/// Remove all annotations from a specific page. Returns count removed.
+/// Remove annotations from a specific page. Returns count removed.
+///
+/// If `annotation_types` is `Some`, only annotations whose `/Subtype` matches
+/// one of the given type strings are removed. If `indices` is `Some`, only
+/// annotations at those 0-based positions are removed. Both filters can be
+/// combined (AND logic). Pass `None` for both to remove all annotations.
 pub fn remove_annotations(
     doc: &mut lopdf::Document,
     page_number: u32,
     page_map: &BTreeMap<u32, ObjectId>,
+    annotation_types: Option<&[&str]>,
+    indices: Option<&[usize]>,
 ) -> Result<usize> {
     let page_id = *page_map.get(&page_number).ok_or(PdfError::PageOutOfRange {
         page: page_number as usize,
@@ -324,48 +331,89 @@ pub fn remove_annotations(
         .as_dict()
         .map_err(|e| PdfError::Annotation(format!("Page not a dict: {}", e)))?;
 
-    // Count existing annotations
-    let count = match page_dict.get(b"Annots") {
-        Ok(Object::Array(arr)) => arr.len(),
+    // Collect all annotation references
+    let annots_array = match page_dict.get(b"Annots") {
+        Ok(Object::Array(arr)) => arr.clone(),
         Ok(Object::Reference(id)) => match doc.get_object(*id) {
-            Ok(Object::Array(arr)) => arr.len(),
-            _ => 0,
+            Ok(Object::Array(arr)) => arr.clone(),
+            _ => return Ok(0),
         },
-        _ => 0,
+        _ => return Ok(0),
     };
 
-    // Remove annotation objects
-    if let Ok(annots_obj) = page_dict.get(b"Annots") {
-        let annot_refs: Vec<ObjectId> = match annots_obj {
-            Object::Array(arr) => arr
-                .iter()
-                .filter_map(|o| o.as_reference().ok())
-                .collect(),
+    let mut to_remove = Vec::new();
+    let mut survivors = Vec::new();
+
+    for (i, annot_ref) in annots_array.iter().enumerate() {
+        let annot_obj = match annot_ref {
             Object::Reference(id) => match doc.get_object(*id) {
-                Ok(Object::Array(arr)) => arr
-                    .iter()
-                    .filter_map(|o| o.as_reference().ok())
-                    .collect(),
-                _ => Vec::new(),
+                Ok(obj) => obj,
+                Err(_) => {
+                    survivors.push(annot_ref.clone());
+                    continue;
+                }
             },
-            _ => Vec::new(),
+            obj => obj,
         };
 
-        for annot_id in annot_refs {
-            doc.objects.remove(&annot_id);
+        let should_remove = {
+            // Check index filter
+            let index_match = match indices {
+                Some(idx_list) => idx_list.contains(&i),
+                None => true,
+            };
+
+            // Check type filter
+            let type_match = match annotation_types {
+                Some(types) => {
+                    if let Ok(dict) = annot_obj.as_dict() {
+                        if let Ok(Object::Name(name)) = dict.get(b"Subtype") {
+                            let annot_type = AnnotationType::from_name(name);
+                            types.iter().any(|t| annot_type.as_str() == *t)
+                        } else {
+                            false
+                        }
+                    } else {
+                        false
+                    }
+                }
+                None => true,
+            };
+
+            index_match && type_match
+        };
+
+        if should_remove {
+            if let Object::Reference(id) = annot_ref {
+                to_remove.push(*id);
+            }
+        } else {
+            survivors.push(annot_ref.clone());
         }
     }
 
-    // Remove /Annots from the page
+    let removed_count = to_remove.len();
+
+    // Remove annotation objects
+    for annot_id in &to_remove {
+        doc.objects.remove(annot_id);
+    }
+
+    // Update or remove /Annots on the page
     let page_obj = doc
         .get_object_mut(page_id)
         .map_err(|e| PdfError::Annotation(format!("Cannot get page: {}", e)))?;
     let page_dict = page_obj
         .as_dict_mut()
         .map_err(|e| PdfError::Annotation(format!("Page not a dict: {}", e)))?;
-    page_dict.remove(b"Annots");
 
-    Ok(count)
+    if survivors.is_empty() {
+        page_dict.remove(b"Annots");
+    } else {
+        page_dict.set("Annots", Object::Array(survivors));
+    }
+
+    Ok(removed_count)
 }
 
 /// Helper: extract a float from a PDF object.

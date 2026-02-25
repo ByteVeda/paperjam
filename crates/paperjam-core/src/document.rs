@@ -144,10 +144,24 @@ impl Document {
         annotations::add_annotation(&mut self.inner, page_number, &page_map, options)
     }
 
-    /// Remove all annotations from a specific page. Returns count removed.
-    pub fn remove_annotations(&mut self, page_number: u32) -> Result<usize> {
+    /// Remove annotations from a specific page. Returns count removed.
+    ///
+    /// If `annotation_types` is `Some`, only matching types are removed.
+    /// If `indices` is `Some`, only annotations at those positions are removed.
+    pub fn remove_annotations(
+        &mut self,
+        page_number: u32,
+        annotation_types: Option<&[&str]>,
+        indices: Option<&[usize]>,
+    ) -> Result<usize> {
         let page_map = self.page_map.clone();
-        annotations::remove_annotations(&mut self.inner, page_number, &page_map)
+        annotations::remove_annotations(
+            &mut self.inner,
+            page_number,
+            &page_map,
+            annotation_types,
+            indices,
+        )
     }
 
     /// Access the underlying lopdf Document (for manipulation operations).

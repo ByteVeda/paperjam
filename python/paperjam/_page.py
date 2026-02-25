@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from typing import TYPE_CHECKING, Any
 
 from paperjam import _paperjam  # noqa: TC001
@@ -135,22 +136,43 @@ class Page:
         query: str,
         *,
         case_sensitive: bool = True,
+        use_regex: bool = False,
     ) -> list[SearchResult]:
-        """Search for text in this page, returning matches with line info."""
+        """Search for text in this page, returning matches with line info.
+
+        Args:
+            query: Text or regex pattern to search for.
+            case_sensitive: Whether the search is case-sensitive (default True).
+            use_regex: If True, treat query as a regular expression.
+        """
         lines = self.extract_text_lines()
         results: list[SearchResult] = []
-        q = query if case_sensitive else query.lower()
-        for i, line in enumerate(lines):
-            text = line.text if case_sensitive else line.text.lower()
-            if q in text:
-                results.append(
-                    SearchResult(
-                        page=self.number,
-                        text=line.text,
-                        line_number=i + 1,
-                        bbox=line.bbox,
+        if use_regex:
+            flags = 0 if case_sensitive else re.IGNORECASE
+            pattern = re.compile(query, flags)
+            for i, line in enumerate(lines):
+                if pattern.search(line.text):
+                    results.append(
+                        SearchResult(
+                            page=self.number,
+                            text=line.text,
+                            line_number=i + 1,
+                            bbox=line.bbox,
+                        )
                     )
-                )
+        else:
+            q = query if case_sensitive else query.lower()
+            for i, line in enumerate(lines):
+                text = line.text if case_sensitive else line.text.lower()
+                if q in text:
+                    results.append(
+                        SearchResult(
+                            page=self.number,
+                            text=line.text,
+                            line_number=i + 1,
+                            bbox=line.bbox,
+                        )
+                    )
         return results
 
     def extract_structure(
@@ -176,12 +198,18 @@ class Page:
         min_gutter_width: float = 20.0,
         max_columns: int = 4,
         detect_headers_footers: bool = True,
+        header_zone_fraction: float = 0.08,
+        footer_zone_fraction: float = 0.08,
+        min_column_line_fraction: float = 0.1,
     ) -> PageLayout:
         """Analyze the page layout to detect columns, headers, and footers."""
         raw = self._inner.analyze_layout(
             min_gutter_width=min_gutter_width,
             max_columns=max_columns,
             detect_headers_footers=detect_headers_footers,
+            header_zone_fraction=header_zone_fraction,
+            footer_zone_fraction=footer_zone_fraction,
+            min_column_line_fraction=min_column_line_fraction,
         )
         return _raw_to_page_layout(raw)
 
@@ -191,12 +219,18 @@ class Page:
         min_gutter_width: float = 20.0,
         max_columns: int = 4,
         detect_headers_footers: bool = True,
+        header_zone_fraction: float = 0.08,
+        footer_zone_fraction: float = 0.08,
+        min_column_line_fraction: float = 0.1,
     ) -> str:
         """Extract text in layout-aware reading order."""
         return self._inner.extract_text_layout(
             min_gutter_width=min_gutter_width,
             max_columns=max_columns,
             detect_headers_footers=detect_headers_footers,
+            header_zone_fraction=header_zone_fraction,
+            footer_zone_fraction=footer_zone_fraction,
+            min_column_line_fraction=min_column_line_fraction,
         )
 
     def to_markdown(
@@ -286,6 +320,9 @@ class Page:
             dpi: float = ...,
             format: str = ...,
             quality: int = ...,
+            background_color: tuple[int, int, int] | None = ...,
+            scale_to_width: int | None = ...,
+            scale_to_height: int | None = ...,
         ) -> RenderedImage: ...
 
 

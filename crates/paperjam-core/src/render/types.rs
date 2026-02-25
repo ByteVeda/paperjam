@@ -41,6 +41,12 @@ pub struct RenderOptions {
     pub format: ImageFormat,
     /// JPEG quality (1-100), only used for JPEG format. Default: 85.
     pub quality: u8,
+    /// Background color as RGB (0-255). If None, uses default (white).
+    pub background_color: Option<[u8; 3]>,
+    /// Target pixel width. If set, overrides DPI-based sizing.
+    pub scale_to_width: Option<u32>,
+    /// Target pixel height. If set, overrides DPI-based sizing.
+    pub scale_to_height: Option<u32>,
 }
 
 impl Default for RenderOptions {
@@ -49,6 +55,9 @@ impl Default for RenderOptions {
             dpi: 150.0,
             format: ImageFormat::Png,
             quality: 85,
+            background_color: None,
+            scale_to_width: None,
+            scale_to_height: None,
         }
     }
 }

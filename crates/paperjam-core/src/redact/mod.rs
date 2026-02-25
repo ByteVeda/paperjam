@@ -144,13 +144,27 @@ pub fn redact(doc: &Document, options: &RedactOptions) -> Result<(Document, Reda
 ///
 /// Finds text matching the query, builds redaction regions from their positions,
 /// then performs true content-stream redaction.
+///
+/// When `use_regex` is true, `query` is treated as a regular expression pattern.
 pub fn redact_text(
     doc: &Document,
     query: &str,
     case_sensitive: bool,
+    use_regex: bool,
     fill_color: Option<[f64; 3]>,
 ) -> Result<(Document, RedactResult)> {
     let mut regions = Vec::new();
+
+    let regex_pattern = if use_regex {
+        Some(
+            regex::RegexBuilder::new(query)
+                .case_insensitive(!case_sensitive)
+                .build()
+                .map_err(|e| PdfError::Redact(format!("Invalid regex: {}", e)))?,
+        )
+    } else {
+        None
+    };
     let query_lower = query.to_lowercase();
 
     for page_num in 1..=(doc.page_count() as u32) {
@@ -158,7 +172,9 @@ pub fn redact_text(
         let spans = page.text_spans()?;
 
         for span in &spans {
-            let matches = if case_sensitive {
+            let matches = if let Some(ref pattern) = regex_pattern {
+                pattern.is_match(&span.text)
+            } else if case_sensitive {
                 span.text.contains(query)
             } else {
                 span.text.to_lowercase().contains(&query_lower)

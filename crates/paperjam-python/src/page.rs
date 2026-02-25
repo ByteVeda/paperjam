@@ -149,20 +149,25 @@ impl PyPage {
         Ok(list)
     }
 
-    #[pyo3(signature = (*, min_gutter_width=20.0, max_columns=4, detect_headers_footers=true))]
+    #[pyo3(signature = (*, min_gutter_width=20.0, max_columns=4, detect_headers_footers=true, header_zone_fraction=0.08, footer_zone_fraction=0.08, min_column_line_fraction=0.1))]
     fn analyze_layout<'py>(
         &self,
         py: Python<'py>,
         min_gutter_width: f64,
         max_columns: usize,
         detect_headers_footers: bool,
+        header_zone_fraction: f64,
+        footer_zone_fraction: f64,
+        min_column_line_fraction: f64,
     ) -> PyResult<Bound<'py, PyDict>> {
         let page = Arc::clone(&self.inner);
         let options = paperjam_core::layout::LayoutOptions {
             min_gutter_width,
             max_columns,
             detect_headers_footers,
-            ..Default::default()
+            header_zone_fraction,
+            footer_zone_fraction,
+            min_column_line_fraction,
         };
         let layout = py
             .allow_threads(move || paperjam_core::layout::analyze_layout(&page, &options))
@@ -171,20 +176,25 @@ impl PyPage {
         crate::convert::page_layout_to_py(py, &layout)
     }
 
-    #[pyo3(signature = (*, min_gutter_width=20.0, max_columns=4, detect_headers_footers=true))]
+    #[pyo3(signature = (*, min_gutter_width=20.0, max_columns=4, detect_headers_footers=true, header_zone_fraction=0.08, footer_zone_fraction=0.08, min_column_line_fraction=0.1))]
     fn extract_text_layout(
         &self,
         py: Python<'_>,
         min_gutter_width: f64,
         max_columns: usize,
         detect_headers_footers: bool,
+        header_zone_fraction: f64,
+        footer_zone_fraction: f64,
+        min_column_line_fraction: f64,
     ) -> PyResult<String> {
         let page = Arc::clone(&self.inner);
         let options = paperjam_core::layout::LayoutOptions {
             min_gutter_width,
             max_columns,
             detect_headers_footers,
-            ..Default::default()
+            header_zone_fraction,
+            footer_zone_fraction,
+            min_column_line_fraction,
         };
         py.allow_threads(move || {
             let layout = paperjam_core::layout::analyze_layout(&page, &options)?;

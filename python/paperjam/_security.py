@@ -86,6 +86,7 @@ def _redact_text(
     query: str,
     *,
     case_sensitive: bool = True,
+    use_regex: bool = False,
     fill_color: tuple[float, float, float] | None = None,
 ) -> tuple[Document, RedactResult]:
     """Redact all occurrences of a text query from the document.
@@ -94,15 +95,16 @@ def _redact_text(
     operators from the content stream (true redaction, not cosmetic).
 
     Args:
-        query: The text to search for and redact.
+        query: The text or regex pattern to search for and redact.
         case_sensitive: Whether the search is case-sensitive (default True).
+        use_regex: If True, treat query as a regular expression.
         fill_color: Optional (r, g, b) color for overlay rectangles (0.0-1.0).
 
     Returns a tuple of (redacted_document, result_stats).
     """
     inner = self._ensure_open()
     redacted, stats = _paperjam.redact_text(
-        inner, query, case_sensitive,
+        inner, query, case_sensitive, use_regex,
         list(fill_color) if fill_color else None,
     )
     doc = object.__new__(Document)

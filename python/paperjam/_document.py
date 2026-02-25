@@ -12,7 +12,7 @@ from paperjam._types import Bookmark, Metadata
 if TYPE_CHECKING:
     from collections.abc import Iterator
 
-    from paperjam._enums import AnnotationType, WatermarkLayer, WatermarkPosition
+    from paperjam._enums import AnnotationType, Rotation, TableStrategy, WatermarkLayer, WatermarkPosition
     from paperjam._types import (
         ContentBlock,
         DiffResult,
@@ -26,6 +26,7 @@ if TYPE_CHECKING:
         SearchResult,
         SignatureInfo,
         SignatureValidity,
+        Table,
     )
 
 
@@ -80,13 +81,27 @@ class Document:
             *,
             case_sensitive: bool = ...,
             max_results: int = ...,
+            use_regex: bool = ...,
         ) -> list[SearchResult]: ...
+
+        def extract_tables(
+            self,
+            *,
+            strategy: TableStrategy | str = ...,
+            min_rows: int = ...,
+            min_cols: int = ...,
+            snap_tolerance: float = ...,
+            row_tolerance: float = ...,
+            min_col_gap: float = ...,
+        ) -> list[Table]: ...
 
         # -- Manipulation (attached by _manipulation.py) --
 
         def split(self, ranges: list[tuple[int, int]]) -> list[Document]: ...
 
         def split_pages(self) -> list[Document]: ...
+
+        def rotate(self, page_rotations: list[tuple[int, Rotation | int]]) -> Document: ...
 
         def reorder(self, page_order: list[int]) -> Document: ...
 
@@ -113,7 +128,13 @@ class Document:
             url: str | None = ...,
         ) -> Document: ...
 
-        def remove_annotations(self, page: int) -> Document: ...
+        def remove_annotations(
+            self,
+            page: int,
+            *,
+            annotation_types: list[AnnotationType | str] | None = ...,
+            indices: list[int] | None = ...,
+        ) -> tuple[Document, int]: ...
 
         def add_watermark(
             self,
@@ -127,6 +148,8 @@ class Document:
             position: WatermarkPosition | str = ...,
             layer: WatermarkLayer | str = ...,
             pages: list[int] | None = ...,
+            x: float | None = ...,
+            y: float | None = ...,
         ) -> Document: ...
 
         # -- Comparison (attached by _comparison.py) --
@@ -156,6 +179,7 @@ class Document:
             query: str,
             *,
             case_sensitive: bool = ...,
+            use_regex: bool = ...,
             fill_color: tuple[float, float, float] | None = ...,
         ) -> tuple[Document, RedactResult]: ...
 
@@ -183,6 +207,9 @@ class Document:
             dpi: float = ...,
             format: str = ...,
             quality: int = ...,
+            background_color: tuple[int, int, int] | None = ...,
+            scale_to_width: int | None = ...,
+            scale_to_height: int | None = ...,
         ) -> RenderedImage: ...
 
         def render_pages(
@@ -192,6 +219,9 @@ class Document:
             dpi: float = ...,
             format: str = ...,
             quality: int = ...,
+            background_color: tuple[int, int, int] | None = ...,
+            scale_to_width: int | None = ...,
+            scale_to_height: int | None = ...,
         ) -> list[RenderedImage]: ...
 
         # -- Signatures (attached by _signature.py) --
