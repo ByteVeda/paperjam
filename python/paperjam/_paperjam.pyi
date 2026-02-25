@@ -15,6 +15,10 @@ class OptimizationError(PaperJamError): ...
 class AnnotationError(PaperJamError): ...
 class WatermarkError(PaperJamError): ...
 class SanitizeError(PaperJamError): ...
+class RedactError(PaperJamError): ...
+class FormError(PaperJamError): ...
+class RenderError(PaperJamError): ...
+class SignatureError(PaperJamError): ...
 
 # --- Classes ---
 
@@ -35,13 +39,31 @@ class RustDocument:
     def extract_images(self, page_number: int) -> list[dict[str, Any]]: ...
     def bookmarks(self) -> list[dict[str, Any]]: ...
     def annotations(self, page_number: int) -> list[dict[str, Any]]: ...
+    def has_form(self) -> bool: ...
+    def form_fields(self) -> list[dict[str, Any]]: ...
     def extract_structure(
         self,
         *,
         heading_size_ratio: float = 1.2,
         detect_lists: bool = True,
         include_tables: bool = True,
+        layout_aware: bool = False,
     ) -> list[dict[str, Any]]: ...
+    def to_markdown(
+        self,
+        *,
+        heading_offset: int = 0,
+        page_separator: str = "---",
+        include_page_numbers: bool = False,
+        page_number_format: str = "<!-- page {n} -->",
+        html_tables: bool = False,
+        table_header_first_row: bool = True,
+        normalize_list_markers: bool = True,
+        heading_size_ratio: float = 1.2,
+        detect_lists: bool = True,
+        include_tables: bool = True,
+        layout_aware: bool = False,
+    ) -> str: ...
 
 class RustPage:
     def number(self) -> int: ...
@@ -67,7 +89,37 @@ class RustPage:
         heading_size_ratio: float = 1.2,
         detect_lists: bool = True,
         include_tables: bool = True,
+        layout_aware: bool = False,
     ) -> list[dict[str, Any]]: ...
+    def analyze_layout(
+        self,
+        *,
+        min_gutter_width: float = 20.0,
+        max_columns: int = 4,
+        detect_headers_footers: bool = True,
+    ) -> dict[str, Any]: ...
+    def extract_text_layout(
+        self,
+        *,
+        min_gutter_width: float = 20.0,
+        max_columns: int = 4,
+        detect_headers_footers: bool = True,
+    ) -> str: ...
+    def to_markdown(
+        self,
+        *,
+        heading_offset: int = 0,
+        page_separator: str = "---",
+        include_page_numbers: bool = False,
+        page_number_format: str = "<!-- page {n} -->",
+        html_tables: bool = False,
+        table_header_first_row: bool = True,
+        normalize_list_markers: bool = True,
+        heading_size_ratio: float = 1.2,
+        detect_lists: bool = True,
+        include_tables: bool = True,
+        layout_aware: bool = False,
+    ) -> str: ...
 
 # --- Module-level functions ---
 
@@ -142,3 +194,78 @@ def sanitize(
     remove_actions: bool = True,
     remove_links: bool = True,
 ) -> tuple[RustDocument, dict[str, Any]]: ...
+
+def redact(
+    document: RustDocument,
+    regions: list[dict[str, Any]],
+    fill_color: list[float] | None = None,
+) -> tuple[RustDocument, dict[str, Any]]: ...
+
+def redact_text(
+    document: RustDocument,
+    query: str,
+    case_sensitive: bool = True,
+    fill_color: list[float] | None = None,
+) -> tuple[RustDocument, dict[str, Any]]: ...
+
+def fill_form(
+    document: RustDocument,
+    values: dict[str, str],
+    need_appearances: bool = True,
+) -> tuple[RustDocument, dict[str, Any]]: ...
+
+def render_page(
+    document: RustDocument,
+    page_number: int,
+    dpi: float = 150.0,
+    format: str = "png",
+    quality: int = 85,
+    library_path: str | None = None,
+) -> dict[str, Any]: ...
+
+def render_pages(
+    document: RustDocument,
+    pages: list[int] | None = None,
+    dpi: float = 150.0,
+    format: str = "png",
+    quality: int = 85,
+    library_path: str | None = None,
+) -> list[dict[str, Any]]: ...
+
+def render_file(
+    data: bytes,
+    page_number: int = 1,
+    dpi: float = 150.0,
+    format: str = "png",
+    quality: int = 85,
+    library_path: str | None = None,
+) -> dict[str, Any]: ...
+
+def render_pages_bytes(
+    data: bytes,
+    pages: list[int] | None = None,
+    dpi: float = 150.0,
+    format: str = "png",
+    quality: int = 85,
+    library_path: str | None = None,
+) -> list[dict[str, Any]]: ...
+
+def sign_document(
+    document: RustDocument,
+    private_key: bytes,
+    certificates: list[bytes],
+    reason: str | None = None,
+    location: str | None = None,
+    contact_info: str | None = None,
+    field_name: str = "Signature1",
+) -> bytes: ...
+
+def extract_signatures(
+    document: RustDocument,
+    raw_bytes: bytes,
+) -> list[dict[str, Any]]: ...
+
+def verify_signatures(
+    document: RustDocument,
+    raw_bytes: bytes,
+) -> list[dict[str, Any]]: ...

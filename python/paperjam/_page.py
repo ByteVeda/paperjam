@@ -2,11 +2,14 @@
 
 from __future__ import annotations
 
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from paperjam import _paperjam  # noqa: TC001
 from paperjam._enums import TableStrategy
-from paperjam._types import Annotation, Cell, ContentBlock, Image, PageInfo, Row, SearchResult, Table, TextLine, TextSpan
+from paperjam._types import Annotation, Cell, ContentBlock, Image, LayoutRegion, PageInfo, PageLayout, Row, SearchResult, Table, TextLine, TextSpan
+
+if TYPE_CHECKING:
+    from paperjam._types import RenderedImage
 
 
 class Page:
@@ -156,14 +159,75 @@ class Page:
         heading_size_ratio: float = 1.2,
         detect_lists: bool = True,
         include_tables: bool = True,
+        layout_aware: bool = False,
     ) -> list[ContentBlock]:
         """Extract structured content (headings, paragraphs, lists, tables)."""
         raw_blocks = self._inner.extract_structure(
             heading_size_ratio=heading_size_ratio,
             detect_lists=detect_lists,
             include_tables=include_tables,
+            layout_aware=layout_aware,
         )
         return [_raw_block_to_content_block(b) for b in raw_blocks]
+
+    def analyze_layout(
+        self,
+        *,
+        min_gutter_width: float = 20.0,
+        max_columns: int = 4,
+        detect_headers_footers: bool = True,
+    ) -> PageLayout:
+        """Analyze the page layout to detect columns, headers, and footers."""
+        raw = self._inner.analyze_layout(
+            min_gutter_width=min_gutter_width,
+            max_columns=max_columns,
+            detect_headers_footers=detect_headers_footers,
+        )
+        return _raw_to_page_layout(raw)
+
+    def extract_text_layout(
+        self,
+        *,
+        min_gutter_width: float = 20.0,
+        max_columns: int = 4,
+        detect_headers_footers: bool = True,
+    ) -> str:
+        """Extract text in layout-aware reading order."""
+        return self._inner.extract_text_layout(
+            min_gutter_width=min_gutter_width,
+            max_columns=max_columns,
+            detect_headers_footers=detect_headers_footers,
+        )
+
+    def to_markdown(
+        self,
+        *,
+        heading_offset: int = 0,
+        page_separator: str = "---",
+        include_page_numbers: bool = False,
+        page_number_format: str = "<!-- page {n} -->",
+        html_tables: bool = False,
+        table_header_first_row: bool = True,
+        normalize_list_markers: bool = True,
+        heading_size_ratio: float = 1.2,
+        detect_lists: bool = True,
+        include_tables: bool = True,
+        layout_aware: bool = False,
+    ) -> str:
+        """Convert page content to Markdown."""
+        return self._inner.to_markdown(
+            heading_offset=heading_offset,
+            page_separator=page_separator,
+            include_page_numbers=include_page_numbers,
+            page_number_format=page_number_format,
+            html_tables=html_tables,
+            table_header_first_row=table_header_first_row,
+            normalize_list_markers=normalize_list_markers,
+            heading_size_ratio=heading_size_ratio,
+            detect_lists=detect_lists,
+            include_tables=include_tables,
+            layout_aware=layout_aware,
+        )
 
     def extract_tables(
         self,
@@ -213,6 +277,17 @@ class Page:
             )
         return tables
 
+    if TYPE_CHECKING:
+        # -- Rendering (attached by _render.py) --
+
+        def render(
+            self,
+            *,
+            dpi: float = ...,
+            format: str = ...,
+            quality: int = ...,
+        ) -> RenderedImage: ...
+
 
 def _raw_block_to_content_block(raw: dict) -> ContentBlock:
     """Convert a raw dict from Rust into a ContentBlock dataclass."""
@@ -252,4 +327,33 @@ def _raw_block_to_content_block(raw: dict) -> ContentBlock:
         level=raw.get("level"),
         indent_level=raw.get("indent_level"),
         bbox=tuple(raw["bbox"]) if "bbox" in raw else None,
+    )
+
+
+def _raw_to_page_layout(raw: dict) -> PageLayout:
+    """Convert a raw dict from Rust into a PageLayout dataclass."""
+    regions = []
+    for r in raw["regions"]:
+        lines = tuple(
+            TextLine(
+                text=l["text"],
+                spans=tuple(TextSpan(**s) for s in l["spans"]),
+                bbox=tuple(l["bbox"]),
+            )
+            for l in r["lines"]
+        )
+        regions.append(
+            LayoutRegion(
+                kind=r["kind"],
+                column_index=r.get("column_index"),
+                bbox=tuple(r["bbox"]),
+                lines=lines,
+            )
+        )
+    return PageLayout(
+        page_width=raw["page_width"],
+        page_height=raw["page_height"],
+        column_count=raw["column_count"],
+        gutters=tuple(raw["gutters"]),
+        regions=tuple(regions),
     )

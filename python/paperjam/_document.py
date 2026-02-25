@@ -6,26 +6,27 @@ import os
 from typing import TYPE_CHECKING, overload
 
 from paperjam import _paperjam
-from paperjam._enums import AnnotationType, WatermarkLayer, WatermarkPosition
 from paperjam._page import Page
-from paperjam._page import _raw_block_to_content_block
-from paperjam._types import (
-    Annotation,
-    Bookmark,
-    ContentBlock,
-    DiffOp,
-    DiffResult,
-    DiffSummary,
-    Metadata,
-    OptimizeResult,
-    PageDiff,
-    SanitizedItem,
-    SanitizeResult,
-    SearchResult,
-)
+from paperjam._types import Bookmark, Metadata
 
 if TYPE_CHECKING:
     from collections.abc import Iterator
+
+    from paperjam._enums import AnnotationType, WatermarkLayer, WatermarkPosition
+    from paperjam._types import (
+        ContentBlock,
+        DiffResult,
+        FillFormResult,
+        FormField,
+        OptimizeResult,
+        RedactRegion,
+        RedactResult,
+        RenderedImage,
+        SanitizeResult,
+        SearchResult,
+        SignatureInfo,
+        SignatureValidity,
+    )
 
 
 class Document:
@@ -43,7 +44,173 @@ class Document:
         text = doc.pages[0].extract_text()
     """
 
-    __slots__ = ("_closed", "_inner")
+    __slots__ = ("_closed", "_inner", "_raw_bytes")
+
+    if TYPE_CHECKING:
+        # -- Extraction (attached by _extraction.py) --
+
+        def extract_structure(
+            self,
+            *,
+            heading_size_ratio: float = ...,
+            detect_lists: bool = ...,
+            include_tables: bool = ...,
+            layout_aware: bool = ...,
+        ) -> list[ContentBlock]: ...
+
+        def to_markdown(
+            self,
+            *,
+            heading_offset: int = ...,
+            page_separator: str = ...,
+            include_page_numbers: bool = ...,
+            page_number_format: str = ...,
+            html_tables: bool = ...,
+            table_header_first_row: bool = ...,
+            normalize_list_markers: bool = ...,
+            heading_size_ratio: float = ...,
+            detect_lists: bool = ...,
+            include_tables: bool = ...,
+            layout_aware: bool = ...,
+        ) -> str: ...
+
+        def search(
+            self,
+            query: str,
+            *,
+            case_sensitive: bool = ...,
+            max_results: int = ...,
+        ) -> list[SearchResult]: ...
+
+        # -- Manipulation (attached by _manipulation.py) --
+
+        def split(self, ranges: list[tuple[int, int]]) -> list[Document]: ...
+
+        def split_pages(self) -> list[Document]: ...
+
+        def reorder(self, page_order: list[int]) -> Document: ...
+
+        def optimize(
+            self,
+            *,
+            compress_streams: bool = ...,
+            remove_unused: bool = ...,
+            remove_duplicates: bool = ...,
+            strip_metadata: bool = ...,
+        ) -> tuple[Document, OptimizeResult]: ...
+
+        def add_annotation(
+            self,
+            page: int,
+            annotation_type: AnnotationType | str,
+            rect: tuple[float, float, float, float],
+            *,
+            contents: str | None = ...,
+            author: str | None = ...,
+            color: tuple[float, float, float] | None = ...,
+            opacity: float | None = ...,
+            quad_points: tuple[float, ...] | None = ...,
+            url: str | None = ...,
+        ) -> Document: ...
+
+        def remove_annotations(self, page: int) -> Document: ...
+
+        def add_watermark(
+            self,
+            text: str,
+            *,
+            font_size: float = ...,
+            rotation: float = ...,
+            opacity: float = ...,
+            color: tuple[float, float, float] = ...,
+            font: str = ...,
+            position: WatermarkPosition | str = ...,
+            layer: WatermarkLayer | str = ...,
+            pages: list[int] | None = ...,
+        ) -> Document: ...
+
+        # -- Comparison (attached by _comparison.py) --
+
+        def diff(self, other: Document) -> DiffResult: ...
+
+        # -- Security (attached by _security.py) --
+
+        def sanitize(
+            self,
+            *,
+            remove_javascript: bool = ...,
+            remove_embedded_files: bool = ...,
+            remove_actions: bool = ...,
+            remove_links: bool = ...,
+        ) -> tuple[Document, SanitizeResult]: ...
+
+        def redact(
+            self,
+            regions: list[RedactRegion],
+            *,
+            fill_color: tuple[float, float, float] | None = ...,
+        ) -> tuple[Document, RedactResult]: ...
+
+        def redact_text(
+            self,
+            query: str,
+            *,
+            case_sensitive: bool = ...,
+            fill_color: tuple[float, float, float] | None = ...,
+        ) -> tuple[Document, RedactResult]: ...
+
+        # -- Forms (attached by _forms.py) --
+
+        @property
+        def has_form(self) -> bool: ...
+
+        @property
+        def form_fields(self) -> list[FormField]: ...
+
+        def fill_form(
+            self,
+            values: dict[str, str],
+            *,
+            need_appearances: bool = ...,
+        ) -> tuple[Document, FillFormResult]: ...
+
+        # -- Rendering (attached by _render.py) --
+
+        def render_page(
+            self,
+            page_number: int,
+            *,
+            dpi: float = ...,
+            format: str = ...,
+            quality: int = ...,
+        ) -> RenderedImage: ...
+
+        def render_pages(
+            self,
+            *,
+            pages: list[int] | None = ...,
+            dpi: float = ...,
+            format: str = ...,
+            quality: int = ...,
+        ) -> list[RenderedImage]: ...
+
+        # -- Signatures (attached by _signature.py) --
+
+        @property
+        def signatures(self) -> list[SignatureInfo]: ...
+
+        def verify_signatures(self) -> list[SignatureValidity]: ...
+
+        def sign(
+            self,
+            *,
+            private_key: bytes,
+            certificates: list[bytes],
+            reason: str | None = ...,
+            location: str | None = ...,
+            contact_info: str | None = ...,
+            field_name: str = ...,
+        ) -> bytes: ...
 
     def __init__(
         self,
@@ -53,11 +220,14 @@ class Document:
     ) -> None:
         if isinstance(path_or_bytes, (str, os.PathLike)):
             path = str(path_or_bytes)
+            with open(path, "rb") as f:
+                self._raw_bytes: bytes | None = f.read()
             if password is not None:
                 self._inner = _paperjam.RustDocument.open_with_password(path, password)
             else:
                 self._inner = _paperjam.RustDocument.open(path)
         elif isinstance(path_or_bytes, (bytes, bytearray, memoryview)):
+            self._raw_bytes = bytes(path_or_bytes)
             if password is not None:
                 self._inner = _paperjam.RustDocument.from_bytes_with_password(
                     bytes(path_or_bytes), password
@@ -118,211 +288,11 @@ class Document:
         """Serialize the document to bytes."""
         return self._ensure_open().save_bytes()
 
-    def split(self, ranges: list[tuple[int, int]]) -> list[Document]:
-        """Split into multiple documents by page ranges (1-indexed, inclusive)."""
-        inner = self._ensure_open()
-        parts = _paperjam.split(inner, [(s, e) for s, e in ranges])
-        result = []
-        for part in parts:
-            doc = object.__new__(Document)
-            doc._inner = part
-            doc._closed = False
-            result.append(doc)
-        return result
-
-    def split_pages(self) -> list[Document]:
-        """Split into individual single-page documents."""
-        return self.split([(i, i) for i in range(1, self.page_count + 1)])
-
     @property
     def bookmarks(self) -> list[Bookmark]:
         """Document bookmarks/table of contents as a nested tree."""
         raw = self._ensure_open().bookmarks()
         return _build_bookmark_tree(raw)
-
-    def search(
-        self,
-        query: str,
-        *,
-        case_sensitive: bool = True,
-        max_results: int = 0,
-    ) -> list[SearchResult]:
-        """Search for text across all pages.
-
-        Args:
-            query: The text to search for.
-            case_sensitive: Whether the search is case-sensitive (default True).
-            max_results: Maximum number of results to return (0 = unlimited).
-        """
-        results: list[SearchResult] = []
-        for page in self.pages:
-            matches = page.search(query, case_sensitive=case_sensitive)
-            results.extend(matches)
-            if max_results > 0 and len(results) >= max_results:
-                return results[:max_results]
-        return results
-
-    def reorder(self, page_order: list[int]) -> Document:
-        """Reorder pages, returning a new Document.
-
-        Args:
-            page_order: List of 1-indexed page numbers in desired order.
-                        Can subset (drop pages) or repeat (duplicate pages).
-        """
-        inner = self._ensure_open()
-        result = _paperjam.reorder_pages(inner, page_order)
-        doc = object.__new__(Document)
-        doc._inner = result
-        doc._closed = False
-        return doc
-
-    def optimize(
-        self,
-        *,
-        compress_streams: bool = True,
-        remove_unused: bool = True,
-        remove_duplicates: bool = True,
-        strip_metadata: bool = False,
-    ) -> tuple[Document, OptimizeResult]:
-        """Optimize the PDF to reduce file size.
-
-        Returns a tuple of (optimized_document, result_stats).
-        """
-        inner = self._ensure_open()
-        optimized, stats = _paperjam.optimize(
-            inner, compress_streams, remove_unused, remove_duplicates, strip_metadata
-        )
-        doc = object.__new__(Document)
-        doc._inner = optimized
-        doc._closed = False
-        return doc, OptimizeResult(**stats)
-
-    def add_annotation(
-        self,
-        page: int,
-        annotation_type: AnnotationType | str,
-        rect: tuple[float, float, float, float],
-        *,
-        contents: str | None = None,
-        author: str | None = None,
-        color: tuple[float, float, float] | None = None,
-        opacity: float | None = None,
-        quad_points: tuple[float, ...] | None = None,
-        url: str | None = None,
-    ) -> Document:
-        """Add an annotation to a page, returning a new Document."""
-        inner = self._ensure_open()
-        type_str = annotation_type.value if isinstance(annotation_type, AnnotationType) else str(annotation_type)
-        result = _paperjam.add_annotation(
-            inner, page, type_str, list(rect),
-            contents, author,
-            list(color) if color else None,
-            opacity,
-            list(quad_points) if quad_points else None,
-            url,
-        )
-        doc = object.__new__(Document)
-        doc._inner = result
-        doc._closed = False
-        return doc
-
-    def remove_annotations(self, page: int) -> Document:
-        """Remove all annotations from a page, returning a new Document."""
-        inner = self._ensure_open()
-        result, _count = _paperjam.remove_annotations(inner, page)
-        doc = object.__new__(Document)
-        doc._inner = result
-        doc._closed = False
-        return doc
-
-    def add_watermark(
-        self,
-        text: str,
-        *,
-        font_size: float = 60.0,
-        rotation: float = 45.0,
-        opacity: float = 0.3,
-        color: tuple[float, float, float] = (0.5, 0.5, 0.5),
-        font: str = "Helvetica",
-        position: WatermarkPosition | str = WatermarkPosition.CENTER,
-        layer: WatermarkLayer | str = WatermarkLayer.OVER,
-        pages: list[int] | None = None,
-    ) -> Document:
-        """Add a text watermark to pages, returning a new Document."""
-        inner = self._ensure_open()
-        pos_str = position.value if isinstance(position, WatermarkPosition) else str(position)
-        layer_str = layer.value if isinstance(layer, WatermarkLayer) else str(layer)
-        result = _paperjam.add_watermark(
-            inner, text, font_size, rotation, opacity,
-            list(color), font, pos_str, layer_str, pages,
-        )
-        doc = object.__new__(Document)
-        doc._inner = result
-        doc._closed = False
-        return doc
-
-    def extract_structure(
-        self,
-        *,
-        heading_size_ratio: float = 1.2,
-        detect_lists: bool = True,
-        include_tables: bool = True,
-    ) -> list[ContentBlock]:
-        """Extract structured content (headings, paragraphs, lists, tables) from all pages."""
-        inner = self._ensure_open()
-        raw_blocks = inner.extract_structure(
-            heading_size_ratio=heading_size_ratio,
-            detect_lists=detect_lists,
-            include_tables=include_tables,
-        )
-        return [_raw_block_to_content_block(b) for b in raw_blocks]
-
-    def diff(self, other: Document) -> DiffResult:
-        """Compare this document with another at the text level.
-
-        Returns a DiffResult with per-page changes and summary statistics.
-        """
-        inner_a = self._ensure_open()
-        inner_b = other._ensure_open()
-        raw = _paperjam.diff_documents(inner_a, inner_b)
-        return DiffResult(
-            page_diffs=tuple(
-                PageDiff(
-                    page=pd["page"],
-                    ops=tuple(DiffOp(**op) for op in pd["ops"]),
-                )
-                for pd in raw["page_diffs"]
-            ),
-            summary=DiffSummary(**raw["summary"]),
-        )
-
-    def sanitize(
-        self,
-        *,
-        remove_javascript: bool = True,
-        remove_embedded_files: bool = True,
-        remove_actions: bool = True,
-        remove_links: bool = True,
-    ) -> tuple[Document, SanitizeResult]:
-        """Remove potentially dangerous objects from the PDF.
-
-        Returns a tuple of (sanitized_document, result_stats).
-        """
-        inner = self._ensure_open()
-        sanitized, stats = _paperjam.sanitize(
-            inner, remove_javascript, remove_embedded_files,
-            remove_actions, remove_links,
-        )
-        doc = object.__new__(Document)
-        doc._inner = sanitized
-        doc._closed = False
-        return doc, SanitizeResult(
-            javascript_removed=stats["javascript_removed"],
-            embedded_files_removed=stats["embedded_files_removed"],
-            actions_removed=stats["actions_removed"],
-            links_removed=stats["links_removed"],
-            items=tuple(SanitizedItem(**item) for item in stats["items"]),
-        )
 
 
 def _build_bookmark_tree(flat_items: list[dict]) -> list[Bookmark]:
