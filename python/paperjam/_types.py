@@ -148,3 +148,40 @@ class PageInfo:
     width: float
     height: float
     rotation: int
+
+
+@dataclasses.dataclass(frozen=True, slots=True)
+class Image:
+    """An extracted image from a PDF page."""
+
+    width: int
+    height: int
+    color_space: str | None
+    bits_per_component: int | None
+    filters: list[str]
+    data: bytes
+
+    def save(self, path: str) -> None:
+        """Write the raw image bytes to a file."""
+        with open(path, "wb") as f:
+            f.write(self.data)
+
+
+@dataclasses.dataclass(frozen=True, slots=True)
+class Bookmark:
+    """A bookmark/outline entry from the document's TOC."""
+
+    title: str
+    page: int
+    level: int
+    children: tuple[Bookmark, ...] = ()
+
+
+@dataclasses.dataclass(frozen=True, slots=True)
+class SearchResult:
+    """A text search match within the document."""
+
+    page: int
+    text: str
+    line_number: int
+    bbox: tuple[float, float, float, float] | None

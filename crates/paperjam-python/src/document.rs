@@ -1,6 +1,6 @@
 use paperjam_core::document::Document;
 use pyo3::prelude::*;
-use pyo3::types::{PyBytes, PyDict};
+use pyo3::types::{PyBytes, PyDict, PyList};
 use std::sync::Arc;
 
 use crate::errors::to_py_err;
@@ -119,5 +119,46 @@ impl PyDocument {
         })
         .map_err(to_py_err)?;
         Ok(())
+    }
+
+    fn extract_images<'py>(
+        &self,
+        py: Python<'py>,
+        page_number: u32,
+    ) -> PyResult<Bound<'py, PyList>> {
+        let inner = Arc::clone(&self.inner);
+        let images = py
+            .allow_threads(move || inner.extract_images(page_number))
+            .map_err(to_py_err)?;
+
+        let list = PyList::empty(py);
+        for img in &images {
+            let dict = PyDict::new(py);
+            dict.set_item("width", img.width)?;
+            dict.set_item("height", img.height)?;
+            dict.set_item("color_space", img.color_space.as_deref())?;
+            dict.set_item("bits_per_component", img.bits_per_component)?;
+            dict.set_item("filters", &img.filters)?;
+            dict.set_item("data", PyBytes::new(py, &img.data))?;
+            list.append(dict)?;
+        }
+        Ok(list)
+    }
+
+    fn bookmarks<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyList>> {
+        let inner = Arc::clone(&self.inner);
+        let items = py
+            .allow_threads(move || inner.bookmarks())
+            .map_err(to_py_err)?;
+
+        let list = PyList::empty(py);
+        for item in &items {
+            let dict = PyDict::new(py);
+            dict.set_item("title", &item.title)?;
+            dict.set_item("page", item.page)?;
+            dict.set_item("level", item.level)?;
+            list.append(dict)?;
+        }
+        Ok(list)
     }
 }
