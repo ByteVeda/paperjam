@@ -59,6 +59,30 @@ create_exception!(
     PaperJamError,
     "Sanitization error."
 );
+create_exception!(
+    _paperjam,
+    RedactError,
+    PaperJamError,
+    "Redaction error."
+);
+create_exception!(
+    _paperjam,
+    FormError,
+    PaperJamError,
+    "Form error."
+);
+create_exception!(
+    _paperjam,
+    RenderError,
+    PaperJamError,
+    "Render error."
+);
+create_exception!(
+    _paperjam,
+    SignatureError,
+    PaperJamError,
+    "Signature error."
+);
 
 /// Convert a Rust PdfError into the appropriate Python exception.
 pub fn to_py_err(err: PdfError) -> PyErr {
@@ -80,6 +104,9 @@ pub fn to_py_err(err: PdfError) -> PyErr {
         PdfError::Annotation(msg) => AnnotationError::new_err(msg),
         PdfError::Watermark(msg) => WatermarkError::new_err(msg),
         PdfError::Sanitize(msg) => SanitizeError::new_err(msg),
+        PdfError::Redact(msg) => RedactError::new_err(msg),
+        PdfError::Form(msg) => FormError::new_err(msg),
+        PdfError::Render(msg) => RenderError::new_err(msg),
         PdfError::FontDecode { font_name, message } => {
             ParseError::new_err(format!("Font '{}': {}", font_name, message))
         }
@@ -88,6 +115,7 @@ pub fn to_py_err(err: PdfError) -> PyErr {
         }
         PdfError::Lopdf(e) => ParseError::new_err(e.to_string()),
         PdfError::Encryption(msg) => ParseError::new_err(msg),
+        PdfError::Signature(msg) => SignatureError::new_err(msg),
     }
 }
 
@@ -110,5 +138,9 @@ pub fn register_exceptions(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add("AnnotationError", m.py().get_type::<AnnotationError>())?;
     m.add("WatermarkError", m.py().get_type::<WatermarkError>())?;
     m.add("SanitizeError", m.py().get_type::<SanitizeError>())?;
+    m.add("RedactError", m.py().get_type::<RedactError>())?;
+    m.add("FormError", m.py().get_type::<FormError>())?;
+    m.add("RenderError", m.py().get_type::<RenderError>())?;
+    m.add("SignatureError", m.py().get_type::<SignatureError>())?;
     Ok(())
 }

@@ -10,5 +10,5 @@ name = "_paperjam"
 crate-type = ["cdylib"]
 
 [dependencies]
-paperjam-core = { path = "../paperjam-core" }
+paperjam-core = { path = "../paperjam-core", features = ["render", "signatures"] }
 pyo3 = { version = "0.23", features = ["extension-module", "abi3-py312"] }

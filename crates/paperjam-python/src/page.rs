@@ -121,19 +121,21 @@ impl PyPage {
         Ok(list)
     }
 
-    #[pyo3(signature = (*, heading_size_ratio=1.2, detect_lists=true, include_tables=true))]
+    #[pyo3(signature = (*, heading_size_ratio=1.2, detect_lists=true, include_tables=true, layout_aware=false))]
     fn extract_structure<'py>(
         &self,
         py: Python<'py>,
         heading_size_ratio: f64,
         detect_lists: bool,
         include_tables: bool,
+        layout_aware: bool,
     ) -> PyResult<Bound<'py, PyList>> {
         let page = Arc::clone(&self.inner);
         let options = paperjam_core::structure::StructureOptions {
             heading_size_ratio,
             detect_lists,
             include_tables,
+            layout_aware,
         };
         let blocks = py
             .allow_threads(move || paperjam_core::structure::extract_structure(&page, &options))
@@ -145,5 +147,98 @@ impl PyPage {
             list.append(dict)?;
         }
         Ok(list)
+    }
+
+    #[pyo3(signature = (*, min_gutter_width=20.0, max_columns=4, detect_headers_footers=true))]
+    fn analyze_layout<'py>(
+        &self,
+        py: Python<'py>,
+        min_gutter_width: f64,
+        max_columns: usize,
+        detect_headers_footers: bool,
+    ) -> PyResult<Bound<'py, PyDict>> {
+        let page = Arc::clone(&self.inner);
+        let options = paperjam_core::layout::LayoutOptions {
+            min_gutter_width,
+            max_columns,
+            detect_headers_footers,
+            ..Default::default()
+        };
+        let layout = py
+            .allow_threads(move || paperjam_core::layout::analyze_layout(&page, &options))
+            .map_err(to_py_err)?;
+
+        crate::convert::page_layout_to_py(py, &layout)
+    }
+
+    #[pyo3(signature = (*, min_gutter_width=20.0, max_columns=4, detect_headers_footers=true))]
+    fn extract_text_layout(
+        &self,
+        py: Python<'_>,
+        min_gutter_width: f64,
+        max_columns: usize,
+        detect_headers_footers: bool,
+    ) -> PyResult<String> {
+        let page = Arc::clone(&self.inner);
+        let options = paperjam_core::layout::LayoutOptions {
+            min_gutter_width,
+            max_columns,
+            detect_headers_footers,
+            ..Default::default()
+        };
+        py.allow_threads(move || {
+            let layout = paperjam_core::layout::analyze_layout(&page, &options)?;
+            Ok(layout.text())
+        })
+        .map_err(to_py_err)
+    }
+
+    #[pyo3(signature = (
+        *,
+        heading_offset=0,
+        page_separator="---",
+        include_page_numbers=false,
+        page_number_format="<!-- page {n} -->",
+        html_tables=false,
+        table_header_first_row=true,
+        normalize_list_markers=true,
+        heading_size_ratio=1.2,
+        detect_lists=true,
+        include_tables=true,
+        layout_aware=false,
+    ))]
+    fn to_markdown(
+        &self,
+        py: Python<'_>,
+        heading_offset: u8,
+        page_separator: &str,
+        include_page_numbers: bool,
+        page_number_format: &str,
+        html_tables: bool,
+        table_header_first_row: bool,
+        normalize_list_markers: bool,
+        heading_size_ratio: f64,
+        detect_lists: bool,
+        include_tables: bool,
+        layout_aware: bool,
+    ) -> PyResult<String> {
+        let page = Arc::clone(&self.inner);
+        let options = paperjam_core::markdown::MarkdownOptions {
+            heading_offset,
+            page_separator: page_separator.to_string(),
+            include_page_numbers,
+            page_number_format: page_number_format.to_string(),
+            html_tables,
+            table_header_first_row,
+            normalize_list_markers,
+            structure_options: paperjam_core::structure::StructureOptions {
+                heading_size_ratio,
+                detect_lists,
+                include_tables,
+                layout_aware,
+            },
+        };
+        py.allow_threads(move || paperjam_core::markdown::page_to_markdown(&page, &options))
+            .map_err(to_py_err)
     }
 }
