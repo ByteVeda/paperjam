@@ -16,8 +16,21 @@ flate2 = { workspace = true }
 encoding_rs = { workspace = true }
 rayon = { workspace = true, optional = true }
 memmap2 = { workspace = true, optional = true }
+pdfium-render = { workspace = true, optional = true }
+image = { workspace = true, optional = true }
+x509-parser = { workspace = true, optional = true }
+cms = { workspace = true, optional = true }
+der = { workspace = true, optional = true }
+sha2 = { workspace = true, optional = true }
+spki = { workspace = true, optional = true }
+sha1 = { workspace = true, optional = true }
+rsa = { workspace = true, optional = true }
+p256 = { workspace = true, optional = true }
+pkcs8 = { workspace = true, optional = true }
 
 [features]
 default = ["parallel"]
 parallel = ["dep:rayon"]
 mmap = ["dep:memmap2"]
+render = ["dep:pdfium-render", "dep:image"]
+signatures = ["dep:x509-parser", "dep:cms", "dep:der", "dep:sha2", "dep:sha1", "dep:rsa", "dep:p256", "dep:pkcs8", "dep:spki"]

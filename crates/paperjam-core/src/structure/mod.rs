@@ -84,6 +84,9 @@ pub struct StructureOptions {
     pub detect_lists: bool,
     /// Whether to include tables from table extraction.
     pub include_tables: bool,
+    /// Whether to use layout-aware reading order (column detection, header/footer).
+    /// Default: false (preserves backward compatibility).
+    pub layout_aware: bool,
 }
 
 impl Default for StructureOptions {
@@ -92,13 +95,24 @@ impl Default for StructureOptions {
             heading_size_ratio: 1.2,
             detect_lists: true,
             include_tables: true,
+            layout_aware: false,
         }
     }
 }
 
 /// Extract structured content blocks from a single page.
 pub fn extract_structure(page: &Page, options: &StructureOptions) -> Result<Vec<ContentBlock>> {
-    let lines = page.text_lines()?;
+    let lines = if options.layout_aware {
+        let layout_opts = crate::layout::LayoutOptions::default();
+        let layout = crate::layout::analyze_layout(page, &layout_opts)?;
+        layout
+            .lines_in_reading_order()
+            .into_iter()
+            .cloned()
+            .collect()
+    } else {
+        page.text_lines()?
+    };
     if lines.is_empty() {
         return Ok(Vec::new());
     }
