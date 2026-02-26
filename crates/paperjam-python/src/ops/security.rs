@@ -1,5 +1,7 @@
+use std::collections::HashMap;
+
 use pyo3::prelude::*;
-use pyo3::types::{PyDict, PyList};
+use pyo3::types::{PyBytes, PyDict, PyList};
 
 use crate::document::PyDocument;
 use crate::errors::to_py_err;
@@ -172,4 +174,49 @@ pub fn py_redact_text<'py>(
         },
         dict,
     ))
+}
+
+#[pyfunction]
+#[pyo3(name = "encrypt_document", signature = (document, user_password, owner_password=None, permissions=None))]
+pub fn py_encrypt<'py>(
+    py: Python<'py>,
+    document: &PyDocument,
+    user_password: String,
+    owner_password: Option<String>,
+    permissions: Option<HashMap<String, bool>>,
+) -> PyResult<(Bound<'py, PyBytes>, Bound<'py, PyDict>)> {
+    let inner = std::sync::Arc::clone(&document.inner);
+
+    let owner_pw = owner_password.unwrap_or_else(|| user_password.clone());
+
+    let perms = if let Some(map) = permissions {
+        paperjam_core::encryption::Permissions {
+            print: *map.get("print").unwrap_or(&true),
+            modify: *map.get("modify").unwrap_or(&true),
+            copy: *map.get("copy").unwrap_or(&true),
+            annotate: *map.get("annotate").unwrap_or(&true),
+            fill_forms: *map.get("fill_forms").unwrap_or(&true),
+            accessibility: *map.get("accessibility").unwrap_or(&true),
+            assemble: *map.get("assemble").unwrap_or(&true),
+            print_high_quality: *map.get("print_high_quality").unwrap_or(&true),
+        }
+    } else {
+        paperjam_core::encryption::Permissions::default()
+    };
+
+    let options = paperjam_core::encryption::EncryptionOptions {
+        user_password,
+        owner_password: owner_pw,
+        permissions: perms,
+    };
+
+    let encrypted_bytes = py
+        .allow_threads(move || paperjam_core::encryption::encrypt(&inner, &options))
+        .map_err(to_py_err)?;
+
+    let stats = PyDict::new(py);
+    stats.set_item("algorithm", "RC4-128")?;
+    stats.set_item("key_length", 128)?;
+
+    Ok((PyBytes::new(py, &encrypted_bytes), stats))
 }

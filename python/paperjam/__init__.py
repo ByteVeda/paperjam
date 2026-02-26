@@ -4,6 +4,15 @@ from __future__ import annotations
 
 __version__ = "0.1.0"
 
+import paperjam._comparison
+
+# Import feature modules to attach methods to Document
+import paperjam._extraction
+import paperjam._forms
+import paperjam._manipulation
+import paperjam._render
+import paperjam._security
+import paperjam._signature  # noqa: F401
 from paperjam._document import Document
 from paperjam._enums import (
     AnnotationType,
@@ -15,10 +24,10 @@ from paperjam._enums import (
     WatermarkPosition,
 )
 from paperjam._functions import diff, merge, merge_files, open, to_markdown
-from paperjam._render import render
 from paperjam._page import Page
 from paperjam._paperjam import (
     AnnotationError,
+    EncryptionError,
     FormError,
     InvalidPassword,
     OptimizationError,
@@ -36,6 +45,7 @@ from paperjam._paperjam import (
 from paperjam._paperjam import (
     PaperJamError as PdfError,
 )
+from paperjam._render import render
 from paperjam._types import (
     Annotation,
     Bookmark,
@@ -46,19 +56,21 @@ from paperjam._types import (
     DiffOp,
     DiffResult,
     DiffSummary,
+    EncryptResult,
     FillFormResult,
     FormField,
     Image,
     LayoutRegion,
-    RenderedImage,
     Metadata,
     OptimizeResult,
     PageDiff,
     PageInfo,
     PageLayout,
+    Permissions,
     RedactedItem,
     RedactRegion,
     RedactResult,
+    RenderedImage,
     Row,
     SanitizedItem,
     SanitizeResult,
@@ -69,15 +81,6 @@ from paperjam._types import (
     TextLine,
     TextSpan,
 )
-
-# Import feature modules to attach methods to Document
-import paperjam._extraction  # noqa: F401
-import paperjam._manipulation  # noqa: F401
-import paperjam._comparison  # noqa: F401
-import paperjam._security  # noqa: F401
-import paperjam._forms  # noqa: F401
-import paperjam._render  # noqa: F401
-import paperjam._signature  # noqa: F401
 
 __all__ = [
     "Annotation",
@@ -92,6 +95,8 @@ __all__ = [
     "DiffResult",
     "DiffSummary",
     "Document",
+    "EncryptResult",
+    "EncryptionError",
     "FillFormResult",
     "FormError",
     "FormField",
@@ -111,17 +116,18 @@ __all__ = [
     "ParseError",
     "PasswordRequired",
     "PdfError",
-    "RedactedItem",
+    "Permissions",
     "RedactError",
-    "RenderedImage",
-    "RenderError",
     "RedactRegion",
     "RedactResult",
+    "RedactedItem",
+    "RenderError",
+    "RenderedImage",
     "Rotation",
     "Row",
     "SanitizeError",
-    "SanitizedItem",
     "SanitizeResult",
+    "SanitizedItem",
     "SearchResult",
     "SignatureError",
     "SignatureInfo",

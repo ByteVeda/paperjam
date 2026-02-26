@@ -4,15 +4,11 @@ from __future__ import annotations
 
 import os
 import pathlib
-from typing import TYPE_CHECKING
 
 from paperjam import _paperjam
 from paperjam._document import Document
 from paperjam._page import Page
 from paperjam._types import RenderedImage
-
-if TYPE_CHECKING:
-    pass
 
 
 def _pdfium_library_path() -> str | None:

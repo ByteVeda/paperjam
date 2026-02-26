@@ -2,10 +2,14 @@
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 from paperjam._document import Document
 from paperjam._enums import TableStrategy
 from paperjam._page import _raw_block_to_content_block
-from paperjam._types import ContentBlock, SearchResult, Table
+
+if TYPE_CHECKING:
+    from paperjam._types import ContentBlock, SearchResult, Table
 
 
 def _extract_structure(

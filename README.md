@@ -23,6 +23,7 @@ paperjam is a Python library with a Rust core for reading, manipulating, and ana
 - **Layout-aware reading order** — multi-column detection, header/footer identification, correct reading order
 - **PDF to Markdown** — convert structured content to clean markdown for LLM/RAG pipelines
 - **Password-protected PDFs** — open encrypted documents with password
+- **Encryption** — protect PDFs with user/owner passwords and granular permission flags
 
 ## Installation
 
@@ -318,6 +319,31 @@ for item in result.items:
 sanitized.save("clean.pdf")
 ```
 
+### Encryption
+
+Protect a PDF with passwords and permission controls:
+
+```python
+# Encrypt with user password
+encrypted_bytes, result = doc.encrypt(
+    user_password="secret",
+    owner_password="admin",  # optional, defaults to user_password
+    permissions=paperjam.Permissions(print=True, copy=False),
+)
+
+with open("protected.pdf", "wb") as f:
+    f.write(encrypted_bytes)
+
+print(f"Algorithm: {result.algorithm}, Key: {result.key_length}-bit")
+
+# Permissions presets
+paperjam.Permissions()         # all allowed (default)
+paperjam.Permissions.none()    # all denied
+
+# Open an encrypted PDF
+doc = paperjam.open("protected.pdf", password="secret")
+```
+
 ### PDF Diff
 
 Compare two documents at the text level:
@@ -460,6 +486,8 @@ All types are frozen dataclasses with `__slots__`.
 | `RedactResult` | Redaction stats with `pages_modified`, `items_redacted` |
 | `LayoutRegion` | Page region with kind, bbox, lines, and column index |
 | `PageLayout` | Layout analysis result with columns, gutters, and regions |
+| `Permissions` | Encryption permission flags (print, copy, modify, etc.) |
+| `EncryptResult` | Encryption stats with algorithm and key length |
 
 ## Enums
 
@@ -488,6 +516,7 @@ All exceptions inherit from `PdfError`.
 | `WatermarkError` | Error applying a watermark |
 | `OptimizationError` | Error during PDF optimization |
 | `SanitizeError` | Error during PDF sanitization |
+| `EncryptionError` | Error during PDF encryption |
 
 ## License
 

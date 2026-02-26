@@ -16,9 +16,11 @@ if TYPE_CHECKING:
     from paperjam._types import (
         ContentBlock,
         DiffResult,
+        EncryptResult,
         FillFormResult,
         FormField,
         OptimizeResult,
+        Permissions,
         RedactRegion,
         RedactResult,
         RenderedImage,
@@ -182,6 +184,14 @@ class Document:
             use_regex: bool = ...,
             fill_color: tuple[float, float, float] | None = ...,
         ) -> tuple[Document, RedactResult]: ...
+
+        def encrypt(
+            self,
+            *,
+            user_password: str,
+            owner_password: str | None = ...,
+            permissions: Permissions | None = ...,
+        ) -> tuple[bytes, EncryptResult]: ...
 
         # -- Forms (attached by _forms.py) --
 

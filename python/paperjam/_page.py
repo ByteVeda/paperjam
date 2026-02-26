@@ -373,11 +373,11 @@ def _raw_to_page_layout(raw: dict) -> PageLayout:
     for r in raw["regions"]:
         lines = tuple(
             TextLine(
-                text=l["text"],
-                spans=tuple(TextSpan(**s) for s in l["spans"]),
-                bbox=tuple(l["bbox"]),
+                text=ln["text"],
+                spans=tuple(TextSpan(**s) for s in ln["spans"]),
+                bbox=tuple(ln["bbox"]),
             )
-            for l in r["lines"]
+            for ln in r["lines"]
         )
         regions.append(
             LayoutRegion(
