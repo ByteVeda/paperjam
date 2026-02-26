@@ -450,6 +450,42 @@ class LayoutRegion:
 
 
 @dataclasses.dataclass(frozen=True, slots=True)
+class Permissions:
+    """Permission flags for an encrypted PDF."""
+
+    print: bool = True
+    modify: bool = True
+    copy: bool = True
+    annotate: bool = True
+    fill_forms: bool = True
+    accessibility: bool = True
+    assemble: bool = True
+    print_high_quality: bool = True
+
+    @classmethod
+    def none(cls) -> Permissions:
+        """Create a Permissions instance with everything denied."""
+        return cls(
+            print=False,
+            modify=False,
+            copy=False,
+            annotate=False,
+            fill_forms=False,
+            accessibility=False,
+            assemble=False,
+            print_high_quality=False,
+        )
+
+
+@dataclasses.dataclass(frozen=True, slots=True)
+class EncryptResult:
+    """Statistics from PDF encryption."""
+
+    algorithm: str
+    key_length: int
+
+
+@dataclasses.dataclass(frozen=True, slots=True)
 class PageLayout:
     """Layout analysis result for a single page."""
 

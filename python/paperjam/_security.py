@@ -5,6 +5,8 @@ from __future__ import annotations
 from paperjam import _paperjam
 from paperjam._document import Document
 from paperjam._types import (
+    EncryptResult,
+    Permissions,
     RedactedItem,
     RedactRegion,
     RedactResult,
@@ -124,6 +126,44 @@ def _redact_text(
     )
 
 
+def _encrypt(
+    self: Document,
+    *,
+    user_password: str,
+    owner_password: str | None = None,
+    permissions: Permissions | None = None,
+) -> tuple[bytes, EncryptResult]:
+    """Encrypt the document with user/owner passwords and permission flags.
+
+    Args:
+        user_password: Password required to open the document.
+        owner_password: Password for full access. Defaults to user_password.
+        permissions: Permission flags controlling what viewers can do.
+
+    Returns a tuple of (encrypted_bytes, encrypt_result).
+    """
+    inner = self._ensure_open()
+    perms = permissions or Permissions()
+    perms_dict = {
+        "print": perms.print,
+        "modify": perms.modify,
+        "copy": perms.copy,
+        "annotate": perms.annotate,
+        "fill_forms": perms.fill_forms,
+        "accessibility": perms.accessibility,
+        "assemble": perms.assemble,
+        "print_high_quality": perms.print_high_quality,
+    }
+    data, stats = _paperjam.encrypt_document(
+        inner, user_password, owner_password, perms_dict,
+    )
+    return data, EncryptResult(
+        algorithm=stats["algorithm"],
+        key_length=stats["key_length"],
+    )
+
+
 Document.sanitize = _sanitize  # type: ignore[method-assign]
 Document.redact = _redact  # type: ignore[method-assign]
 Document.redact_text = _redact_text  # type: ignore[method-assign]
+Document.encrypt = _encrypt  # type: ignore[method-assign]
