@@ -323,7 +323,21 @@ class Page:
             background_color: tuple[int, int, int] | None = ...,
             scale_to_width: int | None = ...,
             scale_to_height: int | None = ...,
-        ) -> RenderedImage: ...
+        ) -> RenderedImage:
+            """Render this page to an image.
+
+            Args:
+                dpi: Resolution in dots per inch (default 150).
+                format: Image format - "png", "jpeg", or "bmp" (default "png").
+                quality: JPEG quality 1-100 (default 85, only used for JPEG).
+                background_color: RGB tuple (0-255) for background color.
+                scale_to_width: Target pixel width (overrides DPI).
+                scale_to_height: Target pixel height (overrides DPI).
+
+            Returns:
+                A RenderedImage with the image data and dimensions.
+            """
+            ...
 
 
 def _raw_block_to_content_block(raw: dict) -> ContentBlock:

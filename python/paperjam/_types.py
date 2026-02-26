@@ -89,6 +89,7 @@ class Table:
 
     @property
     def row_count(self) -> int:
+        """Number of rows in the table."""
         return len(self.rows)
 
     def cell(self, row: int, col: int) -> Cell | None:

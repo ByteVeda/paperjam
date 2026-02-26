@@ -59,7 +59,9 @@ class Document:
             detect_lists: bool = ...,
             include_tables: bool = ...,
             layout_aware: bool = ...,
-        ) -> list[ContentBlock]: ...
+        ) -> list[ContentBlock]:
+            """Extract structured content (headings, paragraphs, lists, tables) from all pages."""
+            ...
 
         def to_markdown(
             self,
@@ -75,7 +77,9 @@ class Document:
             detect_lists: bool = ...,
             include_tables: bool = ...,
             layout_aware: bool = ...,
-        ) -> str: ...
+        ) -> str:
+            """Convert the entire document to Markdown."""
+            ...
 
         def search(
             self,
@@ -84,7 +88,16 @@ class Document:
             case_sensitive: bool = ...,
             max_results: int = ...,
             use_regex: bool = ...,
-        ) -> list[SearchResult]: ...
+        ) -> list[SearchResult]:
+            """Search for text across all pages.
+
+            Args:
+                query: The text or regex pattern to search for.
+                case_sensitive: Whether the search is case-sensitive (default True).
+                max_results: Maximum number of results to return (0 = unlimited).
+                use_regex: If True, treat query as a regular expression.
+            """
+            ...
 
         def extract_tables(
             self,
@@ -95,17 +108,38 @@ class Document:
             snap_tolerance: float = ...,
             row_tolerance: float = ...,
             min_col_gap: float = ...,
-        ) -> list[Table]: ...
+        ) -> list[Table]:
+            """Extract tables from all pages."""
+            ...
 
         # -- Manipulation (attached by _manipulation.py) --
 
-        def split(self, ranges: list[tuple[int, int]]) -> list[Document]: ...
+        def split(self, ranges: list[tuple[int, int]]) -> list[Document]:
+            """Split into multiple documents by page ranges (1-indexed, inclusive)."""
+            ...
 
-        def split_pages(self) -> list[Document]: ...
+        def split_pages(self) -> list[Document]:
+            """Split into individual single-page documents."""
+            ...
 
-        def rotate(self, page_rotations: list[tuple[int, Rotation | int]]) -> Document: ...
+        def rotate(self, page_rotations: list[tuple[int, Rotation | int]]) -> Document:
+            """Rotate pages by specified angles, returning a new Document.
 
-        def reorder(self, page_order: list[int]) -> Document: ...
+            Args:
+                page_rotations: List of (page_number, rotation) tuples.
+                                page_number is 1-indexed. rotation is degrees (0, 90, 180, 270)
+                                or a Rotation enum value.
+            """
+            ...
+
+        def reorder(self, page_order: list[int]) -> Document:
+            """Reorder pages, returning a new Document.
+
+            Args:
+                page_order: List of 1-indexed page numbers in desired order.
+                            Can subset (drop pages) or repeat (duplicate pages).
+            """
+            ...
 
         def optimize(
             self,
@@ -114,7 +148,12 @@ class Document:
             remove_unused: bool = ...,
             remove_duplicates: bool = ...,
             strip_metadata: bool = ...,
-        ) -> tuple[Document, OptimizeResult]: ...
+        ) -> tuple[Document, OptimizeResult]:
+            """Optimize the PDF to reduce file size.
+
+            Returns a tuple of (optimized_document, result_stats).
+            """
+            ...
 
         def add_annotation(
             self,
@@ -128,7 +167,9 @@ class Document:
             opacity: float | None = ...,
             quad_points: tuple[float, ...] | None = ...,
             url: str | None = ...,
-        ) -> Document: ...
+        ) -> Document:
+            """Add an annotation to a page, returning a new Document."""
+            ...
 
         def remove_annotations(
             self,
@@ -136,7 +177,15 @@ class Document:
             *,
             annotation_types: list[AnnotationType | str] | None = ...,
             indices: list[int] | None = ...,
-        ) -> tuple[Document, int]: ...
+        ) -> tuple[Document, int]:
+            """Remove annotations from a page, returning a new Document and count removed.
+
+            Args:
+                page: 1-indexed page number.
+                annotation_types: If provided, only remove annotations matching these types.
+                indices: If provided, only remove annotations at these 0-based positions.
+            """
+            ...
 
         def add_watermark(
             self,
@@ -152,11 +201,25 @@ class Document:
             pages: list[int] | None = ...,
             x: float | None = ...,
             y: float | None = ...,
-        ) -> Document: ...
+        ) -> Document:
+            """Add a text watermark to pages, returning a new Document.
+
+            Args:
+                x: Custom X position in points. When both x and y are provided,
+                   the position parameter is ignored.
+                y: Custom Y position in points. When both x and y are provided,
+                   the position parameter is ignored.
+            """
+            ...
 
         # -- Comparison (attached by _comparison.py) --
 
-        def diff(self, other: Document) -> DiffResult: ...
+        def diff(self, other: Document) -> DiffResult:
+            """Compare this document with another at the text level.
+
+            Returns a DiffResult with per-page changes and summary statistics.
+            """
+            ...
 
         # -- Security (attached by _security.py) --
 
@@ -167,14 +230,28 @@ class Document:
             remove_embedded_files: bool = ...,
             remove_actions: bool = ...,
             remove_links: bool = ...,
-        ) -> tuple[Document, SanitizeResult]: ...
+        ) -> tuple[Document, SanitizeResult]:
+            """Remove potentially dangerous objects from the PDF.
+
+            Returns a tuple of (sanitized_document, result_stats).
+            """
+            ...
 
         def redact(
             self,
             regions: list[RedactRegion],
             *,
             fill_color: tuple[float, float, float] | None = ...,
-        ) -> tuple[Document, RedactResult]: ...
+        ) -> tuple[Document, RedactResult]:
+            """Redact text within specified regions, removing it from the content stream.
+
+            Args:
+                regions: List of RedactRegion specifying areas to redact.
+                fill_color: Optional (r, g, b) color for overlay rectangles (0.0-1.0).
+
+            Returns a tuple of (redacted_document, result_stats).
+            """
+            ...
 
         def redact_text(
             self,
@@ -183,7 +260,21 @@ class Document:
             case_sensitive: bool = ...,
             use_regex: bool = ...,
             fill_color: tuple[float, float, float] | None = ...,
-        ) -> tuple[Document, RedactResult]: ...
+        ) -> tuple[Document, RedactResult]:
+            """Redact all occurrences of a text query from the document.
+
+            Finds text matching the query, then removes the underlying text
+            operators from the content stream (true redaction, not cosmetic).
+
+            Args:
+                query: The text or regex pattern to search for and redact.
+                case_sensitive: Whether the search is case-sensitive (default True).
+                use_regex: If True, treat query as a regular expression.
+                fill_color: Optional (r, g, b) color for overlay rectangles (0.0-1.0).
+
+            Returns a tuple of (redacted_document, result_stats).
+            """
+            ...
 
         def encrypt(
             self,
@@ -191,22 +282,47 @@ class Document:
             user_password: str,
             owner_password: str | None = ...,
             permissions: Permissions | None = ...,
-        ) -> tuple[bytes, EncryptResult]: ...
+        ) -> tuple[bytes, EncryptResult]:
+            """Encrypt the document with user/owner passwords and permission flags.
+
+            Args:
+                user_password: Password required to open the document.
+                owner_password: Password for full access. Defaults to user_password.
+                permissions: Permission flags controlling what viewers can do.
+
+            Returns a tuple of (encrypted_bytes, encrypt_result).
+            """
+            ...
 
         # -- Forms (attached by _forms.py) --
 
         @property
-        def has_form(self) -> bool: ...
+        def has_form(self) -> bool:
+            """Whether the document contains an interactive form (AcroForm)."""
+            ...
 
         @property
-        def form_fields(self) -> list[FormField]: ...
+        def form_fields(self) -> list[FormField]:
+            """Extract all form fields from the document's AcroForm."""
+            ...
 
         def fill_form(
             self,
             values: dict[str, str],
             *,
             need_appearances: bool = ...,
-        ) -> tuple[Document, FillFormResult]: ...
+        ) -> tuple[Document, FillFormResult]:
+            """Fill form fields by name.
+
+            Args:
+                values: Mapping of fully-qualified field names to string values.
+                need_appearances: If True (default), sets /NeedAppearances so viewers
+                    regenerate field appearances automatically.
+
+            Returns:
+                A tuple of (new_document, fill_result).
+            """
+            ...
 
         # -- Rendering (attached by _render.py) --
 
@@ -220,7 +336,22 @@ class Document:
             background_color: tuple[int, int, int] | None = ...,
             scale_to_width: int | None = ...,
             scale_to_height: int | None = ...,
-        ) -> RenderedImage: ...
+        ) -> RenderedImage:
+            """Render a single page to an image.
+
+            Args:
+                page_number: 1-based page number to render.
+                dpi: Resolution in dots per inch (default 150).
+                format: Image format - "png", "jpeg", or "bmp" (default "png").
+                quality: JPEG quality 1-100 (default 85, only used for JPEG).
+                background_color: RGB tuple (0-255) for background color.
+                scale_to_width: Target pixel width (overrides DPI).
+                scale_to_height: Target pixel height (overrides DPI).
+
+            Returns:
+                A RenderedImage with the image data and dimensions.
+            """
+            ...
 
         def render_pages(
             self,
@@ -232,14 +363,40 @@ class Document:
             background_color: tuple[int, int, int] | None = ...,
             scale_to_width: int | None = ...,
             scale_to_height: int | None = ...,
-        ) -> list[RenderedImage]: ...
+        ) -> list[RenderedImage]:
+            """Render multiple pages to images.
+
+            Args:
+                pages: List of 1-based page numbers. None renders all pages.
+                dpi: Resolution in dots per inch (default 150).
+                format: Image format - "png", "jpeg", or "bmp" (default "png").
+                quality: JPEG quality 1-100 (default 85, only used for JPEG).
+                background_color: RGB tuple (0-255) for background color.
+                scale_to_width: Target pixel width (overrides DPI).
+                scale_to_height: Target pixel height (overrides DPI).
+
+            Returns:
+                List of RenderedImage objects.
+            """
+            ...
 
         # -- Signatures (attached by _signature.py) --
 
         @property
-        def signatures(self) -> list[SignatureInfo]: ...
+        def signatures(self) -> list[SignatureInfo]:
+            """Extract all digital signatures from the document."""
+            ...
 
-        def verify_signatures(self) -> list[SignatureValidity]: ...
+        def verify_signatures(self) -> list[SignatureValidity]:
+            """Verify all digital signatures in the document.
+
+            For each signature, checks:
+            - Integrity: the hash of the signed bytes matches the PKCS#7 signature
+            - Certificate validity: basic date check
+
+            Returns a list of SignatureValidity results.
+            """
+            ...
 
         def sign(
             self,
@@ -250,7 +407,22 @@ class Document:
             location: str | None = ...,
             contact_info: str | None = ...,
             field_name: str = ...,
-        ) -> bytes: ...
+        ) -> bytes:
+            """Sign the document with a digital signature.
+
+            Args:
+                private_key: DER-encoded private key (PKCS#8 format).
+                certificates: List of DER-encoded X.509 certificates.
+                    The first certificate should be the signing certificate.
+                reason: Reason for signing.
+                location: Location of signing.
+                contact_info: Contact information.
+                field_name: Signature field name (default: "Signature1").
+
+            Returns:
+                The finalized signed PDF as bytes.
+            """
+            ...
 
     def __init__(
         self,
@@ -258,6 +430,12 @@ class Document:
         *,
         password: str | None = None,
     ) -> None:
+        """Open a PDF document from a file path or raw bytes.
+
+        Args:
+            path_or_bytes: File path, path-like object, or raw PDF bytes.
+            password: Password for encrypted PDFs.
+        """
         if isinstance(path_or_bytes, (str, os.PathLike)):
             path = str(path_or_bytes)
             with open(path, "rb") as f:
