@@ -11,9 +11,9 @@ paperjam is a Python library with a Rust core for reading, manipulating, and ana
 - **Structured content** — headings, paragraphs, lists, and tables detected via font heuristics
 - **Image extraction** — extract embedded images with metadata
 - **Search** — full-text search across pages with bounding box locations
-- **Bookmarks** — extract the document outline as a nested tree
-- **Metadata** — title, author, dates, PDF version, encryption status, XMP
-- **Page manipulation** — split, merge, reorder, rotate
+- **Bookmarks** — extract and set the document outline as a nested tree
+- **Metadata** — read and edit title, author, subject, keywords, creator, producer
+- **Page manipulation** — split, merge, reorder, rotate, delete pages, insert blank pages
 - **Annotations** — read, add, and remove (highlight, underline, link, stamp, etc.)
 - **Watermarks** — add text watermarks with configurable position, rotation, opacity, layer
 - **Optimization** — compress streams, remove unused objects, deduplicate, strip metadata
@@ -23,7 +23,7 @@ paperjam is a Python library with a Rust core for reading, manipulating, and ana
 - **Layout-aware reading order** — multi-column detection, header/footer identification, correct reading order
 - **PDF to Markdown** — convert structured content to clean markdown for LLM/RAG pipelines
 - **Password-protected PDFs** — open encrypted documents with password
-- **Encryption** — protect PDFs with user/owner passwords and granular permission flags
+- **Encryption** — protect PDFs with AES-128 or RC4, user/owner passwords, and granular permission flags
 
 ## Installation
 
@@ -186,16 +186,42 @@ print(f"Author: {meta.author}")
 print(f"Pages: {meta.page_count}")
 print(f"PDF version: {meta.pdf_version}")
 print(f"Encrypted: {meta.is_encrypted}")
+
+# Edit metadata
+doc = doc.set_metadata(
+    title="New Title",
+    author="New Author",
+    subject="New Subject",
+    keywords="pdf, python, rust",
+)
+
+# Remove a field by passing None
+doc = doc.set_metadata(producer=None)
 ```
 
 ### Bookmarks
 
 ```python
+# Read bookmarks
 for bookmark in doc.bookmarks:
     indent = "  " * bookmark.level
     print(f"{indent}{bookmark.title} → page {bookmark.page}")
     for child in bookmark.children:
         print(f"  {indent}{child.title} → page {child.page}")
+
+# Set bookmarks
+from paperjam import Bookmark
+
+doc = doc.set_bookmarks([
+    Bookmark(title="Chapter 1", page=1, level=0, children=(
+        Bookmark(title="Section 1.1", page=2, level=1),
+        Bookmark(title="Section 1.2", page=5, level=1),
+    )),
+    Bookmark(title="Chapter 2", page=10, level=0),
+])
+
+# Remove all bookmarks
+doc = doc.set_bookmarks([])
 ```
 
 ### Page Information
@@ -278,6 +304,28 @@ doc = doc.reorder([1, 1, 2, 2, 3, 3])
 doc = doc.reorder([1, 3, 5])
 ```
 
+### Deleting Pages
+
+```python
+# Remove pages 3 and 5 (1-indexed)
+doc = doc.delete_pages([3, 5])
+doc.save("trimmed.pdf")
+```
+
+### Inserting Blank Pages
+
+```python
+# Insert a letter-size blank page at the beginning
+doc = doc.insert_blank_pages([(0, 612.0, 792.0)])
+
+# Insert after page 3 and after page 7
+doc = doc.insert_blank_pages([
+    (3, 612.0, 792.0),   # after page 3
+    (7, 595.0, 842.0),   # after page 7 (A4 size)
+])
+doc.save("with_blanks.pdf")
+```
+
 ### Optimization
 
 ```python
@@ -324,11 +372,17 @@ sanitized.save("clean.pdf")
 Protect a PDF with passwords and permission controls:
 
 ```python
-# Encrypt with user password
+# Encrypt with AES-128 (default)
 encrypted_bytes, result = doc.encrypt(
     user_password="secret",
     owner_password="admin",  # optional, defaults to user_password
     permissions=paperjam.Permissions(print=True, copy=False),
+)
+
+# Use RC4 encryption for broader compatibility
+encrypted_bytes, result = doc.encrypt(
+    user_password="secret",
+    algorithm="rc4",
 )
 
 with open("protected.pdf", "wb") as f:
