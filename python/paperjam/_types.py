@@ -396,6 +396,22 @@ class FillFormResult:
     not_found_names: tuple[str, ...] = ()
 
 
+@dataclasses.dataclass(frozen=True, slots=True)
+class ModifyFieldResult:
+    """Result of a field modification operation."""
+
+    field_name: str
+    modified: bool
+
+
+@dataclasses.dataclass(frozen=True, slots=True)
+class CreateFieldResult:
+    """Result of a field creation operation."""
+
+    field_name: str
+    created: bool
+
+
 # --- Signature types ---
 
 

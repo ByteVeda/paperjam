@@ -14,7 +14,7 @@ pub mod watermark;
 pub use annotate::{py_add_annotation, py_remove_annotations};
 pub use bookmarks::py_set_bookmarks;
 pub use diff::py_diff_documents;
-pub use forms::py_fill_form;
+pub use forms::{py_add_form_field, py_fill_form, py_modify_form_field};
 pub use merge::{py_merge, py_split};
 pub use metadata::py_set_metadata;
 pub use optimize::py_optimize;

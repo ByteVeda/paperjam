@@ -198,8 +198,119 @@ pub fn walk_fields(
     Ok(fields)
 }
 
+/// Find a field's ObjectId by fully-qualified name.
+///
+/// Walks the AcroForm field tree looking for a field matching `target_name`.
+/// Returns `Ok(Some(id))` if found, `Ok(None)` if not found.
+pub(crate) fn find_field_id(
+    doc: &lopdf::Document,
+    target_name: &str,
+) -> Result<Option<ObjectId>> {
+    let root_id = doc
+        .trailer
+        .get(b"Root")
+        .map_err(|_| PdfError::Form("No /Root in trailer".to_string()))?
+        .as_reference()
+        .map_err(|_| PdfError::Form("/Root is not a reference".to_string()))?;
+
+    let root_dict = doc
+        .get_object(root_id)
+        .map_err(|e| PdfError::Form(format!("Cannot get root: {}", e)))?
+        .as_dict()
+        .map_err(|_| PdfError::Form("/Root is not a dictionary".to_string()))?;
+
+    let acroform_obj = match root_dict.get(b"AcroForm") {
+        Ok(obj) => obj,
+        Err(_) => return Ok(None),
+    };
+
+    let acroform_dict = match acroform_obj {
+        Object::Dictionary(d) => d,
+        Object::Reference(id) => doc
+            .get_object(*id)
+            .map_err(|e| PdfError::Form(format!("Cannot dereference AcroForm: {}", e)))?
+            .as_dict()
+            .map_err(|_| PdfError::Form("AcroForm is not a dictionary".to_string()))?,
+        _ => return Ok(None),
+    };
+
+    let fields_array = match acroform_dict.get(b"Fields") {
+        Ok(Object::Array(arr)) => arr.clone(),
+        Ok(Object::Reference(id)) => match doc.get_object(*id) {
+            Ok(Object::Array(arr)) => arr.clone(),
+            _ => return Ok(None),
+        },
+        _ => return Ok(None),
+    };
+
+    find_field_id_in_tree(doc, &fields_array, "", target_name)
+}
+
+fn find_field_id_in_tree(
+    doc: &lopdf::Document,
+    field_refs: &[Object],
+    parent_name: &str,
+    target_name: &str,
+) -> Result<Option<ObjectId>> {
+    for field_ref in field_refs {
+        let field_id = match field_ref.as_reference() {
+            Ok(id) => id,
+            Err(_) => continue,
+        };
+
+        let dict = match doc.get_object(field_id) {
+            Ok(obj) => match obj.as_dict() {
+                Ok(d) => d,
+                Err(_) => continue,
+            },
+            Err(_) => continue,
+        };
+
+        let partial_name = dict
+            .get(b"T")
+            .ok()
+            .and_then(|o| obj_to_string(o, doc))
+            .unwrap_or_default();
+
+        let fq_name = if parent_name.is_empty() {
+            partial_name.clone()
+        } else if partial_name.is_empty() {
+            parent_name.to_string()
+        } else {
+            format!("{}.{}", parent_name, partial_name)
+        };
+
+        if let Ok(Object::Array(kids)) = dict.get(b"Kids") {
+            let kids_clone = kids.clone();
+
+            let has_subfields = kids_clone.iter().any(|k| {
+                if let Ok(kid_id) = k.as_reference() {
+                    if let Ok(kid_obj) = doc.get_object(kid_id) {
+                        if let Ok(kid_dict) = kid_obj.as_dict() {
+                            return kid_dict.get(b"T").is_ok();
+                        }
+                    }
+                }
+                false
+            });
+
+            if has_subfields {
+                if let Some(id) = find_field_id_in_tree(doc, &kids_clone, &fq_name, target_name)? {
+                    return Ok(Some(id));
+                }
+            } else if fq_name == target_name {
+                return Ok(Some(field_id));
+            }
+        } else if fq_name == target_name {
+            return Ok(Some(field_id));
+        }
+    }
+
+    Ok(None)
+}
+
 /// Classify a form field based on /FT name and /Ff flags.
-fn classify_field(ft: Option<&[u8]>, ff: u32) -> FormFieldType {
+pub(crate) fn classify_field(ft: Option<&[u8]>, ff: u32) -> FormFieldType {
     match ft {
         Some(b"Tx") => FormFieldType::Text,
         Some(b"Btn") => {

@@ -24,6 +24,7 @@ paperjam is a Python library with a Rust core for reading, manipulating, and ana
 - **PDF to Markdown** — convert structured content to clean markdown for LLM/RAG pipelines
 - **Password-protected PDFs** — open encrypted documents with password
 - **Encryption** — protect PDFs with AES-128 or RC4, user/owner passwords, and granular permission flags
+- **Forms** — inspect, fill, create, and modify form fields with appearance stream generation; form-aware merging
 
 ## Installation
 
@@ -398,6 +399,54 @@ paperjam.Permissions.none()    # all denied
 doc = paperjam.open("protected.pdf", password="secret")
 ```
 
+### Forms
+
+```python
+# Check for form fields
+if doc.has_form:
+    for field in doc.form_fields:
+        print(f"{field.name}: {field.field_type} = {field.value}")
+
+# Fill form fields
+filled, result = doc.fill_form({"name": "John", "email": "john@example.com"})
+
+# Fill with explicit appearance streams (for viewers that ignore /NeedAppearances)
+filled, result = doc.fill_form(
+    {"name": "John"},
+    generate_appearances=True,
+)
+
+# Checkboxes and radio buttons
+filled, result = doc.fill_form({"agree": "Yes", "plan": "premium"})
+
+# Create form fields
+doc, result = doc.add_form_field(
+    "name", "text",
+    page=1,
+    rect=(100, 700, 300, 720),
+    font_size=12.0,
+)
+
+# Create a checkbox
+doc, result = doc.add_form_field(
+    "agree", "checkbox",
+    page=1,
+    rect=(100, 650, 120, 670),
+)
+
+# Modify field properties
+doc, result = doc.modify_form_field(
+    "name",
+    read_only=True,
+    required=True,
+    max_length=100,
+)
+
+# Merge preserves form fields (auto-prefixed)
+merged = paperjam.merge([doc_a, doc_b])
+# doc_b's field "name" becomes "doc2_name"
+```
+
 ### PDF Diff
 
 Compare two documents at the text level:
@@ -542,6 +591,11 @@ All types are frozen dataclasses with `__slots__`.
 | `PageLayout` | Layout analysis result with columns, gutters, and regions |
 | `Permissions` | Encryption permission flags (print, copy, modify, etc.) |
 | `EncryptResult` | Encryption stats with algorithm and key length |
+| `FormField` | Form field with name, type, value, flags, options, rect |
+| `ChoiceOption` | Option in a choice field (display text + export value) |
+| `FillFormResult` | Fill stats: fields_filled, fields_not_found, not_found_names |
+| `ModifyFieldResult` | Modify result: field_name, modified |
+| `CreateFieldResult` | Create result: field_name, created |
 
 ## Enums
 
@@ -552,6 +606,7 @@ All types are frozen dataclasses with `__slots__`.
 | `AnnotationType` | `TEXT`, `LINK`, `FREE_TEXT`, `HIGHLIGHT`, `UNDERLINE`, `STRIKE_OUT`, `SQUARE`, `CIRCLE`, `LINE`, `STAMP` |
 | `WatermarkPosition` | `CENTER`, `TOP_LEFT`, `TOP_RIGHT`, `BOTTOM_LEFT`, `BOTTOM_RIGHT` |
 | `WatermarkLayer` | `OVER`, `UNDER` |
+| `FormFieldType` | `TEXT`, `CHECKBOX`, `RADIO_BUTTON`, `COMBO_BOX`, `LIST_BOX`, `PUSH_BUTTON`, `SIGNATURE` |
 
 ## Exceptions
 
@@ -571,6 +626,7 @@ All exceptions inherit from `PdfError`.
 | `OptimizationError` | Error during PDF optimization |
 | `SanitizeError` | Error during PDF sanitization |
 | `EncryptionError` | Error during PDF encryption |
+| `FormError` | Error during form field operations |
 
 ## License
 

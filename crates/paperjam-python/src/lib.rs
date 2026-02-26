@@ -30,6 +30,8 @@ fn _paperjam(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(ops::py_redact_text, m)?)?;
     m.add_function(wrap_pyfunction!(ops::py_encrypt, m)?)?;
     m.add_function(wrap_pyfunction!(ops::py_fill_form, m)?)?;
+    m.add_function(wrap_pyfunction!(ops::py_modify_form_field, m)?)?;
+    m.add_function(wrap_pyfunction!(ops::py_add_form_field, m)?)?;
     m.add_function(wrap_pyfunction!(ops::py_render_page, m)?)?;
     m.add_function(wrap_pyfunction!(ops::py_render_pages, m)?)?;
     m.add_function(wrap_pyfunction!(ops::py_render_file, m)?)?;

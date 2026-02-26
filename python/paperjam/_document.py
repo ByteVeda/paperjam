@@ -14,11 +14,14 @@ if TYPE_CHECKING:
 
     from paperjam._enums import AnnotationType, Rotation, TableStrategy, WatermarkLayer, WatermarkPosition
     from paperjam._types import (
+        ChoiceOption,
         ContentBlock,
+        CreateFieldResult,
         DiffResult,
         EncryptResult,
         FillFormResult,
         FormField,
+        ModifyFieldResult,
         OptimizeResult,
         Permissions,
         RedactRegion,
@@ -361,16 +364,85 @@ class Document:
             values: dict[str, str],
             *,
             need_appearances: bool = ...,
+            generate_appearances: bool = ...,
         ) -> tuple[Document, FillFormResult]:
             """Fill form fields by name.
 
             Args:
                 values: Mapping of fully-qualified field names to string values.
+                    For checkboxes, pass "Yes" or "Off". For radio buttons, pass the export value.
                 need_appearances: If True (default), sets /NeedAppearances so viewers
-                    regenerate field appearances automatically.
+                    regenerate field appearances automatically. Ignored if generate_appearances is True.
+                generate_appearances: If True, generates explicit /AP streams so forms
+                    render correctly even in viewers that ignore /NeedAppearances.
 
             Returns:
                 A tuple of (new_document, fill_result).
+            """
+            ...
+
+        def modify_form_field(
+            self,
+            field_name: str,
+            *,
+            value: str | None = ...,
+            default_value: str | None = ...,
+            read_only: bool | None = ...,
+            required: bool | None = ...,
+            max_length: int | None = ...,
+            options: list[ChoiceOption] | None = ...,
+        ) -> tuple[Document, ModifyFieldResult]:
+            """Modify properties of a form field.
+
+            Args:
+                field_name: Fully-qualified field name.
+                value: New value for the field.
+                default_value: New default value.
+                read_only: Set the read-only flag.
+                required: Set the required flag.
+                max_length: Set max length (text fields).
+                options: Replace choice options (combo/list boxes).
+
+            Returns:
+                A tuple of (new_document, modify_result).
+            """
+            ...
+
+        def add_form_field(
+            self,
+            name: str,
+            field_type: str,
+            *,
+            page: int = ...,
+            rect: tuple[float, float, float, float] = ...,
+            value: str | None = ...,
+            default_value: str | None = ...,
+            read_only: bool = ...,
+            required: bool = ...,
+            max_length: int | None = ...,
+            options: list[ChoiceOption] | None = ...,
+            font_size: float = ...,
+            generate_appearance: bool = ...,
+        ) -> tuple[Document, CreateFieldResult]:
+            """Create a new form field on a page.
+
+            Args:
+                name: Fully-qualified field name.
+                field_type: One of "text", "checkbox", "radio_button", "combo_box",
+                    "list_box", "push_button", "signature".
+                page: 1-based page number (default 1).
+                rect: Field rectangle (x1, y1, x2, y2) in PDF points.
+                value: Initial value.
+                default_value: Default value.
+                read_only: Whether the field is read-only.
+                required: Whether the field is required.
+                max_length: Maximum length for text fields.
+                options: Choice options for combo/list boxes.
+                font_size: Font size (0 = auto).
+                generate_appearance: Whether to generate an appearance stream (default True).
+
+            Returns:
+                A tuple of (new_document, create_result).
             """
             ...
 
