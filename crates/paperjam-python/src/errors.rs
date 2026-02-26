@@ -83,6 +83,12 @@ create_exception!(
     PaperJamError,
     "Signature error."
 );
+create_exception!(
+    _paperjam,
+    EncryptionError,
+    PaperJamError,
+    "Encryption error."
+);
 
 /// Convert a Rust PdfError into the appropriate Python exception.
 pub fn to_py_err(err: PdfError) -> PyErr {
@@ -114,7 +120,7 @@ pub fn to_py_err(err: PdfError) -> PyErr {
             ParseError::new_err(format!("Object ({}, {}) not found", num, gen))
         }
         PdfError::Lopdf(e) => ParseError::new_err(e.to_string()),
-        PdfError::Encryption(msg) => ParseError::new_err(msg),
+        PdfError::Encryption(msg) => EncryptionError::new_err(msg),
         PdfError::Signature(msg) => SignatureError::new_err(msg),
     }
 }
@@ -142,5 +148,6 @@ pub fn register_exceptions(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add("FormError", m.py().get_type::<FormError>())?;
     m.add("RenderError", m.py().get_type::<RenderError>())?;
     m.add("SignatureError", m.py().get_type::<SignatureError>())?;
+    m.add("EncryptionError", m.py().get_type::<EncryptionError>())?;
     Ok(())
 }

@@ -37,13 +37,17 @@ impl Document {
     /// Note: lopdf 0.34 does not natively support password-based decryption
     /// through load_filtered. This loads the document and relies on lopdf's
     /// built-in encryption handling.
-    pub fn open_with_password<P: AsRef<Path>>(path: P, _password: &str) -> Result<Self> {
-        // lopdf 0.34 doesn't have a password-based load.
-        // We attempt normal load and let lopdf handle decryption errors.
-        let inner = lopdf::Document::load(path).map_err(|e| match e {
+    pub fn open_with_password<P: AsRef<Path>>(path: P, password: &str) -> Result<Self> {
+        let mut inner = lopdf::Document::load(path).map_err(|e| match e {
             lopdf::Error::Decryption(_) => PdfError::PasswordRequired,
             other => PdfError::Lopdf(other),
         })?;
+        if inner.is_encrypted() {
+            inner.decrypt(password).map_err(|e| match e {
+                lopdf::Error::Decryption(_) => PdfError::InvalidPassword,
+                other => PdfError::Lopdf(other),
+            })?;
+        }
         Self::from_lopdf(inner)
     }
 
@@ -54,11 +58,17 @@ impl Document {
     }
 
     /// Open a PDF from bytes with a password.
-    pub fn open_bytes_with_password(bytes: &[u8], _password: &str) -> Result<Self> {
-        let inner = lopdf::Document::load_mem(bytes).map_err(|e| match e {
+    pub fn open_bytes_with_password(bytes: &[u8], password: &str) -> Result<Self> {
+        let mut inner = lopdf::Document::load_mem(bytes).map_err(|e| match e {
             lopdf::Error::Decryption(_) => PdfError::PasswordRequired,
             other => PdfError::Lopdf(other),
         })?;
+        if inner.is_encrypted() {
+            inner.decrypt(password).map_err(|e| match e {
+                lopdf::Error::Decryption(_) => PdfError::InvalidPassword,
+                other => PdfError::Lopdf(other),
+            })?;
+        }
         Self::from_lopdf(inner)
     }
 

@@ -2,6 +2,7 @@ pub mod annotations;
 pub mod bookmarks;
 pub mod diff;
 pub mod document;
+pub mod encryption;
 pub mod error;
 pub mod forms;
 #[cfg(feature = "render")]
