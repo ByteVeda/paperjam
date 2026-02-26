@@ -1,3 +1,5 @@
+//! Page manipulation: split, merge, reorder, rotate, delete, and insert blank pages.
+
 pub mod delete;
 pub mod insert;
 pub mod merge;

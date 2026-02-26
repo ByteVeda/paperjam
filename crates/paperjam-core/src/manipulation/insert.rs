@@ -75,6 +75,7 @@ pub fn insert_blank_pages(
     Document::from_lopdf(new_doc)
 }
 
+/// Insert a page reference into the /Kids array of the /Pages root and increment /Count.
 fn insert_page_into_kids(
     doc: &mut lopdf::Document,
     pages_id: ObjectId,

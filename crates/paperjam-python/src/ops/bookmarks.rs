@@ -1,9 +1,15 @@
+//! PyO3 bindings for bookmark management operations.
+
 use pyo3::prelude::*;
 use pyo3::types::PyDict;
 
 use crate::document::PyDocument;
 use crate::errors::to_py_err;
 
+/// Replace the document's bookmark/outline tree.
+///
+/// Each bookmark is a dict with `title` (str), `page` (int), and optional
+/// `children` (list of dicts). Pass an empty list to remove all bookmarks.
 #[pyfunction]
 #[pyo3(name = "set_bookmarks")]
 pub fn py_set_bookmarks<'py>(
@@ -23,6 +29,7 @@ pub fn py_set_bookmarks<'py>(
     })
 }
 
+/// Parse a list of Python dicts into `BookmarkSpec` values.
 fn parse_bookmark_list(
     dicts: &[Bound<'_, PyDict>],
 ) -> PyResult<Vec<paperjam_core::bookmarks::BookmarkSpec>> {
@@ -33,6 +40,7 @@ fn parse_bookmark_list(
     Ok(specs)
 }
 
+/// Parse a single Python dict into a `BookmarkSpec`.
 fn parse_bookmark_dict(
     dict: &Bound<'_, PyDict>,
 ) -> PyResult<paperjam_core::bookmarks::BookmarkSpec> {

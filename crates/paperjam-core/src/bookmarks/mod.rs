@@ -91,6 +91,7 @@ pub fn set_bookmarks(doc: &Document, bookmarks: &[BookmarkSpec]) -> Result<Docum
     Document::from_lopdf(new_doc)
 }
 
+/// Validate that all page numbers in the bookmark tree are within range.
 fn validate_bookmark_pages(
     spec: &BookmarkSpec,
     page_map: &BTreeMap<u32, ObjectId>,
@@ -107,6 +108,7 @@ fn validate_bookmark_pages(
     Ok(())
 }
 
+/// Remove the existing /Outlines tree from the catalog and delete its objects.
 fn remove_existing_outlines(doc: &mut lopdf::Document) {
     let outlines_id = doc
         .catalog()
@@ -124,6 +126,7 @@ fn remove_existing_outlines(doc: &mut lopdf::Document) {
     }
 }
 
+/// Recursively remove an outline node and all its children from the document.
 fn remove_outline_tree(doc: &mut lopdf::Document, obj_id: ObjectId) {
     let children = if let Some(Object::Dictionary(dict)) = doc.objects.get(&obj_id) {
         let mut ids = Vec::new();
@@ -150,6 +153,7 @@ fn remove_outline_tree(doc: &mut lopdf::Document, obj_id: ObjectId) {
     doc.objects.remove(&obj_id);
 }
 
+/// Build outline item objects for a list of sibling bookmarks and link them.
 fn build_outline_children(
     doc: &mut lopdf::Document,
     specs: &[BookmarkSpec],
@@ -199,6 +203,7 @@ fn build_outline_children(
     Ok(ids)
 }
 
+/// Count the total number of items in a bookmark tree (including nested children).
 fn count_all_items(specs: &[BookmarkSpec]) -> usize {
     specs.iter().fold(0, |acc, s| {
         acc + 1 + count_all_items(&s.children)

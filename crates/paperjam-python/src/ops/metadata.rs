@@ -1,3 +1,5 @@
+//! PyO3 bindings for metadata editing operations.
+
 use std::collections::HashMap;
 
 use pyo3::prelude::*;
@@ -5,6 +7,10 @@ use pyo3::prelude::*;
 use crate::document::PyDocument;
 use crate::errors::to_py_err;
 
+/// Update the document's /Info dictionary fields.
+///
+/// `updates` maps field names ("title", "author", etc.) to their new values.
+/// A value of `None` removes the field; a string value sets it.
 #[pyfunction]
 #[pyo3(name = "set_metadata", signature = (document, updates))]
 pub fn py_set_metadata(

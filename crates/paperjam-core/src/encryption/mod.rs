@@ -140,6 +140,7 @@ pub fn encrypt(doc: &Document, options: &EncryptionOptions) -> Result<Vec<u8>> {
     Ok(buf)
 }
 
+/// Build the /Encrypt dictionary for RC4-128 (V=2, R=3).
 fn build_rc4_encrypt_dict(
     o_hash: &[u8; 32],
     u_hash: &[u8; 32],
@@ -156,6 +157,7 @@ fn build_rc4_encrypt_dict(
     }
 }
 
+/// Build the /Encrypt dictionary for AES-128 (V=4, R=4) with crypt filters.
 fn build_aes128_encrypt_dict(
     o_hash: &[u8; 32],
     u_hash: &[u8; 32],
@@ -186,6 +188,9 @@ fn build_aes128_encrypt_dict(
     }
 }
 
+/// Get or generate the /ID entry in the document trailer.
+///
+/// If no /ID exists, generates a deterministic 16-byte identifier.
 fn ensure_file_id(doc: &mut lopdf::Document) -> Result<Vec<u8>> {
     if let Ok(Object::Array(ids)) = doc.trailer.get(b"ID") {
         if let Some(Object::String(id, _)) = ids.first() {
@@ -210,8 +215,7 @@ fn ensure_file_id(doc: &mut lopdf::Document) -> Result<Vec<u8>> {
     Ok(id)
 }
 
-// --- RC4 object encryption ---
-
+/// Encrypt all objects in the document using RC4.
 fn encrypt_objects_rc4(
     doc: &mut lopdf::Document,
     key: &[u8],
@@ -232,6 +236,7 @@ fn encrypt_objects_rc4(
     Ok(())
 }
 
+/// Recursively encrypt a single PDF object (strings and streams) with RC4.
 fn encrypt_object_recursive_rc4(key: &[u8], obj_id: ObjectId, obj: Object) -> Object {
     match obj {
         Object::String(data, _format) => {
@@ -275,8 +280,7 @@ fn encrypt_object_recursive_rc4(key: &[u8], obj_id: ObjectId, obj: Object) -> Ob
     }
 }
 
-// --- AES-128 object encryption ---
-
+/// Encrypt all objects in the document using AES-128-CBC.
 fn encrypt_objects_aes128(
     doc: &mut lopdf::Document,
     key: &[u8],
@@ -297,6 +301,7 @@ fn encrypt_objects_aes128(
     Ok(())
 }
 
+/// Recursively encrypt a single PDF object (strings and streams) with AES-128-CBC.
 fn encrypt_object_recursive_aes128(key: &[u8], obj_id: ObjectId, obj: Object) -> Object {
     match obj {
         Object::String(data, _format) => {
