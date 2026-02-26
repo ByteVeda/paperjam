@@ -177,17 +177,33 @@ pub fn py_redact_text<'py>(
 }
 
 #[pyfunction]
-#[pyo3(name = "encrypt_document", signature = (document, user_password, owner_password=None, permissions=None))]
+#[pyo3(name = "encrypt_document", signature = (document, user_password, owner_password=None, permissions=None, algorithm=None))]
 pub fn py_encrypt<'py>(
     py: Python<'py>,
     document: &PyDocument,
     user_password: String,
     owner_password: Option<String>,
     permissions: Option<HashMap<String, bool>>,
+    algorithm: Option<String>,
 ) -> PyResult<(Bound<'py, PyBytes>, Bound<'py, PyDict>)> {
     let inner = std::sync::Arc::clone(&document.inner);
 
     let owner_pw = owner_password.unwrap_or_else(|| user_password.clone());
+
+    let algo = match algorithm.as_deref() {
+        None | Some("aes128") | Some("aes") | Some("AES-128") => {
+            paperjam_core::encryption::EncryptionAlgorithm::Aes128
+        }
+        Some("rc4") | Some("RC4") | Some("RC4-128") => {
+            paperjam_core::encryption::EncryptionAlgorithm::Rc4
+        }
+        Some(other) => {
+            return Err(pyo3::exceptions::PyValueError::new_err(format!(
+                "Unknown encryption algorithm: '{}'. Use 'aes128' or 'rc4'.",
+                other
+            )));
+        }
+    };
 
     let perms = if let Some(map) = permissions {
         paperjam_core::encryption::Permissions {
@@ -208,6 +224,12 @@ pub fn py_encrypt<'py>(
         user_password,
         owner_password: owner_pw,
         permissions: perms,
+        algorithm: algo,
+    };
+
+    let (algo_name, key_len) = match algo {
+        paperjam_core::encryption::EncryptionAlgorithm::Rc4 => ("RC4-128", 128),
+        paperjam_core::encryption::EncryptionAlgorithm::Aes128 => ("AES-128", 128),
     };
 
     let encrypted_bytes = py
@@ -215,8 +237,8 @@ pub fn py_encrypt<'py>(
         .map_err(to_py_err)?;
 
     let stats = PyDict::new(py);
-    stats.set_item("algorithm", "RC4-128")?;
-    stats.set_item("key_length", 128)?;
+    stats.set_item("algorithm", algo_name)?;
+    stats.set_item("key_length", key_len)?;
 
     Ok((PyBytes::new(py, &encrypted_bytes), stats))
 }

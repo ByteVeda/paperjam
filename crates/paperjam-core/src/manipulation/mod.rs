@@ -1,9 +1,15 @@
+//! Page manipulation: split, merge, reorder, rotate, delete, and insert blank pages.
+
+pub mod delete;
+pub mod insert;
 pub mod merge;
 pub mod reorder;
 pub mod rotate;
 pub mod split;
 pub(crate) mod utils;
 
+pub use delete::delete_pages;
+pub use insert::insert_blank_pages;
 pub use merge::{merge, merge_files, MergeOptions};
 pub use reorder::reorder_pages;
 pub use rotate::{rotate_all, rotate_pages, Rotation};

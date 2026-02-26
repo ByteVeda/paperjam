@@ -185,6 +185,101 @@ def _rotate(
     return doc
 
 
+def _delete_pages(self: Document, page_numbers: list[int]) -> Document:
+    """Delete specific pages from the document, returning a new Document.
+
+    Args:
+        page_numbers: List of 1-indexed page numbers to remove.
+                      At least one page must remain.
+    """
+    inner = self._ensure_open()
+    result = _paperjam.delete_pages(inner, page_numbers)
+    doc = object.__new__(Document)
+    doc._inner = result
+    doc._closed = False
+    return doc
+
+
+def _insert_blank_pages(
+    self: Document,
+    positions: list[tuple[int, float, float]],
+) -> Document:
+    """Insert blank pages at specified positions, returning a new Document.
+
+    Args:
+        positions: List of (after_page, width, height) tuples.
+                   after_page=0 inserts at the beginning.
+                   width and height are in PDF points (72 points = 1 inch).
+    """
+    inner = self._ensure_open()
+    result = _paperjam.insert_blank_pages(inner, positions)
+    doc = object.__new__(Document)
+    doc._inner = result
+    doc._closed = False
+    return doc
+
+
+_UNSET = object()
+
+
+def _set_metadata(
+    self: Document,
+    *,
+    title: str | None = _UNSET,  # type: ignore[assignment]
+    author: str | None = _UNSET,  # type: ignore[assignment]
+    subject: str | None = _UNSET,  # type: ignore[assignment]
+    keywords: str | None = _UNSET,  # type: ignore[assignment]
+    creator: str | None = _UNSET,  # type: ignore[assignment]
+    producer: str | None = _UNSET,  # type: ignore[assignment]
+) -> Document:
+    """Update document metadata, returning a new Document.
+
+    Pass a string value to set a field, None to remove it,
+    or omit it to leave it unchanged.
+    """
+    inner = self._ensure_open()
+    updates = {}
+    for key, val in [
+        ("title", title), ("author", author), ("subject", subject),
+        ("keywords", keywords), ("creator", creator), ("producer", producer),
+    ]:
+        if val is not _UNSET:
+            updates[key] = val
+    result = _paperjam.set_metadata(inner, updates)
+    doc = object.__new__(Document)
+    doc._inner = result
+    doc._closed = False
+    return doc
+
+
+def _set_bookmarks(
+    self: Document,
+    bookmarks: list,
+) -> Document:
+    """Replace the document's bookmarks/outlines, returning a new Document.
+
+    Args:
+        bookmarks: List of Bookmark objects defining the new outline tree.
+                   Pass an empty list to remove all bookmarks.
+    """
+    from paperjam._types import Bookmark
+
+    inner = self._ensure_open()
+
+    def _to_dict(bm: Bookmark) -> dict:
+        d: dict = {"title": bm.title, "page": bm.page}
+        if bm.children:
+            d["children"] = [_to_dict(c) for c in bm.children]
+        return d
+
+    bm_dicts = [_to_dict(bm) for bm in bookmarks]
+    result = _paperjam.set_bookmarks(inner, bm_dicts)
+    doc = object.__new__(Document)
+    doc._inner = result
+    doc._closed = False
+    return doc
+
+
 Document.rotate = _rotate  # type: ignore[method-assign]
 Document.split = _split  # type: ignore[method-assign]
 Document.split_pages = _split_pages  # type: ignore[method-assign]
@@ -193,3 +288,7 @@ Document.optimize = _optimize  # type: ignore[method-assign]
 Document.add_annotation = _add_annotation  # type: ignore[method-assign]
 Document.remove_annotations = _remove_annotations  # type: ignore[method-assign]
 Document.add_watermark = _add_watermark  # type: ignore[method-assign]
+Document.delete_pages = _delete_pages  # type: ignore[method-assign]
+Document.insert_blank_pages = _insert_blank_pages  # type: ignore[method-assign]
+Document.set_metadata = _set_metadata  # type: ignore[method-assign]
+Document.set_bookmarks = _set_bookmarks  # type: ignore[method-assign]

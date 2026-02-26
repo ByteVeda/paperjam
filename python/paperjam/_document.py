@@ -212,6 +212,54 @@ class Document:
             """
             ...
 
+        def delete_pages(self, page_numbers: list[int]) -> Document:
+            """Delete specific pages from the document, returning a new Document.
+
+            Args:
+                page_numbers: List of 1-indexed page numbers to remove.
+                              At least one page must remain.
+            """
+            ...
+
+        def insert_blank_pages(
+            self,
+            positions: list[tuple[int, float, float]],
+        ) -> Document:
+            """Insert blank pages at specified positions, returning a new Document.
+
+            Args:
+                positions: List of (after_page, width, height) tuples.
+                           after_page=0 inserts at the beginning.
+                           width and height are in PDF points (72 points = 1 inch).
+            """
+            ...
+
+        def set_metadata(
+            self,
+            *,
+            title: str | None = ...,
+            author: str | None = ...,
+            subject: str | None = ...,
+            keywords: str | None = ...,
+            creator: str | None = ...,
+            producer: str | None = ...,
+        ) -> Document:
+            """Update document metadata, returning a new Document.
+
+            Pass a string value to set a field, None to remove it,
+            or omit it to leave it unchanged.
+            """
+            ...
+
+        def set_bookmarks(self, bookmarks: list[Bookmark]) -> Document:
+            """Replace the document's bookmarks/outlines, returning a new Document.
+
+            Args:
+                bookmarks: List of Bookmark objects defining the new outline tree.
+                           Pass an empty list to remove all bookmarks.
+            """
+            ...
+
         # -- Comparison (attached by _comparison.py) --
 
         def diff(self, other: Document) -> DiffResult:
@@ -282,6 +330,7 @@ class Document:
             user_password: str,
             owner_password: str | None = ...,
             permissions: Permissions | None = ...,
+            algorithm: str = ...,
         ) -> tuple[bytes, EncryptResult]:
             """Encrypt the document with user/owner passwords and permission flags.
 
@@ -289,6 +338,7 @@ class Document:
                 user_password: Password required to open the document.
                 owner_password: Password for full access. Defaults to user_password.
                 permissions: Permission flags controlling what viewers can do.
+                algorithm: Encryption algorithm — "aes128" (default) or "rc4".
 
             Returns a tuple of (encrypted_bytes, encrypt_result).
             """
