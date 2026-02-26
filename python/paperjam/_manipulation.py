@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from paperjam import _paperjam
 from paperjam._document import Document
-from paperjam._enums import AnnotationType, WatermarkLayer, WatermarkPosition
+from paperjam._enums import AnnotationType, Rotation, WatermarkLayer, WatermarkPosition
 from paperjam._types import OptimizeResult
 
 
@@ -97,14 +97,32 @@ def _add_annotation(
     return doc
 
 
-def _remove_annotations(self: Document, page: int) -> Document:
-    """Remove all annotations from a page, returning a new Document."""
+def _remove_annotations(
+    self: Document,
+    page: int,
+    *,
+    annotation_types: list[AnnotationType | str] | None = None,
+    indices: list[int] | None = None,
+) -> tuple[Document, int]:
+    """Remove annotations from a page, returning a new Document and count removed.
+
+    Args:
+        page: 1-indexed page number.
+        annotation_types: If provided, only remove annotations matching these types.
+        indices: If provided, only remove annotations at these 0-based positions.
+    """
     inner = self._ensure_open()
-    result, _count = _paperjam.remove_annotations(inner, page)
+    type_strs = None
+    if annotation_types is not None:
+        type_strs = [
+            t.value if isinstance(t, AnnotationType) else str(t)
+            for t in annotation_types
+        ]
+    result, count = _paperjam.remove_annotations(inner, page, type_strs, indices)
     doc = object.__new__(Document)
     doc._inner = result
     doc._closed = False
-    return doc
+    return doc, count
 
 
 def _add_watermark(
@@ -119,14 +137,24 @@ def _add_watermark(
     position: WatermarkPosition | str = WatermarkPosition.CENTER,
     layer: WatermarkLayer | str = WatermarkLayer.OVER,
     pages: list[int] | None = None,
+    x: float | None = None,
+    y: float | None = None,
 ) -> Document:
-    """Add a text watermark to pages, returning a new Document."""
+    """Add a text watermark to pages, returning a new Document.
+
+    Args:
+        x: Custom X position in points. When both x and y are provided,
+           the position parameter is ignored.
+        y: Custom Y position in points. When both x and y are provided,
+           the position parameter is ignored.
+    """
     inner = self._ensure_open()
     pos_str = position.value if isinstance(position, WatermarkPosition) else str(position)
     layer_str = layer.value if isinstance(layer, WatermarkLayer) else str(layer)
     result = _paperjam.add_watermark(
         inner, text, font_size, rotation, opacity,
         list(color), font, pos_str, layer_str, pages,
+        custom_x=x, custom_y=y,
     )
     doc = object.__new__(Document)
     doc._inner = result
@@ -134,6 +162,30 @@ def _add_watermark(
     return doc
 
 
+def _rotate(
+    self: Document,
+    page_rotations: list[tuple[int, Rotation | int]],
+) -> Document:
+    """Rotate pages by specified angles, returning a new Document.
+
+    Args:
+        page_rotations: List of (page_number, rotation) tuples.
+                        page_number is 1-indexed. rotation is degrees (0, 90, 180, 270)
+                        or a Rotation enum value.
+    """
+    inner = self._ensure_open()
+    normalized = [
+        (page, rot.value if isinstance(rot, Rotation) else int(rot))
+        for page, rot in page_rotations
+    ]
+    result = _paperjam.rotate_pages(inner, normalized)
+    doc = object.__new__(Document)
+    doc._inner = result
+    doc._closed = False
+    return doc
+
+
+Document.rotate = _rotate  # type: ignore[method-assign]
 Document.split = _split  # type: ignore[method-assign]
 Document.split_pages = _split_pages  # type: ignore[method-assign]
 Document.reorder = _reorder  # type: ignore[method-assign]

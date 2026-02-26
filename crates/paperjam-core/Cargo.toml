@@ -8,6 +8,7 @@ description = "Pure Rust PDF engine — parsing, text extraction, table detectio
 
 [dependencies]
 lopdf = "0.34"
+regex = "1"
 # Note: pinned to 0.34 for now; 0.39 changes API significantly.
 # We work around any missing features at the wrapper level.
 thiserror = { workspace = true }

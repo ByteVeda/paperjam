@@ -5,8 +5,33 @@ use crate::convert::render::rendered_image_to_py;
 use crate::document::PyDocument;
 use crate::errors::to_py_err;
 
+fn build_render_options(
+    dpi: f32,
+    format: &str,
+    quality: u8,
+    background_color: Option<Vec<u8>>,
+    scale_to_width: Option<u32>,
+    scale_to_height: Option<u32>,
+) -> paperjam_core::render::RenderOptions {
+    let bg = background_color.and_then(|c| {
+        if c.len() >= 3 {
+            Some([c[0], c[1], c[2]])
+        } else {
+            None
+        }
+    });
+    paperjam_core::render::RenderOptions {
+        dpi,
+        format: paperjam_core::render::ImageFormat::from_str(format),
+        quality,
+        background_color: bg,
+        scale_to_width,
+        scale_to_height,
+    }
+}
+
 #[pyfunction]
-#[pyo3(name = "render_page", signature = (document, page_number, dpi=150.0, format="png", quality=85, library_path=None))]
+#[pyo3(name = "render_page", signature = (document, page_number, dpi=150.0, format="png", quality=85, background_color=None, scale_to_width=None, scale_to_height=None, library_path=None))]
 pub fn py_render_page<'py>(
     py: Python<'py>,
     document: &PyDocument,
@@ -14,6 +39,9 @@ pub fn py_render_page<'py>(
     dpi: f32,
     format: &str,
     quality: u8,
+    background_color: Option<Vec<u8>>,
+    scale_to_width: Option<u32>,
+    scale_to_height: Option<u32>,
     library_path: Option<String>,
 ) -> PyResult<Bound<'py, PyDict>> {
     // Serialize document to bytes for pdfium
@@ -28,11 +56,7 @@ pub fn py_render_page<'py>(
         })
         .map_err(to_py_err)?;
 
-    let options = paperjam_core::render::RenderOptions {
-        dpi,
-        format: paperjam_core::render::ImageFormat::from_str(format),
-        quality,
-    };
+    let options = build_render_options(dpi, format, quality, background_color, scale_to_width, scale_to_height);
 
     let img = py
         .allow_threads(move || {
@@ -49,7 +73,7 @@ pub fn py_render_page<'py>(
 }
 
 #[pyfunction]
-#[pyo3(name = "render_pages", signature = (document, pages=None, dpi=150.0, format="png", quality=85, library_path=None))]
+#[pyo3(name = "render_pages", signature = (document, pages=None, dpi=150.0, format="png", quality=85, background_color=None, scale_to_width=None, scale_to_height=None, library_path=None))]
 pub fn py_render_pages<'py>(
     py: Python<'py>,
     document: &PyDocument,
@@ -57,6 +81,9 @@ pub fn py_render_pages<'py>(
     dpi: f32,
     format: &str,
     quality: u8,
+    background_color: Option<Vec<u8>>,
+    scale_to_width: Option<u32>,
+    scale_to_height: Option<u32>,
     library_path: Option<String>,
 ) -> PyResult<Bound<'py, PyList>> {
     let mut doc_clone = document.inner.inner().clone();
@@ -70,11 +97,7 @@ pub fn py_render_pages<'py>(
         })
         .map_err(to_py_err)?;
 
-    let options = paperjam_core::render::RenderOptions {
-        dpi,
-        format: paperjam_core::render::ImageFormat::from_str(format),
-        quality,
-    };
+    let options = build_render_options(dpi, format, quality, background_color, scale_to_width, scale_to_height);
 
     let images = py
         .allow_threads(move || {
@@ -96,7 +119,7 @@ pub fn py_render_pages<'py>(
 }
 
 #[pyfunction]
-#[pyo3(name = "render_pages_bytes", signature = (data, pages=None, dpi=150.0, format="png", quality=85, library_path=None))]
+#[pyo3(name = "render_pages_bytes", signature = (data, pages=None, dpi=150.0, format="png", quality=85, background_color=None, scale_to_width=None, scale_to_height=None, library_path=None))]
 pub fn py_render_pages_bytes<'py>(
     py: Python<'py>,
     data: &[u8],
@@ -104,14 +127,13 @@ pub fn py_render_pages_bytes<'py>(
     dpi: f32,
     format: &str,
     quality: u8,
+    background_color: Option<Vec<u8>>,
+    scale_to_width: Option<u32>,
+    scale_to_height: Option<u32>,
     library_path: Option<String>,
 ) -> PyResult<Bound<'py, PyList>> {
     let data = data.to_vec();
-    let options = paperjam_core::render::RenderOptions {
-        dpi,
-        format: paperjam_core::render::ImageFormat::from_str(format),
-        quality,
-    };
+    let options = build_render_options(dpi, format, quality, background_color, scale_to_width, scale_to_height);
 
     let images = py
         .allow_threads(move || {
@@ -133,7 +155,7 @@ pub fn py_render_pages_bytes<'py>(
 }
 
 #[pyfunction]
-#[pyo3(name = "render_file", signature = (data, page_number=1, dpi=150.0, format="png", quality=85, library_path=None))]
+#[pyo3(name = "render_file", signature = (data, page_number=1, dpi=150.0, format="png", quality=85, background_color=None, scale_to_width=None, scale_to_height=None, library_path=None))]
 pub fn py_render_file<'py>(
     py: Python<'py>,
     data: &[u8],
@@ -141,14 +163,13 @@ pub fn py_render_file<'py>(
     dpi: f32,
     format: &str,
     quality: u8,
+    background_color: Option<Vec<u8>>,
+    scale_to_width: Option<u32>,
+    scale_to_height: Option<u32>,
     library_path: Option<String>,
 ) -> PyResult<Bound<'py, PyDict>> {
     let data = data.to_vec();
-    let options = paperjam_core::render::RenderOptions {
-        dpi,
-        format: paperjam_core::render::ImageFormat::from_str(format),
-        quality,
-    };
+    let options = build_render_options(dpi, format, quality, background_color, scale_to_width, scale_to_height);
 
     let img = py
         .allow_threads(move || {

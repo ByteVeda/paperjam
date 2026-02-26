@@ -28,6 +28,9 @@ def _render_page(
     dpi: float = 150.0,
     format: str = "png",
     quality: int = 85,
+    background_color: tuple[int, int, int] | None = None,
+    scale_to_width: int | None = None,
+    scale_to_height: int | None = None,
 ) -> RenderedImage:
     """Render a single page to an image.
 
@@ -36,20 +39,28 @@ def _render_page(
         dpi: Resolution in dots per inch (default 150).
         format: Image format - "png", "jpeg", or "bmp" (default "png").
         quality: JPEG quality 1-100 (default 85, only used for JPEG).
+        background_color: RGB tuple (0-255) for background color.
+        scale_to_width: Target pixel width (overrides DPI).
+        scale_to_height: Target pixel height (overrides DPI).
 
     Returns:
         A RenderedImage with the image data and dimensions.
     """
+    bg = list(background_color) if background_color else None
     raw_bytes = getattr(self, "_raw_bytes", None)
     if raw_bytes is not None:
         # Fast path: pass original bytes directly, skip serialization
         raw = _paperjam.render_file(
-            raw_bytes, page_number, dpi, format, quality, library_path=_pdfium_library_path()
+            raw_bytes, page_number, dpi, format, quality,
+            bg, scale_to_width, scale_to_height,
+            library_path=_pdfium_library_path(),
         )
     else:
         inner = self._ensure_open()
         raw = _paperjam.render_page(
-            inner, page_number, dpi, format, quality, library_path=_pdfium_library_path()
+            inner, page_number, dpi, format, quality,
+            bg, scale_to_width, scale_to_height,
+            library_path=_pdfium_library_path(),
         )
     return RenderedImage(
         data=bytes(raw["data"]),
@@ -67,6 +78,9 @@ def _render_pages(
     dpi: float = 150.0,
     format: str = "png",
     quality: int = 85,
+    background_color: tuple[int, int, int] | None = None,
+    scale_to_width: int | None = None,
+    scale_to_height: int | None = None,
 ) -> list[RenderedImage]:
     """Render multiple pages to images.
 
@@ -75,20 +89,28 @@ def _render_pages(
         dpi: Resolution in dots per inch (default 150).
         format: Image format - "png", "jpeg", or "bmp" (default "png").
         quality: JPEG quality 1-100 (default 85, only used for JPEG).
+        background_color: RGB tuple (0-255) for background color.
+        scale_to_width: Target pixel width (overrides DPI).
+        scale_to_height: Target pixel height (overrides DPI).
 
     Returns:
         List of RenderedImage objects.
     """
+    bg = list(background_color) if background_color else None
     raw_bytes = getattr(self, "_raw_bytes", None)
     if raw_bytes is not None:
         # Fast path: pass original bytes directly, skip serialization
         raw_list = _paperjam.render_pages_bytes(
-            raw_bytes, pages, dpi, format, quality, library_path=_pdfium_library_path()
+            raw_bytes, pages, dpi, format, quality,
+            bg, scale_to_width, scale_to_height,
+            library_path=_pdfium_library_path(),
         )
     else:
         inner = self._ensure_open()
         raw_list = _paperjam.render_pages(
-            inner, pages, dpi, format, quality, library_path=_pdfium_library_path()
+            inner, pages, dpi, format, quality,
+            bg, scale_to_width, scale_to_height,
+            library_path=_pdfium_library_path(),
         )
     return [
         RenderedImage(
@@ -108,6 +130,9 @@ def _page_render(
     dpi: float = 150.0,
     format: str = "png",
     quality: int = 85,
+    background_color: tuple[int, int, int] | None = None,
+    scale_to_width: int | None = None,
+    scale_to_height: int | None = None,
 ) -> RenderedImage:
     """Render this page to an image.
 
@@ -115,14 +140,20 @@ def _page_render(
         dpi: Resolution in dots per inch (default 150).
         format: Image format - "png", "jpeg", or "bmp" (default "png").
         quality: JPEG quality 1-100 (default 85, only used for JPEG).
+        background_color: RGB tuple (0-255) for background color.
+        scale_to_width: Target pixel width (overrides DPI).
+        scale_to_height: Target pixel height (overrides DPI).
 
     Returns:
         A RenderedImage with the image data and dimensions.
     """
     if self._doc is None:
         raise RuntimeError("Page has no document reference; cannot render")
+    bg = list(background_color) if background_color else None
     raw = _paperjam.render_page(
-        self._doc, self.number, dpi, format, quality, library_path=_pdfium_library_path()
+        self._doc, self.number, dpi, format, quality,
+        bg, scale_to_width, scale_to_height,
+        library_path=_pdfium_library_path(),
     )
     return RenderedImage(
         data=bytes(raw["data"]),
@@ -140,6 +171,9 @@ def render(
     dpi: float = 150.0,
     format: str = "png",
     quality: int = 85,
+    background_color: tuple[int, int, int] | None = None,
+    scale_to_width: int | None = None,
+    scale_to_height: int | None = None,
 ) -> RenderedImage:
     """Render a page from a PDF file or bytes directly.
 
@@ -152,6 +186,9 @@ def render(
         dpi: Resolution in dots per inch (default 150).
         format: Image format - "png", "jpeg", or "bmp" (default "png").
         quality: JPEG quality 1-100 (default 85, only used for JPEG).
+        background_color: RGB tuple (0-255) for background color.
+        scale_to_width: Target pixel width (overrides DPI).
+        scale_to_height: Target pixel height (overrides DPI).
 
     Returns:
         A RenderedImage with the image data and dimensions.
@@ -166,8 +203,11 @@ def render(
             f"Expected str, os.PathLike, or bytes, got {type(path_or_bytes).__name__}"
         )
 
+    bg = list(background_color) if background_color else None
     raw = _paperjam.render_file(
-        data, page, dpi, format, quality, library_path=_pdfium_library_path()
+        data, page, dpi, format, quality,
+        bg, scale_to_width, scale_to_height,
+        library_path=_pdfium_library_path(),
     )
     return RenderedImage(
         data=bytes(raw["data"]),

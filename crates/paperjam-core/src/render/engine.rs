@@ -138,19 +138,43 @@ fn render_pdfium_page(
     page_number: u32,
     options: &RenderOptions,
 ) -> Result<RenderedImage> {
-    let scale = options.dpi / 72.0;
-
     let width_pts = page.width().value;
     let height_pts = page.height().value;
-    let pixel_width = (width_pts * scale) as u32;
-    let pixel_height = (height_pts * scale) as u32;
+
+    // Determine pixel dimensions based on scale_to_width/height or DPI
+    let (pixel_width, pixel_height) =
+        match (options.scale_to_width, options.scale_to_height) {
+            (Some(tw), Some(th)) => {
+                // Fit within both constraints (preserve aspect ratio)
+                let scale_w = tw as f32 / width_pts;
+                let scale_h = th as f32 / height_pts;
+                let scale = scale_w.min(scale_h);
+                ((width_pts * scale) as u32, (height_pts * scale) as u32)
+            }
+            (Some(tw), None) => {
+                let scale = tw as f32 / width_pts;
+                (tw, (height_pts * scale) as u32)
+            }
+            (None, Some(th)) => {
+                let scale = th as f32 / height_pts;
+                ((width_pts * scale) as u32, th)
+            }
+            (None, None) => {
+                let scale = options.dpi / 72.0;
+                ((width_pts * scale) as u32, (height_pts * scale) as u32)
+            }
+        };
+
+    let mut config = PdfRenderConfig::new()
+        .set_target_width(pixel_width as i32)
+        .set_target_height(pixel_height as i32);
+
+    if let Some([r, g, b]) = options.background_color {
+        config = config.set_clear_color(PdfColor::new(r, g, b, 255));
+    }
 
     let bitmap = page
-        .render_with_config(
-            &PdfRenderConfig::new()
-                .set_target_width(pixel_width as i32)
-                .set_target_height(pixel_height as i32),
-        )
+        .render_with_config(&config)
         .map_err(|e| PdfError::Render(format!("Render failed: {}", e)))?;
 
     let img = bitmap.as_image().into_rgba8();

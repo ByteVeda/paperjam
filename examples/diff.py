@@ -23,7 +23,7 @@ def main() -> None:
 
     doc_a = paperjam.open(args.file_a)
     doc_b = paperjam.open(args.file_b)
-    print(f"Comparing:")
+    print("Comparing:")
     print(f"  A: {args.file_a} ({doc_a.page_count} pages)")
     print(f"  B: {args.file_b} ({doc_b.page_count} pages)")
     print()
@@ -31,7 +31,7 @@ def main() -> None:
     result = paperjam.diff(doc_a, doc_b)
 
     s = result.summary
-    print(f"Summary:")
+    print("Summary:")
     print(f"  Pages changed:  {s.pages_changed}")
     print(f"  Pages added:    {s.pages_added}")
     print(f"  Pages removed:  {s.pages_removed}")

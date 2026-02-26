@@ -39,10 +39,7 @@ def main() -> None:
     doc = paperjam.open(args.input)
     print(f"Opened: {args.input} ({doc.page_count} pages)")
 
-    if args.pages:
-        page_nums = parse_pages(args.pages, doc.page_count)
-    else:
-        page_nums = list(range(1, doc.page_count + 1))
+    page_nums = parse_pages(args.pages, doc.page_count) if args.pages else list(range(1, doc.page_count + 1))
 
     for num in page_nums:
         page = doc.pages[num - 1]

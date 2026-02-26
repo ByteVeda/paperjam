@@ -60,11 +60,13 @@ pub fn py_add_annotation(
 }
 
 #[pyfunction]
-#[pyo3(name = "remove_annotations")]
+#[pyo3(name = "remove_annotations", signature = (document, page_number, annotation_types=None, indices=None))]
 pub fn py_remove_annotations(
     py: Python<'_>,
     document: &PyDocument,
     page_number: u32,
+    annotation_types: Option<Vec<String>>,
+    indices: Option<Vec<usize>>,
 ) -> PyResult<(PyDocument, usize)> {
     let inner_clone = document.inner.inner().clone();
     let mut doc =
@@ -72,7 +74,13 @@ pub fn py_remove_annotations(
 
     let count = py
         .allow_threads(move || {
-            let count = doc.remove_annotations(page_number)?;
+            let type_refs: Option<Vec<&str>> =
+                annotation_types.as_ref().map(|v| v.iter().map(|s| s.as_str()).collect());
+            let count = doc.remove_annotations(
+                page_number,
+                type_refs.as_deref(),
+                indices.as_deref(),
+            )?;
             Ok::<_, paperjam_core::error::PdfError>((doc, count))
         })
         .map_err(to_py_err)?;
