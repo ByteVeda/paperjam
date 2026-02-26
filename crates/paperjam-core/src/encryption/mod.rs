@@ -1,0 +1,235 @@
+//! PDF encryption: RC4 128-bit (V=2, R=3).
+
+mod key;
+mod rc4;
+
+use lopdf::{dictionary, Object, ObjectId};
+
+use crate::document::Document;
+use crate::error::{PdfError, Result};
+
+/// Options for encrypting a PDF document.
+pub struct EncryptionOptions {
+    pub user_password: String,
+    pub owner_password: String,
+    pub permissions: Permissions,
+}
+
+/// Granular permission flags for an encrypted PDF.
+pub struct Permissions {
+    pub print: bool,
+    pub modify: bool,
+    pub copy: bool,
+    pub annotate: bool,
+    pub fill_forms: bool,
+    pub accessibility: bool,
+    pub assemble: bool,
+    pub print_high_quality: bool,
+}
+
+impl Default for Permissions {
+    fn default() -> Self {
+        Self {
+            print: true,
+            modify: true,
+            copy: true,
+            annotate: true,
+            fill_forms: true,
+            accessibility: true,
+            assemble: true,
+            print_high_quality: true,
+        }
+    }
+}
+
+impl Permissions {
+    /// Encode permissions as a 32-bit integer per PDF spec (Table 3.20).
+    /// Bits 1-2: must be 0; Bits 7-8: must be 1; Bits 13-32: must be 1.
+    fn to_i32(&self) -> i32 {
+        let mut p: u32 = 0xFFFFF000; // bits 13-32 set
+        p |= 0b1100_0000; // bits 7-8 set
+
+        if self.print {
+            p |= 1 << 2; // bit 3
+        }
+        if self.modify {
+            p |= 1 << 3; // bit 4
+        }
+        if self.copy {
+            p |= 1 << 4; // bit 5
+        }
+        if self.annotate {
+            p |= 1 << 5; // bit 6
+        }
+        if self.fill_forms {
+            p |= 1 << 8; // bit 9
+        }
+        if self.accessibility {
+            p |= 1 << 9; // bit 10
+        }
+        if self.assemble {
+            p |= 1 << 10; // bit 11
+        }
+        if self.print_high_quality {
+            p |= 1 << 11; // bit 12
+        }
+
+        p as i32
+    }
+}
+
+/// Encrypt a PDF document with RC4 128-bit encryption.
+///
+/// Returns the encrypted PDF as raw bytes.
+pub fn encrypt(doc: &Document, options: &EncryptionOptions) -> Result<Vec<u8>> {
+    let mut lopdf_doc = doc.inner().clone();
+
+    // Ensure the document has a file ID in the trailer
+    let file_id = ensure_file_id(&mut lopdf_doc)?;
+
+    let key_len = 16; // 128 bits
+    let permissions = options.permissions.to_i32();
+
+    // Algorithm 3.3: Compute /O value
+    let o_hash = key::compute_owner_hash(
+        options.owner_password.as_bytes(),
+        options.user_password.as_bytes(),
+        key_len,
+    );
+
+    // Algorithm 3.2: Compute encryption key
+    let enc_key = key::compute_encryption_key(
+        options.user_password.as_bytes(),
+        &o_hash,
+        permissions,
+        &file_id,
+        key_len,
+    );
+
+    // Algorithm 3.5: Compute /U value
+    let u_hash = key::compute_user_hash(&enc_key, &file_id);
+
+    // Build the /Encrypt dictionary and add it as a new object
+    let encrypt_dict = dictionary! {
+        "Filter" => Object::Name(b"Standard".to_vec()),
+        "V" => Object::Integer(2),
+        "R" => Object::Integer(3),
+        "Length" => Object::Integer(128),
+        "O" => Object::String(o_hash.to_vec(), lopdf::StringFormat::Hexadecimal),
+        "U" => Object::String(u_hash.to_vec(), lopdf::StringFormat::Hexadecimal),
+        "P" => Object::Integer(permissions as i64)
+    };
+
+    let encrypt_id = lopdf_doc.add_object(Object::Dictionary(encrypt_dict));
+
+    // Add /Encrypt reference to trailer
+    lopdf_doc
+        .trailer
+        .set("Encrypt", Object::Reference(encrypt_id));
+
+    // Encrypt all strings and streams in the document
+    encrypt_objects(&mut lopdf_doc, &enc_key, encrypt_id)?;
+
+    // Serialize
+    let mut buf = Vec::new();
+    lopdf_doc
+        .save_to(&mut buf)
+        .map_err(|e| PdfError::Encryption(format!("Failed to serialize encrypted PDF: {}", e)))?;
+
+    Ok(buf)
+}
+
+/// Ensure the trailer has a /ID array; generate one if missing.
+fn ensure_file_id(doc: &mut lopdf::Document) -> Result<Vec<u8>> {
+    if let Ok(Object::Array(ids)) = doc.trailer.get(b"ID") {
+        if let Some(Object::String(id, _)) = ids.first() {
+            return Ok(id.clone());
+        }
+    }
+
+    // Generate a random 16-byte file ID
+    let id: Vec<u8> = (0..16)
+        .map(|i| {
+            // Simple deterministic-enough ID from current object count + index
+            let seed = (doc.max_id as u64)
+                .wrapping_mul(6364136223846793005)
+                .wrapping_add(1442695040888963407)
+                .wrapping_add(i as u64);
+            (seed >> 33) as u8
+        })
+        .collect();
+
+    let id_obj = Object::String(id.clone(), lopdf::StringFormat::Hexadecimal);
+    doc.trailer
+        .set("ID", Object::Array(vec![id_obj.clone(), id_obj]));
+
+    Ok(id)
+}
+
+/// Encrypt all strings and streams in the document, skipping the Encrypt dict itself.
+fn encrypt_objects(
+    doc: &mut lopdf::Document,
+    key: &[u8],
+    encrypt_id: ObjectId,
+) -> Result<()> {
+    // Collect all object IDs first
+    let obj_ids: Vec<ObjectId> = doc.objects.keys().copied().collect();
+
+    for obj_id in obj_ids {
+        if obj_id == encrypt_id {
+            continue; // Never encrypt the Encrypt dictionary
+        }
+
+        if let Some(obj) = doc.objects.remove(&obj_id) {
+            let encrypted = encrypt_object_recursive(key, obj_id, obj);
+            doc.objects.insert(obj_id, encrypted);
+        }
+    }
+
+    Ok(())
+}
+
+/// Recursively encrypt all strings and streams in an object.
+fn encrypt_object_recursive(key: &[u8], obj_id: ObjectId, obj: Object) -> Object {
+    match obj {
+        Object::String(data, _format) => {
+            let encrypted = key::encrypt_object(key, obj_id.0, obj_id.1, &data);
+            Object::String(encrypted, lopdf::StringFormat::Hexadecimal)
+        }
+        Object::Stream(mut stream) => {
+            // Encrypt the stream content
+            // First make sure the stream is not compressed - we encrypt the raw bytes
+            // Actually, we should encrypt the raw content as-is (compressed or not)
+            let encrypted = key::encrypt_object(key, obj_id.0, obj_id.1, &stream.content);
+            stream.content = encrypted;
+
+            // Also encrypt any strings inside the stream dictionary
+            let dict_entries: Vec<(Vec<u8>, Object)> = stream
+                .dict
+                .iter()
+                .map(|(k, v)| (k.clone(), v.clone()))
+                .collect();
+            for (k, v) in dict_entries {
+                let encrypted_val = encrypt_object_recursive(key, obj_id, v);
+                stream.dict.set(k, encrypted_val);
+            }
+
+            Object::Stream(stream)
+        }
+        Object::Dictionary(dict) => {
+            let mut new_dict = lopdf::Dictionary::new();
+            for (k, v) in dict.iter() {
+                new_dict.set(k.clone(), encrypt_object_recursive(key, obj_id, v.clone()));
+            }
+            Object::Dictionary(new_dict)
+        }
+        Object::Array(arr) => {
+            let new_arr: Vec<Object> = arr
+                .into_iter()
+                .map(|item| encrypt_object_recursive(key, obj_id, item))
+                .collect();
+            Object::Array(new_arr)
+        }
+        other => other, // Integer, Real, Boolean, Name, Null, Reference — unchanged
+    }
+}
