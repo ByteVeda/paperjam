@@ -54,3 +54,39 @@ pub fn py_reorder_pages(
         inner: std::sync::Arc::new(result),
     })
 }
+
+#[pyfunction]
+#[pyo3(name = "delete_pages")]
+pub fn py_delete_pages(
+    py: Python<'_>,
+    document: &PyDocument,
+    page_numbers: Vec<u32>,
+) -> PyResult<PyDocument> {
+    let inner = std::sync::Arc::clone(&document.inner);
+    let result = py
+        .allow_threads(move || paperjam_core::manipulation::delete_pages(&inner, &page_numbers))
+        .map_err(to_py_err)?;
+
+    Ok(PyDocument {
+        inner: std::sync::Arc::new(result),
+    })
+}
+
+#[pyfunction]
+#[pyo3(name = "insert_blank_pages")]
+pub fn py_insert_blank_pages(
+    py: Python<'_>,
+    document: &PyDocument,
+    insertions: Vec<(u32, f64, f64)>,
+) -> PyResult<PyDocument> {
+    let inner = std::sync::Arc::clone(&document.inner);
+    let result = py
+        .allow_threads(move || {
+            paperjam_core::manipulation::insert_blank_pages(&inner, &insertions)
+        })
+        .map_err(to_py_err)?;
+
+    Ok(PyDocument {
+        inner: std::sync::Arc::new(result),
+    })
+}

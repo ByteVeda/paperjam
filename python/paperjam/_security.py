@@ -132,6 +132,7 @@ def _encrypt(
     user_password: str,
     owner_password: str | None = None,
     permissions: Permissions | None = None,
+    algorithm: str = "aes128",
 ) -> tuple[bytes, EncryptResult]:
     """Encrypt the document with user/owner passwords and permission flags.
 
@@ -139,6 +140,7 @@ def _encrypt(
         user_password: Password required to open the document.
         owner_password: Password for full access. Defaults to user_password.
         permissions: Permission flags controlling what viewers can do.
+        algorithm: Encryption algorithm — "aes128" (default) or "rc4".
 
     Returns a tuple of (encrypted_bytes, encrypt_result).
     """
@@ -155,7 +157,7 @@ def _encrypt(
         "print_high_quality": perms.print_high_quality,
     }
     data, stats = _paperjam.encrypt_document(
-        inner, user_password, owner_password, perms_dict,
+        inner, user_password, owner_password, perms_dict, algorithm,
     )
     return data, EncryptResult(
         algorithm=stats["algorithm"],

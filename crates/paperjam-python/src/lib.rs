@@ -37,6 +37,10 @@ fn _paperjam(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(ops::py_sign_document, m)?)?;
     m.add_function(wrap_pyfunction!(ops::py_extract_signatures, m)?)?;
     m.add_function(wrap_pyfunction!(ops::py_verify_signatures, m)?)?;
+    m.add_function(wrap_pyfunction!(ops::py_delete_pages, m)?)?;
+    m.add_function(wrap_pyfunction!(ops::py_insert_blank_pages, m)?)?;
+    m.add_function(wrap_pyfunction!(ops::py_set_metadata, m)?)?;
+    m.add_function(wrap_pyfunction!(ops::py_set_bookmarks, m)?)?;
 
     Ok(())
 }

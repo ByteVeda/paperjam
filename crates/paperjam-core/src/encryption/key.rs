@@ -105,8 +105,14 @@ pub fn compute_user_hash(key: &[u8], file_id: &[u8]) -> [u8; 32] {
     out
 }
 
-/// Compute the per-object encryption key and encrypt data.
+/// Compute the per-object encryption key and encrypt data with RC4.
 pub fn encrypt_object(key: &[u8], obj_num: u32, gen_num: u16, data: &[u8]) -> Vec<u8> {
+    let obj_key = derive_object_key_rc4(key, obj_num, gen_num);
+    Rc4::new(&obj_key).process(data)
+}
+
+/// Derive the per-object key for RC4 encryption.
+fn derive_object_key_rc4(key: &[u8], obj_num: u32, gen_num: u16) -> Vec<u8> {
     let mut hasher = Md5::new();
     hasher.update(key);
     hasher.update(&obj_num.to_le_bytes()[..3]);
@@ -114,7 +120,28 @@ pub fn encrypt_object(key: &[u8], obj_num: u32, gen_num: u16, data: &[u8]) -> Ve
 
     let obj_key_full = hasher.finalize();
     let obj_key_len = (key.len() + 5).min(16);
-    let obj_key = &obj_key_full[..obj_key_len];
+    obj_key_full[..obj_key_len].to_vec()
+}
 
-    Rc4::new(obj_key).process(data)
+/// Compute the per-object encryption key and encrypt data with AES-128-CBC.
+///
+/// Per PDF spec: same MD5 derivation as RC4, but appends "sAlT" bytes before hashing.
+/// Generates a random 16-byte IV and returns IV + ciphertext.
+pub fn encrypt_object_aes128(key: &[u8], obj_num: u32, gen_num: u16, data: &[u8]) -> Vec<u8> {
+    use rand::Rng;
+
+    let mut hasher = Md5::new();
+    hasher.update(key);
+    hasher.update(&obj_num.to_le_bytes()[..3]);
+    hasher.update(&gen_num.to_le_bytes()[..2]);
+    // AES-specific: append "sAlT"
+    hasher.update(&[0x73, 0x41, 0x6C, 0x54]);
+
+    let obj_key_full = hasher.finalize();
+    // For AES-128, the key is always 16 bytes
+    let obj_key = &obj_key_full[..16];
+
+    let iv: [u8; 16] = rand::thread_rng().gen();
+
+    super::aes128::encrypt_aes128(&iv, obj_key, data)
 }
