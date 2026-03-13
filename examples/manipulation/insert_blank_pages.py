@@ -18,23 +18,26 @@ PAGE_SIZES = {
 def main() -> None:
     parser = argparse.ArgumentParser(
         description="Insert blank pages into a PDF.",
-        epilog="Example: %(prog)s input.pdf -i '0:letter' '3:a4' "
-               "  (inserts letter-size at start, a4 after page 3)",
+        epilog="Example: %(prog)s input.pdf -i '0:letter' '3:a4'   (inserts letter-size at start, a4 after page 3)",
     )
     parser.add_argument("input", help="Path to the input PDF")
     parser.add_argument(
-        "-o", "--output", default="./output",
+        "-o",
+        "--output",
+        default="./output",
         help="Output directory (default: ./output)",
     )
     parser.add_argument(
-        "-i", "--insert", nargs="+", required=True,
+        "-i",
+        "--insert",
+        nargs="+",
+        required=True,
         metavar="POS:SIZE",
-        help="Insertions as 'after_page:size' pairs. "
-             "after_page=0 inserts at the beginning. "
-             f"Size can be {', '.join(PAGE_SIZES)} or WxH in points.",
+        help=f"Insertions as 'after_page:size' pairs. after_page=0 inserts at the beginning. Size can be {', '.join(PAGE_SIZES)} or WxH in points.",
     )
     parser.add_argument(
-        "--name", default=None,
+        "--name",
+        default=None,
         help="Output filename (default: expanded_<input>.pdf)",
     )
     args = parser.parse_args()

@@ -5,6 +5,7 @@ use crate::errors::to_py_err;
 
 #[pyfunction]
 #[pyo3(name = "add_annotation", signature = (document, page_number, annotation_type, rect, contents=None, author=None, color=None, opacity=None, quad_points=None, url=None))]
+#[allow(clippy::too_many_arguments)]
 pub fn py_add_annotation(
     py: Python<'_>,
     document: &PyDocument,

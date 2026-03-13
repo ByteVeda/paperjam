@@ -27,7 +27,9 @@ keywords = ["pdf", "text-extraction", "table-extraction", "rust"]
 [project.optional-dependencies]
 pandas = ["pandas>=2.0"]
 dev = [
+    "pre-commit>=4.0",
     "pytest>=8.0",
+    "pytest-asyncio>=0.24",
     "pytest-benchmark>=4.0",
     "pypdf>=4.0",
     "pdfplumber>=0.10",
@@ -36,12 +38,12 @@ dev = [
 ]
 
 [tool.maturin]
-python-source = "python"
+python-source = "py_src"
 module-name = "paperjam._paperjam"
 features = ["pyo3/extension-module"]
 manifest-path = "crates/paperjam-python/Cargo.toml"
 include = [
-    { path = "python/paperjam/libpdfium.so", format = "wheel" },
+    { path = "py_src/paperjam/libpdfium.so", format = "wheel" },
 ]
 
 [tool.pytest.ini_options]
@@ -53,3 +55,9 @@ line-length = 150
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "N", "UP", "B", "SIM", "TCH", "RUF"]
+
+[tool.mypy]
+python_version = "3.12"
+warn_return_any = true
+warn_unused_configs = true
+ignore_missing_imports = true

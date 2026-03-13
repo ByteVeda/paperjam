@@ -69,6 +69,7 @@ impl AnnotationType {
         }
     }
 
+    #[allow(clippy::should_implement_trait)]
     pub fn from_str(s: &str) -> Self {
         match s {
             "text" => Self::Text,
@@ -207,7 +208,7 @@ pub fn extract_annotations(
             .and_then(|o| obj_to_string(o, doc));
 
         // Parse opacity
-        let opacity = dict.get(b"CA").ok().and_then(|o| obj_to_f64(o));
+        let opacity = dict.get(b"CA").ok().and_then(obj_to_f64);
 
         annotations.push(Annotation {
             annotation_type: annot_type,

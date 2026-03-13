@@ -5,6 +5,7 @@ use crate::errors::to_py_err;
 
 #[pyfunction]
 #[pyo3(name = "add_watermark", signature = (document, text, font_size, rotation, opacity, color, font, position, layer, pages=None, custom_x=None, custom_y=None))]
+#[allow(clippy::too_many_arguments)]
 pub fn py_add_watermark(
     py: Python<'_>,
     document: &PyDocument,

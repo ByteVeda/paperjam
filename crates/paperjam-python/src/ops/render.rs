@@ -32,6 +32,7 @@ fn build_render_options(
 
 #[pyfunction]
 #[pyo3(name = "render_page", signature = (document, page_number, dpi=150.0, format="png", quality=85, background_color=None, scale_to_width=None, scale_to_height=None, library_path=None))]
+#[allow(clippy::too_many_arguments)]
 pub fn py_render_page<'py>(
     py: Python<'py>,
     document: &PyDocument,
@@ -74,6 +75,7 @@ pub fn py_render_page<'py>(
 
 #[pyfunction]
 #[pyo3(name = "render_pages", signature = (document, pages=None, dpi=150.0, format="png", quality=85, background_color=None, scale_to_width=None, scale_to_height=None, library_path=None))]
+#[allow(clippy::too_many_arguments)]
 pub fn py_render_pages<'py>(
     py: Python<'py>,
     document: &PyDocument,
@@ -120,6 +122,7 @@ pub fn py_render_pages<'py>(
 
 #[pyfunction]
 #[pyo3(name = "render_pages_bytes", signature = (data, pages=None, dpi=150.0, format="png", quality=85, background_color=None, scale_to_width=None, scale_to_height=None, library_path=None))]
+#[allow(clippy::too_many_arguments)]
 pub fn py_render_pages_bytes<'py>(
     py: Python<'py>,
     data: &[u8],
@@ -156,6 +159,7 @@ pub fn py_render_pages_bytes<'py>(
 
 #[pyfunction]
 #[pyo3(name = "render_file", signature = (data, page_number=1, dpi=150.0, format="png", quality=85, background_color=None, scale_to_width=None, scale_to_height=None, library_path=None))]
+#[allow(clippy::too_many_arguments)]
 pub fn py_render_file<'py>(
     py: Python<'py>,
     data: &[u8],

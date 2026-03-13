@@ -395,7 +395,7 @@ fn is_dangerous_action(obj: &Object, dangerous: &[&[u8]]) -> bool {
     };
     if let Ok(s) = dict.get(b"S") {
         if let Ok(name) = s.as_name() {
-            return dangerous.iter().any(|d| *d == name);
+            return dangerous.contains(&name);
         }
     }
     false

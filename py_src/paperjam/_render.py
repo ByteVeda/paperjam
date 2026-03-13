@@ -47,15 +47,27 @@ def _render_page(
     if raw_bytes is not None:
         # Fast path: pass original bytes directly, skip serialization
         raw = _paperjam.render_file(
-            raw_bytes, page_number, dpi, format, quality,
-            bg, scale_to_width, scale_to_height,
+            raw_bytes,
+            page_number,
+            dpi,
+            format,
+            quality,
+            bg,
+            scale_to_width,
+            scale_to_height,
             library_path=_pdfium_library_path(),
         )
     else:
         inner = self._ensure_open()
         raw = _paperjam.render_page(
-            inner, page_number, dpi, format, quality,
-            bg, scale_to_width, scale_to_height,
+            inner,
+            page_number,
+            dpi,
+            format,
+            quality,
+            bg,
+            scale_to_width,
+            scale_to_height,
             library_path=_pdfium_library_path(),
         )
     return RenderedImage(
@@ -97,15 +109,27 @@ def _render_pages(
     if raw_bytes is not None:
         # Fast path: pass original bytes directly, skip serialization
         raw_list = _paperjam.render_pages_bytes(
-            raw_bytes, pages, dpi, format, quality,
-            bg, scale_to_width, scale_to_height,
+            raw_bytes,
+            pages,
+            dpi,
+            format,
+            quality,
+            bg,
+            scale_to_width,
+            scale_to_height,
             library_path=_pdfium_library_path(),
         )
     else:
         inner = self._ensure_open()
         raw_list = _paperjam.render_pages(
-            inner, pages, dpi, format, quality,
-            bg, scale_to_width, scale_to_height,
+            inner,
+            pages,
+            dpi,
+            format,
+            quality,
+            bg,
+            scale_to_width,
+            scale_to_height,
             library_path=_pdfium_library_path(),
         )
     return [
@@ -147,8 +171,14 @@ def _page_render(
         raise RuntimeError("Page has no document reference; cannot render")
     bg = list(background_color) if background_color else None
     raw = _paperjam.render_page(
-        self._doc, self.number, dpi, format, quality,
-        bg, scale_to_width, scale_to_height,
+        self._doc,
+        self.number,
+        dpi,
+        format,
+        quality,
+        bg,
+        scale_to_width,
+        scale_to_height,
         library_path=_pdfium_library_path(),
     )
     return RenderedImage(
@@ -195,14 +225,18 @@ def render(
     elif isinstance(path_or_bytes, (bytes, bytearray, memoryview)):
         data = bytes(path_or_bytes)
     else:
-        raise TypeError(
-            f"Expected str, os.PathLike, or bytes, got {type(path_or_bytes).__name__}"
-        )
+        raise TypeError(f"Expected str, os.PathLike, or bytes, got {type(path_or_bytes).__name__}")
 
     bg = list(background_color) if background_color else None
     raw = _paperjam.render_file(
-        data, page, dpi, format, quality,
-        bg, scale_to_width, scale_to_height,
+        data,
+        page,
+        dpi,
+        format,
+        quality,
+        bg,
+        scale_to_width,
+        scale_to_height,
         library_path=_pdfium_library_path(),
     )
     return RenderedImage(

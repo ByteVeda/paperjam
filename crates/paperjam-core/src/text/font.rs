@@ -245,7 +245,7 @@ fn parse_to_unicode(doc: &lopdf::Document, dict: &lopdf::Dictionary) -> Option<C
     let (_, tu_obj) = doc.dereference(tu_ref).ok()?;
     let stream = tu_obj.as_stream().ok()?;
     let mut stream = stream.clone();
-    let _ = stream.decompress();
+    stream.decompress();
     CMapTable::parse(&stream.content).ok()
 }
 

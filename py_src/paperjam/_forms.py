@@ -28,10 +28,7 @@ def _form_fields_getter(self: Document) -> list[FormField]:
             read_only=f["read_only"],
             required=f["required"],
             max_length=f["max_length"],
-            options=tuple(
-                ChoiceOption(display=o["display"], export_value=o["export_value"])
-                for o in f["options"]
-            ),
+            options=tuple(ChoiceOption(display=o["display"], export_value=o["export_value"]) for o in f["options"]),
         )
         for f in raw_fields
     ]
@@ -107,9 +104,7 @@ def _modify_form_field(
     if max_length is not None:
         kwargs["max_length"] = max_length
     if options is not None:
-        kwargs["options"] = [
-            {"display": o.display, "export_value": o.export_value} for o in options
-        ]
+        kwargs["options"] = [{"display": o.display, "export_value": o.export_value} for o in options]
 
     modified, result = _paperjam.modify_form_field(inner, field_name, **kwargs)  # type: ignore[attr-defined]
     doc = object.__new__(Document)
@@ -160,9 +155,7 @@ def _add_form_field(
     inner = self._ensure_open()
     opts_dicts = None
     if options is not None:
-        opts_dicts = [
-            {"display": o.display, "export_value": o.export_value} for o in options
-        ]
+        opts_dicts = [{"display": o.display, "export_value": o.export_value} for o in options]
 
     created, result = _paperjam.add_form_field(  # type: ignore[attr-defined]
         inner,

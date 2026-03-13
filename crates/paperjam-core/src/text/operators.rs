@@ -207,7 +207,7 @@ impl Operand {
     }
 }
 
-fn build_operator(keyword: &str, stack: &mut Vec<Operand>) -> Option<ContentOperator> {
+fn build_operator(keyword: &str, stack: &mut [Operand]) -> Option<ContentOperator> {
     match keyword {
         // Graphics state
         "q" => Some(ContentOperator::SaveGraphicsState),

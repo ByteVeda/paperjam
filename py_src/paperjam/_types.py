@@ -304,12 +304,7 @@ class SanitizeResult:
     @property
     def total_removed(self) -> int:
         """Total number of items removed."""
-        return (
-            self.javascript_removed
-            + self.embedded_files_removed
-            + self.actions_removed
-            + self.links_removed
-        )
+        return self.javascript_removed + self.embedded_files_removed + self.actions_removed + self.links_removed
 
 
 # --- Redaction types ---

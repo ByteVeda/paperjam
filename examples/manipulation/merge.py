@@ -11,15 +11,19 @@ def main() -> None:
         description="Merge multiple PDF files into one.",
     )
     parser.add_argument(
-        "inputs", nargs="+",
+        "inputs",
+        nargs="+",
         help="Two or more PDF files to merge",
     )
     parser.add_argument(
-        "-o", "--output", default="./output",
+        "-o",
+        "--output",
+        default="./output",
         help="Output directory (default: ./output)",
     )
     parser.add_argument(
-        "--name", default="merged.pdf",
+        "--name",
+        default="merged.pdf",
         help="Output filename (default: merged.pdf)",
     )
     args = parser.parse_args()
@@ -43,8 +47,7 @@ def main() -> None:
     merged.save(str(out))
 
     size = out.stat().st_size
-    print(f"\nMerged {len(docs)} files ({total_pages} pages) "
-          f"-> {out} ({size:,} bytes)")
+    print(f"\nMerged {len(docs)} files ({total_pages} pages) -> {out} ({size:,} bytes)")
 
 
 if __name__ == "__main__":

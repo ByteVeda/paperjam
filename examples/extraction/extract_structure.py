@@ -12,19 +12,25 @@ def main() -> None:
     )
     parser.add_argument("input", help="Path to the input PDF")
     parser.add_argument(
-        "-o", "--output", default="./output",
+        "-o",
+        "--output",
+        default="./output",
         help="Output directory (default: ./output)",
     )
     parser.add_argument(
-        "--heading-ratio", type=float, default=1.2,
+        "--heading-ratio",
+        type=float,
+        default=1.2,
         help="Font size ratio threshold for headings (default: 1.2)",
     )
     parser.add_argument(
-        "--no-lists", action="store_true",
+        "--no-lists",
+        action="store_true",
         help="Disable list detection",
     )
     parser.add_argument(
-        "--no-tables", action="store_true",
+        "--no-tables",
+        action="store_true",
         help="Disable table interleaving",
     )
     args = parser.parse_args()

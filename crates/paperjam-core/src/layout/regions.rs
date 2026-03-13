@@ -5,12 +5,12 @@ use super::columns::{ColumnBand, Gutter};
 /// Separate lines into header, body, and footer zones.
 ///
 /// Returns (header_lines, body_lines, footer_lines).
-pub(crate) fn separate_header_footer<'a>(
-    lines: &'a [TextLine],
+pub(crate) fn separate_header_footer(
+    lines: &[TextLine],
     page_height: f64,
     header_zone_fraction: f64,
     footer_zone_fraction: f64,
-) -> (Vec<&'a TextLine>, Vec<&'a TextLine>, Vec<&'a TextLine>) {
+) -> (Vec<&TextLine>, Vec<&TextLine>, Vec<&TextLine>) {
     // In PDF coordinates, Y=0 is bottom, Y=page_height is top.
     let header_y_threshold = page_height * (1.0 - header_zone_fraction);
     let footer_y_threshold = page_height * footer_zone_fraction;
@@ -37,7 +37,7 @@ pub(crate) fn separate_header_footer<'a>(
     let max_footer = (body_count as f64 * 0.05).ceil() as usize + 3;
 
     if header.len() > max_header {
-        body.extend(header.drain(..));
+        body.append(&mut header);
         body.sort_by(|a, b| {
             b.bbox
                 .3
@@ -47,7 +47,7 @@ pub(crate) fn separate_header_footer<'a>(
     }
 
     if footer.len() > max_footer {
-        body.extend(footer.drain(..));
+        body.append(&mut footer);
         body.sort_by(|a, b| {
             b.bbox
                 .3

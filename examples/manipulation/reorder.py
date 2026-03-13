@@ -10,12 +10,15 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Reorder pages in a PDF file.")
     parser.add_argument("input", help="Path to the input PDF")
     parser.add_argument(
-        "-o", "--output", default="./output",
+        "-o",
+        "--output",
+        default="./output",
         help="Output directory (default: ./output)",
     )
     group = parser.add_mutually_exclusive_group(required=True)
     group.add_argument(
-        "-p", "--pages",
+        "-p",
+        "--pages",
         help="Comma-separated page numbers in desired order, e.g. '5,3,1,4,2'",
     )
     group.add_argument(
@@ -24,7 +27,8 @@ def main() -> None:
         help="Reverse the page order",
     )
     parser.add_argument(
-        "--name", default="reordered.pdf",
+        "--name",
+        default="reordered.pdf",
         help="Output filename (default: reordered.pdf)",
     )
     args = parser.parse_args()

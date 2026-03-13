@@ -24,11 +24,14 @@ def main() -> None:
     )
     parser.add_argument("input", help="Path to the input PDF")
     parser.add_argument(
-        "-o", "--output", default="./output",
+        "-o",
+        "--output",
+        default="./output",
         help="Output directory (default: ./output)",
     )
     parser.add_argument(
-        "-p", "--pages",
+        "-p",
+        "--pages",
         help="Pages to scan, e.g. '1-5' or '1,3,5' (default: all)",
     )
     args = parser.parse_args()
@@ -59,8 +62,7 @@ def main() -> None:
             out = output / f"page{num}_img{i}.{ext}"
             img.save(str(out))
             cs = img.color_space or "unknown"
-            print(f"    {img.width}x{img.height} {cs} "
-                  f"({len(img.data):,} bytes) -> {out.name}")
+            print(f"    {img.width}x{img.height} {cs} ({len(img.data):,} bytes) -> {out.name}")
             total_images += 1
 
     if total_images == 0:

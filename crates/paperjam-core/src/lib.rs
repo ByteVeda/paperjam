@@ -17,6 +17,7 @@ pub mod markdown;
 pub mod metadata;
 pub mod optimization;
 pub mod page;
+pub mod parallel;
 pub mod redact;
 pub mod sanitize;
 pub mod structure;

@@ -46,8 +46,8 @@ pub(crate) fn build_x_projection(
     for ext in extents {
         let start_bin = (ext.x_min / bin_size).floor().max(0.0) as usize;
         let end_bin = ((ext.x_max / bin_size).ceil() as usize).min(num_bins);
-        for bin in start_bin..end_bin {
-            profile[bin] += 1;
+        for item in profile.iter_mut().take(end_bin).skip(start_bin) {
+            *item += 1;
         }
     }
     profile
@@ -80,8 +80,8 @@ pub(crate) fn find_gutters(
     let mut gutters = Vec::new();
     let mut run_start: Option<usize> = None;
 
-    for i in start..end {
-        if profile[i] <= empty_threshold {
+    for (i, &count) in profile.iter().enumerate().take(end).skip(start) {
+        if count <= empty_threshold {
             if run_start.is_none() {
                 run_start = Some(i);
             }

@@ -29,8 +29,11 @@ def _sanitize(
     """
     inner = self._ensure_open()
     sanitized, stats = _paperjam.sanitize(
-        inner, remove_javascript, remove_embedded_files,
-        remove_actions, remove_links,
+        inner,
+        remove_javascript,
+        remove_embedded_files,
+        remove_actions,
+        remove_links,
     )
     doc = object.__new__(Document)
     doc._inner = sanitized
@@ -59,11 +62,10 @@ def _redact(
     Returns a tuple of (redacted_document, result_stats).
     """
     inner = self._ensure_open()
-    region_dicts = [
-        {"page": r.page, "rect": list(r.rect)} for r in regions
-    ]
+    region_dicts = [{"page": r.page, "rect": list(r.rect)} for r in regions]
     redacted, stats = _paperjam.redact(
-        inner, region_dicts,
+        inner,
+        region_dicts,
         list(fill_color) if fill_color else None,
     )
     doc = object.__new__(Document)
@@ -106,7 +108,10 @@ def _redact_text(
     """
     inner = self._ensure_open()
     redacted, stats = _paperjam.redact_text(
-        inner, query, case_sensitive, use_regex,
+        inner,
+        query,
+        case_sensitive,
+        use_regex,
         list(fill_color) if fill_color else None,
     )
     doc = object.__new__(Document)
@@ -157,7 +162,11 @@ def _encrypt(
         "print_high_quality": perms.print_high_quality,
     }
     data, stats = _paperjam.encrypt_document(
-        inner, user_password, owner_password, perms_dict, algorithm,
+        inner,
+        user_password,
+        owner_password,
+        perms_dict,
+        algorithm,
     )
     return data, EncryptResult(
         algorithm=stats["algorithm"],

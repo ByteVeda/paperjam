@@ -24,11 +24,14 @@ def main() -> None:
     )
     parser.add_argument("input", help="Path to the input PDF")
     parser.add_argument(
-        "-o", "--output", default="./output",
+        "-o",
+        "--output",
+        default="./output",
         help="Output directory (default: ./output)",
     )
     parser.add_argument(
-        "-p", "--pages",
+        "-p",
+        "--pages",
         help="Pages to extract, e.g. '1-5' or '1,3,5' (default: all)",
     )
     args = parser.parse_args()
@@ -56,18 +59,14 @@ def main() -> None:
             print(f"    {len(lines)} lines:")
             for line in lines[:3]:
                 b = line.bbox
-                print(f"      [{b[0]:.0f},{b[1]:.0f},"
-                      f"{b[2]:.0f},{b[3]:.0f}] "
-                      f"{line.text[:60]}")
+                print(f"      [{b[0]:.0f},{b[1]:.0f},{b[2]:.0f},{b[3]:.0f}] {line.text[:60]}")
 
         # Text spans (first 3)
         spans = page.extract_text_spans()
         if spans:
             print(f"    {len(spans)} spans:")
             for span in spans[:3]:
-                print(f"      ({span.font_name} "
-                      f"{span.font_size}pt) "
-                      f'"{span.text[:50]}"')
+                print(f'      ({span.font_name} {span.font_size}pt) "{span.text[:50]}"')
 
     print(f"\nSaved {len(page_nums)} page(s) to {output}/")
 

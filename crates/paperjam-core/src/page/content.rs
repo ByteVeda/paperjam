@@ -43,6 +43,6 @@ pub fn get_page_content(doc: &lopdf::Document, page_dict: &lopdf::Dictionary) ->
 
 fn get_stream_bytes(stream: &lopdf::Stream) -> Result<Vec<u8>> {
     let mut stream = stream.clone();
-    let _ = stream.decompress();
+    stream.decompress();
     Ok(stream.content)
 }

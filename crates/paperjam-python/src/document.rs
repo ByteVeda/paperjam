@@ -255,6 +255,7 @@ impl PyDocument {
         include_tables=true,
         layout_aware=false,
     ))]
+    #[allow(clippy::too_many_arguments)]
     fn to_markdown(
         &self,
         py: Python<'_>,

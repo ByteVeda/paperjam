@@ -54,9 +54,7 @@ def _optimize(
     Returns a tuple of (optimized_document, result_stats).
     """
     inner = self._ensure_open()
-    optimized, stats = _paperjam.optimize(
-        inner, compress_streams, remove_unused, remove_duplicates, strip_metadata
-    )
+    optimized, stats = _paperjam.optimize(inner, compress_streams, remove_unused, remove_duplicates, strip_metadata)
     doc = object.__new__(Document)
     doc._inner = optimized
     doc._closed = False
@@ -78,14 +76,14 @@ def _add_annotation(
 ) -> Document:
     """Add an annotation to a page, returning a new Document."""
     inner = self._ensure_open()
-    type_str = (
-        annotation_type.value
-        if isinstance(annotation_type, AnnotationType)
-        else str(annotation_type)
-    )
+    type_str = annotation_type.value if isinstance(annotation_type, AnnotationType) else str(annotation_type)
     result = _paperjam.add_annotation(
-        inner, page, type_str, list(rect),
-        contents, author,
+        inner,
+        page,
+        type_str,
+        list(rect),
+        contents,
+        author,
         list(color) if color else None,
         opacity,
         list(quad_points) if quad_points else None,
@@ -114,10 +112,7 @@ def _remove_annotations(
     inner = self._ensure_open()
     type_strs = None
     if annotation_types is not None:
-        type_strs = [
-            t.value if isinstance(t, AnnotationType) else str(t)
-            for t in annotation_types
-        ]
+        type_strs = [t.value if isinstance(t, AnnotationType) else str(t) for t in annotation_types]
     result, count = _paperjam.remove_annotations(inner, page, type_strs, indices)
     doc = object.__new__(Document)
     doc._inner = result
@@ -152,9 +147,18 @@ def _add_watermark(
     pos_str = position.value if isinstance(position, WatermarkPosition) else str(position)
     layer_str = layer.value if isinstance(layer, WatermarkLayer) else str(layer)
     result = _paperjam.add_watermark(
-        inner, text, font_size, rotation, opacity,
-        list(color), font, pos_str, layer_str, pages,
-        custom_x=x, custom_y=y,
+        inner,
+        text,
+        font_size,
+        rotation,
+        opacity,
+        list(color),
+        font,
+        pos_str,
+        layer_str,
+        pages,
+        custom_x=x,
+        custom_y=y,
     )
     doc = object.__new__(Document)
     doc._inner = result
@@ -174,10 +178,7 @@ def _rotate(
                         or a Rotation enum value.
     """
     inner = self._ensure_open()
-    normalized = [
-        (page, rot.value if isinstance(rot, Rotation) else int(rot))
-        for page, rot in page_rotations
-    ]
+    normalized = [(page, rot.value if isinstance(rot, Rotation) else int(rot)) for page, rot in page_rotations]
     result = _paperjam.rotate_pages(inner, normalized)
     doc = object.__new__(Document)
     doc._inner = result
@@ -240,8 +241,12 @@ def _set_metadata(
     inner = self._ensure_open()
     updates = {}
     for key, val in [
-        ("title", title), ("author", author), ("subject", subject),
-        ("keywords", keywords), ("creator", creator), ("producer", producer),
+        ("title", title),
+        ("author", author),
+        ("subject", subject),
+        ("keywords", keywords),
+        ("creator", creator),
+        ("producer", producer),
     ]:
         if val is not _UNSET:
             updates[key] = val

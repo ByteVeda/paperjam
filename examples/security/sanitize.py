@@ -12,23 +12,29 @@ def main() -> None:
     )
     parser.add_argument("input", help="Path to the input PDF")
     parser.add_argument(
-        "-o", "--output", default="./output",
+        "-o",
+        "--output",
+        default="./output",
         help="Output directory (default: ./output)",
     )
     parser.add_argument(
-        "--keep-js", action="store_true",
+        "--keep-js",
+        action="store_true",
         help="Keep JavaScript (don't remove)",
     )
     parser.add_argument(
-        "--keep-files", action="store_true",
+        "--keep-files",
+        action="store_true",
         help="Keep embedded files",
     )
     parser.add_argument(
-        "--keep-actions", action="store_true",
+        "--keep-actions",
+        action="store_true",
         help="Keep auto-launch actions",
     )
     parser.add_argument(
-        "--keep-links", action="store_true",
+        "--keep-links",
+        action="store_true",
         help="Keep link annotations",
     )
     args = parser.parse_args()

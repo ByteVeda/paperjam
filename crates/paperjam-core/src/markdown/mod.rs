@@ -89,7 +89,7 @@ pub fn blocks_to_markdown(blocks: &[ContentBlock], options: &MarkdownOptions) ->
             } => {
                 in_list = false;
                 let effective_level =
-                    ((*level as u16 + options.heading_offset as u16).min(6).max(1)) as u8;
+                    (*level as u16 + options.heading_offset as u16).clamp(1, 6) as u8;
                 ensure_blank_line(&mut out);
                 for _ in 0..effective_level {
                     out.push('#');
@@ -184,8 +184,8 @@ fn strip_list_marker(text: &str) -> String {
     for prefix in &[
         "- ", "* ", "\u{2022} ", "\u{2023} ", "\u{25E6} ", "\u{2043} ", "\u{2013} ", "\u{2014} ",
     ] {
-        if trimmed.starts_with(prefix) {
-            return trimmed[prefix.len()..].to_string();
+        if let Some(rest) = trimmed.strip_prefix(prefix) {
+            return rest.to_string();
         }
     }
 

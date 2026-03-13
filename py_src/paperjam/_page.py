@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import re
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 from paperjam import _paperjam  # noqa: TC001
 from paperjam._enums import TableStrategy
@@ -22,13 +22,11 @@ class Page:
 
     __slots__ = ("_doc", "_inner")
 
-    _inner: Any
-    _doc: Any  # RustDocument reference for document-level operations
+    _inner: _paperjam.RustPage
+    _doc: _paperjam.RustDocument | None  # RustDocument reference for document-level operations
 
     def __init__(self) -> None:
-        raise TypeError(
-            "Page objects cannot be created directly. Access via Document.pages."
-        )
+        raise TypeError("Page objects cannot be created directly. Access via Document.pages.")
 
     @classmethod
     def _from_rust(
@@ -338,6 +336,23 @@ class Page:
                 A RenderedImage with the image data and dimensions.
             """
             ...
+
+        # -- Async wrappers (attached by _async.py) --
+
+        async def aextract_text(self) -> str: ...
+
+        async def aextract_tables(
+            self,
+            *,
+            strategy: TableStrategy | str = ...,
+            min_rows: int = ...,
+            min_cols: int = ...,
+            snap_tolerance: float = ...,
+            row_tolerance: float = ...,
+            min_col_gap: float = ...,
+        ) -> list[Table]: ...
+
+        async def ato_markdown(self, **kwargs) -> str: ...
 
 
 def _raw_block_to_content_block(raw: dict) -> ContentBlock:

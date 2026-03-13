@@ -1,4 +1,4 @@
-/// AES-128-CBC encryption for PDF objects.
+//! AES-128-CBC encryption for PDF objects.
 
 use aes::cipher::{block_padding::Pkcs7, BlockEncryptMut, KeyIvInit};
 

@@ -42,7 +42,11 @@ def render_fast(args: argparse.Namespace) -> None:
 
     for num in page_nums:
         img = paperjam.render(
-            data, page=num, dpi=args.dpi, format=args.format, quality=args.quality,
+            data,
+            page=num,
+            dpi=args.dpi,
+            format=args.format,
+            quality=args.quality,
             background_color=args.bg_tuple,
             scale_to_width=args.width,
             scale_to_height=args.height,
@@ -100,39 +104,54 @@ def main() -> None:
     )
     parser.add_argument("input", help="Path to the input PDF")
     parser.add_argument(
-        "-o", "--output", default="./output",
+        "-o",
+        "--output",
+        default="./output",
         help="Output directory (default: ./output)",
     )
     parser.add_argument(
-        "-p", "--pages",
+        "-p",
+        "--pages",
         help="Pages to render, e.g. '1-5' or '1,3,5' (default: all)",
     )
     parser.add_argument(
-        "--dpi", type=float, default=150.0,
+        "--dpi",
+        type=float,
+        default=150.0,
         help="Resolution in DPI (default: 150)",
     )
     parser.add_argument(
-        "--format", choices=["png", "jpeg", "bmp"], default="png",
+        "--format",
+        choices=["png", "jpeg", "bmp"],
+        default="png",
         help="Image format (default: png)",
     )
     parser.add_argument(
-        "--quality", type=int, default=85,
+        "--quality",
+        type=int,
+        default=85,
         help="JPEG quality 1-100 (default: 85, ignored for PNG/BMP)",
     )
     parser.add_argument(
-        "--width", type=int, default=None,
+        "--width",
+        type=int,
+        default=None,
         help="Scale output to this pixel width (overrides DPI)",
     )
     parser.add_argument(
-        "--height", type=int, default=None,
+        "--height",
+        type=int,
+        default=None,
         help="Scale output to this pixel height (overrides DPI)",
     )
     parser.add_argument(
-        "--background-color", default=None,
+        "--background-color",
+        default=None,
         help="Background color as 'R,G,B' with 0-255 values (e.g. '255,255,255')",
     )
     parser.add_argument(
-        "--fast", action="store_true",
+        "--fast",
+        action="store_true",
         help="Use standalone render() fast path (bytes -> image, no Document needed)",
     )
     args = parser.parse_args()

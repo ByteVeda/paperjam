@@ -13,20 +13,28 @@ def main() -> None:
     )
     parser.add_argument("input", help="Path to the input PDF")
     parser.add_argument(
-        "-o", "--output", default="./output",
+        "-o",
+        "--output",
+        default="./output",
         help="Output directory (default: ./output)",
     )
     parser.add_argument(
-        "-p", "--pages", required=True,
+        "-p",
+        "--pages",
+        required=True,
         help="Comma-separated page numbers, e.g. '1,3,5'",
     )
     parser.add_argument(
-        "-d", "--degrees", type=int, default=90,
+        "-d",
+        "--degrees",
+        type=int,
+        default=90,
         choices=[90, 180, 270],
         help="Rotation degrees (default: 90)",
     )
     parser.add_argument(
-        "--name", default="rotated.pdf",
+        "--name",
+        default="rotated.pdf",
         help="Output filename (default: rotated.pdf)",
     )
     args = parser.parse_args()
@@ -42,9 +50,7 @@ def main() -> None:
 
     for num in page_nums:
         page = doc.pages[num - 1]
-        print(f"  Page {num}: "
-              f"{page.width:.0f}x{page.height:.0f} "
-              f"rotation={page.rotation}")
+        print(f"  Page {num}: {page.width:.0f}x{page.height:.0f} rotation={page.rotation}")
 
     rotations = [(p, args.degrees) for p in page_nums]
     rotated_inner = _paperjam.rotate_pages(doc._inner, rotations)

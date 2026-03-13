@@ -546,6 +546,75 @@ class Document:
             """
             ...
 
+        # -- Async wrappers (attached by _async.py) --
+
+        @staticmethod
+        async def aopen(
+            path_or_bytes: str | os.PathLike[str] | bytes,
+            *,
+            password: str | None = ...,
+        ) -> Document: ...
+
+        async def asave(self, path: str | os.PathLike[str]) -> None: ...
+        async def asave_bytes(self) -> bytes: ...
+
+        async def arender_page(
+            self,
+            page_number: int,
+            *,
+            dpi: float = ...,
+            format: str = ...,
+            quality: int = ...,
+            background_color: tuple[int, int, int] | None = ...,
+            scale_to_width: int | None = ...,
+            scale_to_height: int | None = ...,
+        ) -> RenderedImage: ...
+
+        async def arender_pages(
+            self,
+            *,
+            pages: list[int] | None = ...,
+            dpi: float = ...,
+            format: str = ...,
+            quality: int = ...,
+            background_color: tuple[int, int, int] | None = ...,
+            scale_to_width: int | None = ...,
+            scale_to_height: int | None = ...,
+        ) -> list[RenderedImage]: ...
+
+        async def aextract_tables(
+            self,
+            *,
+            strategy: TableStrategy | str = ...,
+            min_rows: int = ...,
+            min_cols: int = ...,
+            snap_tolerance: float = ...,
+            row_tolerance: float = ...,
+            min_col_gap: float = ...,
+        ) -> list[Table]: ...
+
+        async def ato_markdown(self, **kwargs) -> str: ...
+
+        async def asearch(
+            self,
+            query: str,
+            *,
+            case_sensitive: bool = ...,
+            max_results: int = ...,
+            use_regex: bool = ...,
+        ) -> list[SearchResult]: ...
+
+        async def adiff(self, other: Document) -> DiffResult: ...
+
+        async def aredact_text(
+            self,
+            query: str,
+            *,
+            case_sensitive: bool = ...,
+            use_regex: bool = ...,
+            fill_color: tuple[float, float, float] | None = ...,
+        ) -> tuple[Document, RedactResult]: ...
+
     def __init__(
         self,
         path_or_bytes: str | os.PathLike[str] | bytes,
@@ -569,15 +638,11 @@ class Document:
         elif isinstance(path_or_bytes, (bytes, bytearray, memoryview)):
             self._raw_bytes = bytes(path_or_bytes)
             if password is not None:
-                self._inner = _paperjam.RustDocument.from_bytes_with_password(
-                    bytes(path_or_bytes), password
-                )
+                self._inner = _paperjam.RustDocument.from_bytes_with_password(bytes(path_or_bytes), password)
             else:
                 self._inner = _paperjam.RustDocument.from_bytes(bytes(path_or_bytes))
         else:
-            raise TypeError(
-                f"Expected str, os.PathLike, or bytes, got {type(path_or_bytes).__name__}"
-            )
+            raise TypeError(f"Expected str, os.PathLike, or bytes, got {type(path_or_bytes).__name__}")
         self._closed = False
 
     def __enter__(self) -> Document:
@@ -696,9 +761,7 @@ class _PageAccessor:
             indices = range(*index.indices(len(self)))
             return [Page._from_rust(inner.page(i + 1), inner) for i in indices]
         else:
-            raise TypeError(
-                f"indices must be integers or slices, not {type(index).__name__}"
-            )
+            raise TypeError(f"indices must be integers or slices, not {type(index).__name__}")
 
     def __iter__(self) -> Iterator[Page]:
         inner = self._doc._ensure_open()

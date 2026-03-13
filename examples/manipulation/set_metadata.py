@@ -13,7 +13,9 @@ def main() -> None:
     )
     parser.add_argument("input", help="Path to the input PDF")
     parser.add_argument(
-        "-o", "--output", default="./output",
+        "-o",
+        "--output",
+        default="./output",
         help="Output directory (default: ./output)",
     )
     parser.add_argument("--title", default=None, help="Set the document title")
@@ -23,12 +25,15 @@ def main() -> None:
     parser.add_argument("--creator", default=None, help="Set the creator application")
     parser.add_argument("--producer", default=None, help="Set the PDF producer")
     parser.add_argument(
-        "--remove", nargs="*", default=[],
+        "--remove",
+        nargs="*",
+        default=[],
         metavar="FIELD",
         help="Remove specific fields, e.g. --remove keywords producer",
     )
     parser.add_argument(
-        "--name", default=None,
+        "--name",
+        default=None,
         help="Output filename (default: metadata_<input>.pdf)",
     )
     args = parser.parse_args()

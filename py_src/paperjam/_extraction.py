@@ -101,11 +101,16 @@ def _extract_tables(
     """Extract tables from all pages."""
     tables: list[Table] = []
     for page in self.pages:
-        tables.extend(page.extract_tables(
-            strategy=strategy, min_rows=min_rows, min_cols=min_cols,
-            snap_tolerance=snap_tolerance, row_tolerance=row_tolerance,
-            min_col_gap=min_col_gap,
-        ))
+        tables.extend(
+            page.extract_tables(
+                strategy=strategy,
+                min_rows=min_rows,
+                min_cols=min_cols,
+                snap_tolerance=snap_tolerance,
+                row_tolerance=row_tolerance,
+                min_col_gap=min_col_gap,
+            )
+        )
     return tables
 
 

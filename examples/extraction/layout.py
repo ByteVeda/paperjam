@@ -11,11 +11,16 @@ def main() -> None:
     )
     parser.add_argument("input", help="Path to the input PDF")
     parser.add_argument(
-        "-p", "--page", type=int, default=1,
+        "-p",
+        "--page",
+        type=int,
+        default=1,
         help="Page number to analyze (default: 1)",
     )
     parser.add_argument(
-        "--gutter-width", type=float, default=20.0,
+        "--gutter-width",
+        type=float,
+        default=20.0,
         help="Minimum gutter width for column detection (default: 20.0)",
     )
     args = parser.parse_args()

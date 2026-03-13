@@ -167,9 +167,12 @@ pub fn redact_text(
     };
     let query_lower = query.to_lowercase();
 
-    for page_num in 1..=(doc.page_count() as u32) {
+    // Search phase: parallelized (read-only per-page span scanning)
+    let count = doc.page_count() as u32;
+    let per_page_regions = crate::parallel::par_map_pages(count, |page_num| {
         let page = doc.page(page_num)?;
         let spans = page.text_spans()?;
+        let mut page_regions = Vec::new();
 
         for span in &spans {
             let matches = if let Some(ref pattern) = regex_pattern {
@@ -181,9 +184,7 @@ pub fn redact_text(
             };
 
             if matches {
-                // Build redaction region from span position
-                // Approximate bbox: baseline at (x, y), descender ~-0.3*fs, ascender ~+0.8*fs
-                regions.push(RedactRegion {
+                page_regions.push(RedactRegion {
                     page: page_num,
                     rect: [
                         span.x,
@@ -194,6 +195,11 @@ pub fn redact_text(
                 });
             }
         }
+        Ok(page_regions)
+    });
+    let collected = crate::parallel::collect_par_results(per_page_regions)?;
+    for page_regions in collected {
+        regions.extend(page_regions);
     }
 
     if regions.is_empty() {
