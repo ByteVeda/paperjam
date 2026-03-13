@@ -216,6 +216,19 @@ class Annotation:
     color: tuple[float, float, float] | None = None
     creation_date: str | None = None
     opacity: float | None = None
+    url: str | None = None
+    destination: dict[str, object] | None = None
+
+
+@dataclasses.dataclass(frozen=True, slots=True)
+class Link:
+    """A hyperlink extracted from a PDF page."""
+
+    page: int
+    rect: tuple[float, float, float, float]
+    url: str | None = None
+    destination: dict[str, object] | None = None
+    contents: str | None = None
 
 
 # --- Structure extraction types ---
@@ -519,3 +532,57 @@ class PageLayout:
             for line in region.lines:
                 lines.append(line.text)
         return "\n".join(lines)
+
+
+# --- Visual diff types ---
+
+
+@dataclasses.dataclass(frozen=True, slots=True)
+class VisualDiffPage:
+    """Visual diff result for a single page."""
+
+    page: int
+    image_a: bytes
+    image_a_width: int
+    image_a_height: int
+    image_b: bytes
+    image_b_width: int
+    image_b_height: int
+    diff_image: bytes
+    diff_image_width: int
+    diff_image_height: int
+    similarity: float
+    changed_pixel_count: int
+
+
+@dataclasses.dataclass(frozen=True, slots=True)
+class VisualDiffResult:
+    """Complete visual diff result between two documents."""
+
+    pages: tuple[VisualDiffPage, ...]
+    overall_similarity: float
+    text_diff_summary: DiffSummary
+
+
+# --- Validation types ---
+
+
+@dataclasses.dataclass(frozen=True, slots=True)
+class ValidationIssue:
+    """A single PDF/A validation issue."""
+
+    severity: str  # "error", "warning", "info"
+    rule: str
+    message: str
+    page: int | None = None
+
+
+@dataclasses.dataclass(frozen=True, slots=True)
+class ValidationReport:
+    """PDF/A validation report."""
+
+    level: str
+    is_compliant: bool
+    issues: tuple[ValidationIssue, ...]
+    fonts_checked: int
+    pages_checked: int

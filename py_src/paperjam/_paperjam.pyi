@@ -273,6 +273,43 @@ def set_bookmarks(
     document: RustDocument,
     bookmarks: list[dict[str, Any]],
 ) -> RustDocument: ...
+def generate_toc(
+    document: RustDocument,
+    *,
+    max_depth: int = 6,
+    heading_size_ratio: float = 1.2,
+    layout_aware: bool = False,
+    replace_existing: bool = True,
+) -> tuple[RustDocument, list[dict[str, Any]]]: ...
+def stamp_pages(
+    document: RustDocument,
+    stamp_document: RustDocument,
+    *,
+    source_page: int = 1,
+    target_pages: list[int] | None = None,
+    x: float = 0.0,
+    y: float = 0.0,
+    scale: float = 1.0,
+    opacity: float = 1.0,
+    layer: str = "over",
+) -> RustDocument: ...
+def visual_diff(
+    document_a: RustDocument,
+    document_b: RustDocument,
+    bytes_a: bytes,
+    bytes_b: bytes,
+    *,
+    dpi: float = 150.0,
+    highlight_color: list[int] | None = None,
+    mode: str = "both",
+    threshold: int = 10,
+    library_path: str | None = None,
+) -> dict[str, Any]: ...
+def validate_pdf_a(
+    document: RustDocument,
+    *,
+    level: str = "1b",
+) -> dict[str, Any]: ...
 def encrypt_document(
     document: RustDocument,
     user_password: str,

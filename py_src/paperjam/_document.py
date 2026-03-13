@@ -21,6 +21,7 @@ if TYPE_CHECKING:
         EncryptResult,
         FillFormResult,
         FormField,
+        Link,
         ModifyFieldResult,
         OptimizeResult,
         Permissions,
@@ -32,6 +33,8 @@ if TYPE_CHECKING:
         SignatureInfo,
         SignatureValidity,
         Table,
+        ValidationReport,
+        VisualDiffResult,
     )
 
 
@@ -260,6 +263,93 @@ class Document:
             Args:
                 bookmarks: List of Bookmark objects defining the new outline tree.
                            Pass an empty list to remove all bookmarks.
+            """
+            ...
+
+        # -- Link extraction (attached by _extraction.py) --
+
+        def extract_links(self) -> list[Link]:
+            """Extract all hyperlinks from all pages."""
+            ...
+
+        # -- TOC generation (attached by _toc.py) --
+
+        def generate_toc(
+            self,
+            *,
+            max_depth: int = ...,
+            heading_size_ratio: float = ...,
+            layout_aware: bool = ...,
+            replace_existing: bool = ...,
+        ) -> tuple[Document, list[Bookmark]]:
+            """Auto-generate a table of contents from heading structure.
+
+            Returns a tuple of (new_document_with_bookmarks, list_of_bookmarks).
+            """
+            ...
+
+        # -- Stamping (attached by _stamp.py) --
+
+        def stamp(
+            self,
+            stamp_doc: Document,
+            *,
+            source_page: int = ...,
+            target_pages: list[int] | None = ...,
+            x: float = ...,
+            y: float = ...,
+            scale: float = ...,
+            opacity: float = ...,
+            layer: str = ...,
+        ) -> Document:
+            """Overlay a page from another PDF onto pages of this document.
+
+            Args:
+                stamp_doc: The document containing the stamp page.
+                source_page: 1-based page number in stamp_doc to use (default 1).
+                target_pages: List of 1-based page numbers to stamp. None = all.
+                x: X offset in points (default 0).
+                y: Y offset in points (default 0).
+                scale: Scale factor (default 1.0).
+                opacity: Opacity (0.0-1.0, default 1.0).
+                layer: "over" or "under" (default "over").
+            """
+            ...
+
+        # -- Visual diff (attached by _comparison.py) --
+
+        def visual_diff(
+            self,
+            other: Document,
+            *,
+            dpi: float = ...,
+            highlight_color: tuple[int, int, int, int] | None = ...,
+            mode: str = ...,
+            threshold: int = ...,
+        ) -> VisualDiffResult:
+            """Compare this document with another visually (pixel-level).
+
+            Requires the 'render' feature (pdfium).
+
+            Args:
+                other: The other document to compare against.
+                dpi: Resolution for rendering (default 150).
+                highlight_color: RGBA color for highlighting changes.
+                mode: "pixel_diff", "bbox_overlay", or "both" (default "both").
+                threshold: Per-channel pixel difference threshold (0-255, default 10).
+            """
+            ...
+
+        # -- Validation (attached by _validation.py) --
+
+        def validate_pdf_a(
+            self,
+            level: str = ...,
+        ) -> ValidationReport:
+            """Validate PDF/A compliance.
+
+            Args:
+                level: PDF/A level to validate against — "1b", "1a", or "2b" (default "1b").
             """
             ...
 
