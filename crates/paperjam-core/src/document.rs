@@ -144,6 +144,11 @@ impl Document {
         annotations::extract_annotations(&self.inner, page_number, &self.page_map)
     }
 
+    /// Extract only link annotations from a specific page (1-indexed).
+    pub fn extract_links(&self, page_number: u32) -> Result<Vec<Annotation>> {
+        annotations::extract_links(&self.inner, page_number, &self.page_map)
+    }
+
     /// Add an annotation to a specific page.
     pub fn add_annotation(
         &mut self,

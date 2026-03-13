@@ -43,6 +43,10 @@ fn _paperjam(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(ops::py_insert_blank_pages, m)?)?;
     m.add_function(wrap_pyfunction!(ops::py_set_metadata, m)?)?;
     m.add_function(wrap_pyfunction!(ops::py_set_bookmarks, m)?)?;
+    m.add_function(wrap_pyfunction!(ops::py_generate_toc, m)?)?;
+    m.add_function(wrap_pyfunction!(ops::py_stamp_pages, m)?)?;
+    m.add_function(wrap_pyfunction!(ops::py_visual_diff, m)?)?;
+    m.add_function(wrap_pyfunction!(ops::py_validate_pdf_a, m)?)?;
 
     Ok(())
 }

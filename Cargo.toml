@@ -29,3 +29,4 @@ sha1 = "0.10"
 rsa = "0.9"
 p256 = { version = "0.13", features = ["ecdsa"] }
 pkcs8 = "0.10"
+roxmltree = "0.20"
