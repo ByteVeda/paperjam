@@ -134,22 +134,18 @@ def merge(
     documents: list[RustDocument],
     deduplicate_resources: bool = False,
 ) -> RustDocument: ...
-
 def split(
     document: RustDocument,
     ranges: list[tuple[int, int]],
 ) -> list[RustDocument]: ...
-
 def rotate_pages(
     document: RustDocument,
     page_rotations: list[tuple[int, int]],
 ) -> RustDocument: ...
-
 def reorder_pages(
     document: RustDocument,
     page_order: list[int],
 ) -> RustDocument: ...
-
 def optimize(
     document: RustDocument,
     compress_streams: bool,
@@ -157,7 +153,6 @@ def optimize(
     remove_duplicates: bool,
     strip_metadata: bool,
 ) -> tuple[RustDocument, dict[str, Any]]: ...
-
 def add_annotation(
     document: RustDocument,
     page_number: int,
@@ -170,14 +165,12 @@ def add_annotation(
     quad_points: list[float] | None = None,
     url: str | None = None,
 ) -> RustDocument: ...
-
 def remove_annotations(
     document: RustDocument,
     page_number: int,
     annotation_types: list[str] | None = None,
     indices: list[int] | None = None,
 ) -> tuple[RustDocument, int]: ...
-
 def add_watermark(
     document: RustDocument,
     text: str,
@@ -192,12 +185,10 @@ def add_watermark(
     custom_x: float | None = None,
     custom_y: float | None = None,
 ) -> RustDocument: ...
-
 def diff_documents(
     document_a: RustDocument,
     document_b: RustDocument,
 ) -> dict[str, Any]: ...
-
 def sanitize(
     document: RustDocument,
     remove_javascript: bool = True,
@@ -205,13 +196,11 @@ def sanitize(
     remove_actions: bool = True,
     remove_links: bool = True,
 ) -> tuple[RustDocument, dict[str, Any]]: ...
-
 def redact(
     document: RustDocument,
     regions: list[dict[str, Any]],
     fill_color: list[float] | None = None,
 ) -> tuple[RustDocument, dict[str, Any]]: ...
-
 def redact_text(
     document: RustDocument,
     query: str,
@@ -219,13 +208,11 @@ def redact_text(
     use_regex: bool = False,
     fill_color: list[float] | None = None,
 ) -> tuple[RustDocument, dict[str, Any]]: ...
-
 def fill_form(
     document: RustDocument,
     values: dict[str, str],
     need_appearances: bool = True,
 ) -> tuple[RustDocument, dict[str, Any]]: ...
-
 def render_page(
     document: RustDocument,
     page_number: int,
@@ -237,7 +224,6 @@ def render_page(
     scale_to_height: int | None = None,
     library_path: str | None = None,
 ) -> dict[str, Any]: ...
-
 def render_pages(
     document: RustDocument,
     pages: list[int] | None = None,
@@ -249,7 +235,6 @@ def render_pages(
     scale_to_height: int | None = None,
     library_path: str | None = None,
 ) -> list[dict[str, Any]]: ...
-
 def render_file(
     data: bytes,
     page_number: int = 1,
@@ -261,7 +246,6 @@ def render_file(
     scale_to_height: int | None = None,
     library_path: str | None = None,
 ) -> dict[str, Any]: ...
-
 def render_pages_bytes(
     data: bytes,
     pages: list[int] | None = None,
@@ -273,14 +257,29 @@ def render_pages_bytes(
     scale_to_height: int | None = None,
     library_path: str | None = None,
 ) -> list[dict[str, Any]]: ...
-
+def delete_pages(
+    document: RustDocument,
+    page_numbers: list[int],
+) -> RustDocument: ...
+def insert_blank_pages(
+    document: RustDocument,
+    positions: list[tuple[int, float, float]],
+) -> RustDocument: ...
+def set_metadata(
+    document: RustDocument,
+    updates: dict[str, str | None],
+) -> RustDocument: ...
+def set_bookmarks(
+    document: RustDocument,
+    bookmarks: list[dict[str, Any]],
+) -> RustDocument: ...
 def encrypt_document(
     document: RustDocument,
     user_password: str,
     owner_password: str | None = None,
     permissions: dict[str, bool] | None = None,
+    algorithm: str = "aes128",
 ) -> tuple[bytes, dict[str, Any]]: ...
-
 def sign_document(
     document: RustDocument,
     private_key: bytes,
@@ -290,12 +289,10 @@ def sign_document(
     contact_info: str | None = None,
     field_name: str = "Signature1",
 ) -> bytes: ...
-
 def extract_signatures(
     document: RustDocument,
     raw_bytes: bytes,
 ) -> list[dict[str, Any]]: ...
-
 def verify_signatures(
     document: RustDocument,
     raw_bytes: bytes,

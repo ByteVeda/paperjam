@@ -4,6 +4,7 @@ from __future__ import annotations
 
 __version__ = "0.1.0"
 
+import paperjam._async
 import paperjam._comparison
 
 # Import feature modules to attach methods to Document
@@ -13,6 +14,15 @@ import paperjam._manipulation
 import paperjam._render
 import paperjam._security
 import paperjam._signature  # noqa: F401
+from paperjam._async import (
+    amerge,
+    aopen,
+    arender,
+    ato_markdown,
+)
+from paperjam._async import (
+    configure as configure_async,
+)
 from paperjam._document import Document
 from paperjam._enums import (
     AnnotationType,
@@ -145,6 +155,11 @@ __all__ = [
     "WatermarkError",
     "WatermarkLayer",
     "WatermarkPosition",
+    "amerge",
+    "aopen",
+    "arender",
+    "ato_markdown",
+    "configure_async",
     "diff",
     "merge",
     "merge_files",

@@ -366,6 +366,6 @@ fn merge_dr_into(
 
 /// Merge PDF files from paths.
 pub fn merge_files<P: AsRef<Path>>(paths: &[P], options: &MergeOptions) -> Result<Document> {
-    let docs: Result<Vec<Document>> = paths.iter().map(|p| Document::open(p)).collect();
+    let docs: Result<Vec<Document>> = paths.iter().map(Document::open).collect();
     merge(docs?, options)
 }

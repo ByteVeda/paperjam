@@ -95,7 +95,7 @@ pub fn walk_fields(
         let ff = dict
             .get(b"Ff")
             .ok()
-            .and_then(|o| obj_to_i64(o))
+            .and_then(obj_to_i64)
             .map(|v| v as u32)
             .unwrap_or(inherited_ff);
 
@@ -138,7 +138,7 @@ pub fn walk_fields(
                             .get_object(kid_id)
                             .ok()
                             .and_then(|o| o.as_dict().ok())
-                            .and_then(|d| extract_rect(d));
+                            .and_then(extract_rect);
                         (page, rect)
                     })
                     .unwrap_or((None, None));
@@ -343,7 +343,7 @@ fn extract_value(dict: &lopdf::Dictionary, doc: &lopdf::Document) -> Option<Stri
         Object::Reference(id) => doc
             .get_object(*id)
             .ok()
-            .and_then(|o| extract_obj_string(o)),
+            .and_then(extract_obj_string),
         _ => None,
     })
 }
@@ -356,7 +356,7 @@ fn extract_default_value(dict: &lopdf::Dictionary, doc: &lopdf::Document) -> Opt
         Object::Reference(id) => doc
             .get_object(*id)
             .ok()
-            .and_then(|o| extract_obj_string(o)),
+            .and_then(extract_obj_string),
         _ => None,
     })
 }
@@ -406,7 +406,7 @@ fn extract_options(dict: &lopdf::Dictionary, doc: &lopdf::Document) -> Vec<Choic
 fn extract_max_length(dict: &lopdf::Dictionary) -> u32 {
     dict.get(b"MaxLen")
         .ok()
-        .and_then(|o| obj_to_i64(o))
+        .and_then(obj_to_i64)
         .map(|v| v as u32)
         .unwrap_or(0)
 }

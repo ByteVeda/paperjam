@@ -11,15 +11,20 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Delete pages from a PDF file.")
     parser.add_argument("input", help="Path to the input PDF")
     parser.add_argument(
-        "-o", "--output", default="./output",
+        "-o",
+        "--output",
+        default="./output",
         help="Output directory (default: ./output)",
     )
     parser.add_argument(
-        "-p", "--pages", required=True,
+        "-p",
+        "--pages",
+        required=True,
         help="Comma-separated 1-indexed page numbers to delete, e.g. '2,4,6'",
     )
     parser.add_argument(
-        "--name", default=None,
+        "--name",
+        default=None,
         help="Output filename (default: deleted_<input>.pdf)",
     )
     args = parser.parse_args()

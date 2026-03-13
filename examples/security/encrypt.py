@@ -12,11 +12,14 @@ def main() -> None:
     )
     parser.add_argument("input", help="Path to the input PDF")
     parser.add_argument(
-        "-o", "--output", default="./output",
+        "-o",
+        "--output",
+        default="./output",
         help="Output directory (default: ./output)",
     )
     parser.add_argument(
-        "--user-password", required=True,
+        "--user-password",
+        required=True,
         help="Password required to open the document",
     )
     parser.add_argument(
@@ -24,43 +27,54 @@ def main() -> None:
         help="Password for full access (defaults to user password)",
     )
     parser.add_argument(
-        "--deny-all", action="store_true",
+        "--deny-all",
+        action="store_true",
         help="Start with all permissions denied (use --allow-* to re-enable)",
     )
     parser.add_argument(
-        "--no-print", action="store_true",
+        "--no-print",
+        action="store_true",
         help="Deny printing",
     )
     parser.add_argument(
-        "--no-modify", action="store_true",
+        "--no-modify",
+        action="store_true",
         help="Deny document modification",
     )
     parser.add_argument(
-        "--no-copy", action="store_true",
+        "--no-copy",
+        action="store_true",
         help="Deny content copying",
     )
     parser.add_argument(
-        "--no-annotate", action="store_true",
+        "--no-annotate",
+        action="store_true",
         help="Deny adding annotations",
     )
     parser.add_argument(
-        "--no-fill-forms", action="store_true",
+        "--no-fill-forms",
+        action="store_true",
         help="Deny form filling",
     )
     parser.add_argument(
-        "--no-accessibility", action="store_true",
+        "--no-accessibility",
+        action="store_true",
         help="Deny accessibility text extraction",
     )
     parser.add_argument(
-        "--no-assemble", action="store_true",
+        "--no-assemble",
+        action="store_true",
         help="Deny document assembly",
     )
     parser.add_argument(
-        "--no-print-hq", action="store_true",
+        "--no-print-hq",
+        action="store_true",
         help="Deny high-quality printing",
     )
     parser.add_argument(
-        "--algorithm", choices=["aes128", "rc4"], default="aes128",
+        "--algorithm",
+        choices=["aes128", "rc4"],
+        default="aes128",
         help="Encryption algorithm (default: aes128)",
     )
     args = parser.parse_args()
@@ -121,8 +135,7 @@ def main() -> None:
         print(f"  Page 1 text length:   {len(verified.pages[0].extract_text())} chars")
     except paperjam.InvalidPassword:
         # AES-128 decryption not yet supported by the underlying parser
-        print(f"  Round-trip verification skipped ({result.algorithm} decryption "
-              "not yet supported by the underlying PDF parser)")
+        print(f"  Round-trip verification skipped ({result.algorithm} decryption not yet supported by the underlying PDF parser)")
 
 
 if __name__ == "__main__":

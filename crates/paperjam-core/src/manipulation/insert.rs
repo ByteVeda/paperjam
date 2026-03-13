@@ -84,14 +84,14 @@ fn insert_page_into_kids(
 ) -> Result<()> {
     let pages_obj = doc
         .get_object_mut(pages_id)
-        .map_err(|e| PdfError::Lopdf(e))?;
+        .map_err(PdfError::Lopdf)?;
     let pages_dict = pages_obj
         .as_dict_mut()
-        .map_err(|e| PdfError::Lopdf(e))?;
+        .map_err(PdfError::Lopdf)?;
 
     let kids = pages_dict
         .get_mut(b"Kids")
-        .map_err(|e| PdfError::Lopdf(e))?;
+        .map_err(PdfError::Lopdf)?;
 
     if let Object::Array(ref mut kids_arr) = kids {
         let insert_idx = after_page as usize;

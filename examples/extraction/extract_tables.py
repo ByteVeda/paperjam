@@ -24,11 +24,14 @@ def main() -> None:
     )
     parser.add_argument("input", help="Path to the input PDF")
     parser.add_argument(
-        "-o", "--output", default="./output",
+        "-o",
+        "--output",
+        default="./output",
         help="Output directory (default: ./output)",
     )
     parser.add_argument(
-        "-p", "--pages",
+        "-p",
+        "--pages",
         help="Pages to scan, e.g. '1-5' or '1,3,5' (default: all)",
     )
     parser.add_argument(
@@ -58,9 +61,7 @@ def main() -> None:
         for i, table in enumerate(tables):
             out = output / f"page{num}_table{i}.csv"
             out.write_text(table.to_csv())
-            print(f"    Table {i}: {table.row_count} rows "
-                  f"x {table.col_count} cols "
-                  f"({table.strategy}) -> {out.name}")
+            print(f"    Table {i}: {table.row_count} rows x {table.col_count} cols ({table.strategy}) -> {out.name}")
 
             if table.row_count > 0:
                 header = [c.text for c in table.rows[0].cells]

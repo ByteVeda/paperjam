@@ -67,35 +67,34 @@ pub fn diff_documents(doc_a: &Document, doc_b: &Document) -> Result<DiffResult> 
     let count_b = doc_b.page_count() as u32;
     let common_pages = count_a.min(count_b);
 
-    let mut page_diffs = Vec::new();
     let mut total_additions: usize = 0;
     let mut total_removals: usize = 0;
     let mut total_changes: usize = 0;
     let mut pages_changed: usize = 0;
 
-    // Compare common pages
-    for page_num in 1..=common_pages {
+    // Compare common pages in parallel
+    let common_results = crate::parallel::par_map_pages(common_pages, |page_num| {
         let page_a = doc_a.page(page_num)?;
         let page_b = doc_b.page(page_num)?;
-
         let lines_a = page_a.text_lines()?;
         let lines_b = page_b.text_lines()?;
-
         let ops = diff_lines(&lines_a, &lines_b, page_num);
+        Ok(PageDiff { page: page_num, ops })
+    });
+    let common_diffs = crate::parallel::collect_par_results(common_results)?;
 
-        if !ops.is_empty() {
+    let mut page_diffs: Vec<PageDiff> = Vec::new();
+    for pd in common_diffs {
+        if !pd.ops.is_empty() {
             pages_changed += 1;
-            for op in &ops {
+            for op in &pd.ops {
                 match op.kind {
                     DiffOpKind::Added => total_additions += 1,
                     DiffOpKind::Removed => total_removals += 1,
                     DiffOpKind::Changed => total_changes += 1,
                 }
             }
-            page_diffs.push(PageDiff {
-                page: page_num,
-                ops,
-            });
+            page_diffs.push(pd);
         }
     }
 

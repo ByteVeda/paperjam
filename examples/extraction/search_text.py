@@ -13,15 +13,20 @@ def main() -> None:
     parser.add_argument("input", help="Path to the input PDF")
     parser.add_argument("query", help="Text to search for")
     parser.add_argument(
-        "-o", "--output", default="./output",
+        "-o",
+        "--output",
+        default="./output",
         help="Output directory (default: ./output)",
     )
     parser.add_argument(
-        "--ignore-case", action="store_true",
+        "--ignore-case",
+        action="store_true",
         help="Case-insensitive search",
     )
     parser.add_argument(
-        "--max-results", type=int, default=0,
+        "--max-results",
+        type=int,
+        default=0,
         help="Max results to return (default: unlimited)",
     )
     args = parser.parse_args()
@@ -53,10 +58,7 @@ def main() -> None:
     out = output / "search_results.txt"
     with open(out, "w") as f:
         for r in results:
-            f.write(
-                f"Page {r.page}, line {r.line_number}: "
-                f"{r.text}\n"
-            )
+            f.write(f"Page {r.page}, line {r.line_number}: {r.text}\n")
     print(f"\nSaved to {out}")
 
 

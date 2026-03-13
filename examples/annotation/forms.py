@@ -12,50 +12,66 @@ def main() -> None:
     )
     parser.add_argument("input", help="Path to the input PDF")
     parser.add_argument(
-        "-o", "--output", default="./output",
+        "-o",
+        "--output",
+        default="./output",
         help="Output directory (default: ./output)",
     )
     parser.add_argument(
-        "--list", action="store_true",
+        "--list",
+        action="store_true",
         help="List all form fields and their current values",
     )
     parser.add_argument(
-        "--fill", nargs=2, action="append", metavar=("FIELD", "VALUE"),
+        "--fill",
+        nargs=2,
+        action="append",
+        metavar=("FIELD", "VALUE"),
         help="Set a field value, e.g. --fill name 'John Doe' (repeatable)",
     )
     parser.add_argument(
-        "--generate-appearances", action="store_true",
-        help="Generate explicit appearance streams when filling (for viewers "
-             "that ignore /NeedAppearances)",
+        "--generate-appearances",
+        action="store_true",
+        help="Generate explicit appearance streams when filling (for viewers that ignore /NeedAppearances)",
     )
     parser.add_argument(
-        "--create", nargs=2, metavar=("FIELD", "TYPE"),
-        help="Create a new form field. TYPE is one of: text, checkbox, "
-             "combo_box, list_box, push_button, signature",
+        "--create",
+        nargs=2,
+        metavar=("FIELD", "TYPE"),
+        help="Create a new form field. TYPE is one of: text, checkbox, combo_box, list_box, push_button, signature",
     )
     parser.add_argument(
-        "--page", type=int, default=1,
+        "--page",
+        type=int,
+        default=1,
         help="Page number for --create (default: 1)",
     )
     parser.add_argument(
-        "--rect", nargs=4, type=float, metavar=("X1", "Y1", "X2", "Y2"),
+        "--rect",
+        nargs=4,
+        type=float,
+        metavar=("X1", "Y1", "X2", "Y2"),
         default=[100.0, 700.0, 300.0, 720.0],
         help="Rectangle for --create (default: 100 700 300 720)",
     )
     parser.add_argument(
-        "--modify", metavar="FIELD",
+        "--modify",
+        metavar="FIELD",
         help="Modify an existing form field's properties",
     )
     parser.add_argument(
-        "--read-only", action="store_true",
+        "--read-only",
+        action="store_true",
         help="Set the field read-only (used with --modify)",
     )
     parser.add_argument(
-        "--required", action="store_true",
+        "--required",
+        action="store_true",
         help="Set the field required (used with --modify)",
     )
     parser.add_argument(
-        "--max-length", type=int,
+        "--max-length",
+        type=int,
         help="Set max length for a text field (used with --modify)",
     )
     args = parser.parse_args()
@@ -71,10 +87,10 @@ def main() -> None:
     if args.create:
         field_name, field_type = args.create
         rect = tuple(args.rect)
-        print(f"\nCreating field '{field_name}' (type={field_type}) "
-              f"on page {args.page}, rect={rect}")
+        print(f"\nCreating field '{field_name}' (type={field_type}) on page {args.page}, rect={rect}")
         doc, create_result = doc.add_form_field(
-            field_name, field_type,
+            field_name,
+            field_type,
             page=args.page,
             rect=rect,
         )
@@ -86,7 +102,8 @@ def main() -> None:
         mode = "with appearances" if args.generate_appearances else "default"
         print(f"\nFilling {len(values)} field(s) ({mode})...")
         doc, fill_result = doc.fill_form(
-            values, generate_appearances=args.generate_appearances,
+            values,
+            generate_appearances=args.generate_appearances,
         )
         print(f"  Fields filled:     {fill_result.fields_filled}")
         print(f"  Fields not found:  {fill_result.fields_not_found}")
@@ -95,9 +112,7 @@ def main() -> None:
 
     # --- Modify a field ---
     if args.modify:
-        print(f"\nModifying field '{args.modify}': "
-              f"read_only={args.read_only}, required={args.required}, "
-              f"max_length={args.max_length}")
+        print(f"\nModifying field '{args.modify}': read_only={args.read_only}, required={args.required}, max_length={args.max_length}")
         doc, mod_result = doc.modify_form_field(
             args.modify,
             read_only=args.read_only or None,

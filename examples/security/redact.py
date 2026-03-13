@@ -13,19 +13,26 @@ def main() -> None:
     parser.add_argument("input", help="Path to the input PDF")
     parser.add_argument("query", help="Text to search for and redact")
     parser.add_argument(
-        "-o", "--output", default="./output",
+        "-o",
+        "--output",
+        default="./output",
         help="Output directory (default: ./output)",
     )
     parser.add_argument(
-        "--no-fill", action="store_true",
+        "--no-fill",
+        action="store_true",
         help="Don't draw black rectangles over redacted areas",
     )
     parser.add_argument(
-        "-i", "--case-insensitive", action="store_true",
+        "-i",
+        "--case-insensitive",
+        action="store_true",
         help="Case-insensitive search",
     )
     parser.add_argument(
-        "-r", "--regex", action="store_true",
+        "-r",
+        "--regex",
+        action="store_true",
         help="Treat query as a regular expression",
     )
     args = parser.parse_args()

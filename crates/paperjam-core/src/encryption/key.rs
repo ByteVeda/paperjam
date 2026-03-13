@@ -1,4 +1,4 @@
-/// PDF encryption key derivation algorithms (PDF spec 1.7, section 3.5).
+//! PDF encryption key derivation algorithms (PDF spec 1.7, section 3.5).
 
 use md5::{Digest, Md5};
 
@@ -135,7 +135,7 @@ pub fn encrypt_object_aes128(key: &[u8], obj_num: u32, gen_num: u16, data: &[u8]
     hasher.update(&obj_num.to_le_bytes()[..3]);
     hasher.update(&gen_num.to_le_bytes()[..2]);
     // AES-specific: append "sAlT"
-    hasher.update(&[0x73, 0x41, 0x6C, 0x54]);
+    hasher.update([0x73, 0x41, 0x6C, 0x54]);
 
     let obj_key_full = hasher.finalize();
     // For AES-128, the key is always 16 bytes

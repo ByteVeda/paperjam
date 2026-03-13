@@ -26,6 +26,7 @@ impl BuiltinFont {
         }
     }
 
+    #[allow(clippy::should_implement_trait)]
     pub fn from_str(s: &str) -> Self {
         match s.to_lowercase().as_str() {
             "helvetica" => Self::Helvetica,
@@ -51,6 +52,7 @@ pub enum WatermarkPosition {
 }
 
 impl WatermarkPosition {
+    #[allow(clippy::should_implement_trait)]
     pub fn from_str(s: &str) -> Self {
         match s.to_lowercase().as_str() {
             "center" => Self::Center,
@@ -71,6 +73,7 @@ pub enum WatermarkLayer {
 }
 
 impl WatermarkLayer {
+    #[allow(clippy::should_implement_trait)]
     pub fn from_str(s: &str) -> Self {
         match s.to_lowercase().as_str() {
             "under" | "underlay" => Self::Under,

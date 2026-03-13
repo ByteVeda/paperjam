@@ -53,7 +53,9 @@ def main():
         if args.remove_indices:
             indices = [int(i) for i in args.remove_indices.split(",")]
         result, count = result.remove_annotations(
-            args.page, annotation_types=annotation_types, indices=indices,
+            args.page,
+            annotation_types=annotation_types,
+            indices=indices,
         )
         print(f"\nRemoved {count} annotation(s) from page {args.page}")
         modified = count > 0

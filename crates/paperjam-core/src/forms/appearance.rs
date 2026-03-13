@@ -64,10 +64,8 @@ fn get_da_string(doc: &lopdf::Document, field_id: ObjectId) -> String {
     // Try field itself
     if let Ok(field_obj) = doc.get_object(field_id) {
         if let Ok(dict) = field_obj.as_dict() {
-            if let Ok(da) = dict.get(b"DA") {
-                if let Object::String(bytes, _) = da {
-                    return String::from_utf8_lossy(bytes).to_string();
-                }
+            if let Ok(Object::String(bytes, _)) = dict.get(b"DA") {
+                return String::from_utf8_lossy(bytes).to_string();
             }
         }
     }

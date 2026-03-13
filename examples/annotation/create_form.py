@@ -8,12 +8,13 @@ import paperjam
 
 def main() -> None:
     parser = argparse.ArgumentParser(
-        description="Create multiple form fields on a PDF, fill them, "
-                    "and modify properties.",
+        description="Create multiple form fields on a PDF, fill them, and modify properties.",
     )
     parser.add_argument("input", help="Path to the input PDF")
     parser.add_argument(
-        "-o", "--output", default="./output",
+        "-o",
+        "--output",
+        default="./output",
         help="Output directory (default: ./output)",
     )
     args = parser.parse_args()
@@ -27,7 +28,8 @@ def main() -> None:
     # 1. Create a text field
     print("\n--- Creating fields on page 1 ---")
     doc, r = doc.add_form_field(
-        "full_name", "text",
+        "full_name",
+        "text",
         page=1,
         rect=(72, 700, 300, 720),
         font_size=12.0,
@@ -36,7 +38,8 @@ def main() -> None:
 
     # 2. Create a checkbox
     doc, r = doc.add_form_field(
-        "agree_terms", "checkbox",
+        "agree_terms",
+        "checkbox",
         page=1,
         rect=(72, 660, 92, 680),
     )
@@ -44,7 +47,8 @@ def main() -> None:
 
     # 3. Create a combo box with options
     doc, r = doc.add_form_field(
-        "language", "combo_box",
+        "language",
+        "combo_box",
         page=1,
         rect=(72, 620, 250, 640),
         options=[

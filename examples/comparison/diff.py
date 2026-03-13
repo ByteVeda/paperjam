@@ -13,7 +13,9 @@ def main() -> None:
     parser.add_argument("file_a", help="Path to the first PDF")
     parser.add_argument("file_b", help="Path to the second PDF")
     parser.add_argument(
-        "-o", "--output", default="./output",
+        "-o",
+        "--output",
+        default="./output",
         help="Output directory (default: ./output)",
     )
     args = parser.parse_args()

@@ -85,6 +85,7 @@ impl PyPage {
     }
 
     #[pyo3(signature = (*, strategy="auto", min_rows=2, min_cols=2, snap_tolerance=3.0, row_tolerance=0.5, min_col_gap=10.0))]
+    #[allow(clippy::too_many_arguments)]
     fn extract_tables<'py>(
         &self,
         py: Python<'py>,
@@ -150,6 +151,7 @@ impl PyPage {
     }
 
     #[pyo3(signature = (*, min_gutter_width=20.0, max_columns=4, detect_headers_footers=true, header_zone_fraction=0.08, footer_zone_fraction=0.08, min_column_line_fraction=0.1))]
+    #[allow(clippy::too_many_arguments)]
     fn analyze_layout<'py>(
         &self,
         py: Python<'py>,
@@ -177,6 +179,7 @@ impl PyPage {
     }
 
     #[pyo3(signature = (*, min_gutter_width=20.0, max_columns=4, detect_headers_footers=true, header_zone_fraction=0.08, footer_zone_fraction=0.08, min_column_line_fraction=0.1))]
+    #[allow(clippy::too_many_arguments)]
     fn extract_text_layout(
         &self,
         py: Python<'_>,
@@ -217,6 +220,7 @@ impl PyPage {
         include_tables=true,
         layout_aware=false,
     ))]
+    #[allow(clippy::too_many_arguments)]
     fn to_markdown(
         &self,
         py: Python<'_>,

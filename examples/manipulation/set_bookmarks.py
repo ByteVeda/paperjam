@@ -33,12 +33,16 @@ def main() -> None:
     )
     parser.add_argument("input", help="Path to the input PDF")
     parser.add_argument(
-        "-o", "--output", default="./output",
+        "-o",
+        "--output",
+        default="./output",
         help="Output directory (default: ./output)",
     )
     group = parser.add_mutually_exclusive_group(required=True)
     group.add_argument(
-        "-b", "--bookmarks", nargs="+",
+        "-b",
+        "--bookmarks",
+        nargs="+",
         metavar="TITLE:PAGE",
         help="Flat list of bookmarks as 'title:page' pairs",
     )
@@ -48,11 +52,13 @@ def main() -> None:
         help="JSON file with bookmark tree (supports nesting)",
     )
     group.add_argument(
-        "--clear", action="store_true",
+        "--clear",
+        action="store_true",
         help="Remove all bookmarks from the document",
     )
     parser.add_argument(
-        "--name", default=None,
+        "--name",
+        default=None,
         help="Output filename (default: bookmarked_<input>.pdf)",
     )
     args = parser.parse_args()
@@ -111,12 +117,14 @@ def _parse_json_bookmarks(items: list[dict]) -> list[paperjam.Bookmark]:
     result = []
     for item in items:
         children = _parse_json_bookmarks(item.get("children", []))
-        result.append(paperjam.Bookmark(
-            title=item["title"],
-            page=item["page"],
-            level=0,
-            children=tuple(children),
-        ))
+        result.append(
+            paperjam.Bookmark(
+                title=item["title"],
+                page=item["page"],
+                level=0,
+                children=tuple(children),
+            )
+        )
     return result
 
 

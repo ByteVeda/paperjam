@@ -12,35 +12,45 @@ def main() -> None:
     )
     parser.add_argument("input", help="Path to the input PDF")
     parser.add_argument(
-        "-o", "--output", default="./output",
+        "-o",
+        "--output",
+        default="./output",
         help="Output directory (default: ./output)",
     )
     parser.add_argument(
-        "--list", action="store_true",
+        "--list",
+        action="store_true",
         help="List all digital signatures in the document",
     )
     parser.add_argument(
-        "--verify", action="store_true",
+        "--verify",
+        action="store_true",
         help="Verify all signatures (integrity + certificate dates)",
     )
     parser.add_argument(
-        "--sign", action="store_true",
+        "--sign",
+        action="store_true",
         help="Sign the document (requires --key and --cert)",
     )
     parser.add_argument(
-        "--key", help="Path to DER-encoded private key (PKCS#8 format)",
+        "--key",
+        help="Path to DER-encoded private key (PKCS#8 format)",
     )
     parser.add_argument(
-        "--cert", help="Path to DER-encoded X.509 certificate",
+        "--cert",
+        help="Path to DER-encoded X.509 certificate",
     )
     parser.add_argument(
-        "--reason", help="Reason for signing",
+        "--reason",
+        help="Reason for signing",
     )
     parser.add_argument(
-        "--location", help="Location of signing",
+        "--location",
+        help="Location of signing",
     )
     parser.add_argument(
-        "--field-name", default="Signature1",
+        "--field-name",
+        default="Signature1",
         help="Signature field name (default: Signature1)",
     )
     args = parser.parse_args()

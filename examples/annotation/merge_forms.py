@@ -8,12 +8,13 @@ import paperjam
 
 def main() -> None:
     parser = argparse.ArgumentParser(
-        description="Create form fields on a PDF, merge two copies, and "
-                    "show that fields from both are preserved with prefixed names.",
+        description="Create form fields on a PDF, merge two copies, and show that fields from both are preserved with prefixed names.",
     )
     parser.add_argument("input", help="Path to the input PDF")
     parser.add_argument(
-        "-o", "--output", default="./output",
+        "-o",
+        "--output",
+        default="./output",
         help="Output directory (default: ./output)",
     )
     args = parser.parse_args()
@@ -26,12 +27,16 @@ def main() -> None:
     print("--- Preparing document A ---")
     doc_a = paperjam.open(args.input)
     doc_a, _ = doc_a.add_form_field(
-        "username", "text",
-        page=1, rect=(72, 700, 250, 720),
+        "username",
+        "text",
+        page=1,
+        rect=(72, 700, 250, 720),
     )
     doc_a, _ = doc_a.add_form_field(
-        "subscribe", "checkbox",
-        page=1, rect=(72, 660, 92, 680),
+        "subscribe",
+        "checkbox",
+        page=1,
+        rect=(72, 660, 92, 680),
     )
     doc_a, result = doc_a.fill_form(
         {"username": "Alice", "subscribe": "Yes"},
@@ -44,12 +49,16 @@ def main() -> None:
     print("\n--- Preparing document B ---")
     doc_b = paperjam.open(args.input)
     doc_b, _ = doc_b.add_form_field(
-        "email", "text",
-        page=1, rect=(72, 700, 300, 720),
+        "email",
+        "text",
+        page=1,
+        rect=(72, 700, 300, 720),
     )
     doc_b, _ = doc_b.add_form_field(
-        "plan", "combo_box",
-        page=1, rect=(72, 660, 250, 680),
+        "plan",
+        "combo_box",
+        page=1,
+        rect=(72, 660, 250, 680),
         options=[
             paperjam.ChoiceOption(display="Free", export_value="free"),
             paperjam.ChoiceOption(display="Pro", export_value="pro"),

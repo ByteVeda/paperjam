@@ -21,16 +21,21 @@ def main() -> None:
     )
     parser.add_argument("input", help="Path to the input PDF")
     parser.add_argument(
-        "-o", "--output", default="./output",
+        "-o",
+        "--output",
+        default="./output",
         help="Output directory (default: ./output)",
     )
     group = parser.add_mutually_exclusive_group(required=True)
     group.add_argument(
-        "-r", "--ranges", nargs="+",
+        "-r",
+        "--ranges",
+        nargs="+",
         help="Page ranges to extract, e.g. '1-5 10-20 25'",
     )
     group.add_argument(
-        "--each", action="store_true",
+        "--each",
+        action="store_true",
         help="Split into individual single-page PDFs",
     )
     args = parser.parse_args()
@@ -50,8 +55,7 @@ def main() -> None:
         out = output / name
         part.save(str(out))
         size = out.stat().st_size
-        print(f"  Pages {start}-{end}: {part.page_count} page(s) "
-              f"-> {out.name} ({size:,} bytes)")
+        print(f"  Pages {start}-{end}: {part.page_count} page(s) -> {out.name} ({size:,} bytes)")
 
     print(f"\nSplit into {len(parts)} part(s) in {output}/")
 

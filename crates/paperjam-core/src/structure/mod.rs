@@ -155,13 +155,13 @@ pub fn extract_document_structure(
     doc: &Document,
     options: &StructureOptions,
 ) -> Result<Vec<ContentBlock>> {
-    let mut all_blocks = Vec::new();
-    for i in 1..=doc.page_count() as u32 {
-        let page = doc.page(i)?;
-        let mut page_blocks = extract_structure(&page, options)?;
-        all_blocks.append(&mut page_blocks);
-    }
-    Ok(all_blocks)
+    let count = doc.page_count() as u32;
+    let results = crate::parallel::par_map_pages(count, |page_num| {
+        let page = doc.page(page_num)?;
+        extract_structure(&page, options)
+    });
+    let per_page = crate::parallel::collect_par_results(results)?;
+    Ok(per_page.into_iter().flatten().collect())
 }
 
 // --- Internal helpers ---
@@ -284,10 +284,12 @@ fn detect_list_marker(text: &str) -> bool {
         while i < bytes.len() && bytes[i].is_ascii_digit() {
             i += 1;
         }
-        if i < bytes.len() && (bytes[i] == b'.' || bytes[i] == b')') {
-            if i + 1 < bytes.len() && bytes[i + 1] == b' ' {
-                return true;
-            }
+        if i < bytes.len()
+            && (bytes[i] == b'.' || bytes[i] == b')')
+            && i + 1 < bytes.len()
+            && bytes[i + 1] == b' '
+        {
+            return true;
         }
     }
 

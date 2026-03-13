@@ -12,23 +12,29 @@ def main() -> None:
     )
     parser.add_argument("input", help="Path to the input PDF")
     parser.add_argument(
-        "-o", "--output",
+        "-o",
+        "--output",
         help="Output markdown file (default: stdout)",
     )
     parser.add_argument(
-        "--heading-offset", type=int, default=0,
+        "--heading-offset",
+        type=int,
+        default=0,
         help="Add to heading levels, e.g. 1 makes # become ## (default: 0)",
     )
     parser.add_argument(
-        "--page-numbers", action="store_true",
+        "--page-numbers",
+        action="store_true",
         help="Include page number comments",
     )
     parser.add_argument(
-        "--html-tables", action="store_true",
+        "--html-tables",
+        action="store_true",
         help="Use HTML tables instead of pipe tables",
     )
     parser.add_argument(
-        "--layout-aware", action="store_true",
+        "--layout-aware",
+        action="store_true",
         help="Use layout-aware reading order (better for multi-column PDFs)",
     )
     args = parser.parse_args()

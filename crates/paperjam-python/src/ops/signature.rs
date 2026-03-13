@@ -6,6 +6,7 @@ use crate::errors::to_py_err;
 
 #[pyfunction]
 #[pyo3(name = "sign_document", signature = (document, private_key, certificates, reason=None, location=None, contact_info=None, field_name="Signature1"))]
+#[allow(clippy::too_many_arguments)]
 pub fn py_sign_document<'py>(
     py: Python<'py>,
     document: &PyDocument,

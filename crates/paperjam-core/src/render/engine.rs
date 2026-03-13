@@ -102,7 +102,42 @@ pub fn render_pages(
         }
     }
 
-    render_pages_sequential(pdf_bytes, &pages_to_render, options, library_path)
+    render_pages_impl(pdf_bytes, &pages_to_render, options, library_path)
+}
+
+/// Choose parallel or sequential rendering based on feature flag and page count.
+fn render_pages_impl(
+    pdf_bytes: &[u8],
+    pages: &[u32],
+    options: &RenderOptions,
+    library_path: Option<&str>,
+) -> Result<Vec<RenderedImage>> {
+    #[cfg(feature = "parallel")]
+    {
+        if pages.len() > 4 {
+            return render_pages_parallel(pdf_bytes, pages, options, library_path);
+        }
+    }
+    render_pages_sequential(pdf_bytes, pages, options, library_path)
+}
+
+/// Parallel multi-page rendering — each rayon thread gets its own pdfium instance
+/// via `thread_local!` and re-parses the PDF bytes.
+#[cfg(feature = "parallel")]
+fn render_pages_parallel(
+    pdf_bytes: &[u8],
+    pages: &[u32],
+    options: &RenderOptions,
+    library_path: Option<&str>,
+) -> Result<Vec<RenderedImage>> {
+    use rayon::prelude::*;
+
+    let results: Vec<Result<RenderedImage>> = pages
+        .par_iter()
+        .map(|&page_num| render_page(pdf_bytes, page_num, options, library_path))
+        .collect();
+
+    results.into_iter().collect()
 }
 
 /// Sequential multi-page rendering (single pdfium instance).

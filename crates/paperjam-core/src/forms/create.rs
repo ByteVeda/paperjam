@@ -217,12 +217,8 @@ fn ensure_acroform_font(doc: &mut lopdf::Document) -> Result<()> {
                 _ => None,
             };
             if let Some(dr) = dr_dict {
-                if let Ok(fonts) = dr.get(b"Font") {
-                    if let Object::Dictionary(fd) = fonts {
-                        fd.get(b"Helv").is_ok()
-                    } else {
-                        false
-                    }
+                if let Ok(Object::Dictionary(fd)) = dr.get(b"Font") {
+                    fd.get(b"Helv").is_ok()
                 } else {
                     false
                 }
