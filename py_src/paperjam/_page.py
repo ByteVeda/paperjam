@@ -7,7 +7,21 @@ from typing import TYPE_CHECKING
 
 from paperjam import _paperjam  # noqa: TC001
 from paperjam._enums import TableStrategy
-from paperjam._types import Annotation, Cell, ContentBlock, Image, LayoutRegion, PageInfo, PageLayout, Row, SearchResult, Table, TextLine, TextSpan
+from paperjam._types import (
+    Annotation,
+    Cell,
+    ContentBlock,
+    Image,
+    LayoutRegion,
+    Link,
+    PageInfo,
+    PageLayout,
+    Row,
+    SearchResult,
+    Table,
+    TextLine,
+    TextSpan,
+)
 
 if TYPE_CHECKING:
     from paperjam._types import RenderedImage
@@ -108,8 +122,24 @@ class Page:
                 color=tuple(a["color"]) if a["color"] else None,
                 creation_date=a["creation_date"],
                 opacity=a["opacity"],
+                url=a.get("url"),
+                destination=a.get("destination"),
             )
             for a in raw
+        ]
+
+    def extract_links(self) -> list[Link]:
+        """Extract all hyperlinks from this page."""
+        return [
+            Link(
+                page=self.number,
+                rect=a.rect,
+                url=a.url,
+                destination=a.destination,
+                contents=a.contents,
+            )
+            for a in self.annotations
+            if a.type == "link"
         ]
 
     def extract_images(self) -> list[Image]:

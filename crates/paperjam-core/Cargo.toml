@@ -32,6 +32,7 @@ sha1 = { workspace = true, optional = true }
 rsa = { workspace = true, optional = true }
 p256 = { workspace = true, optional = true }
 pkcs8 = { workspace = true, optional = true }
+roxmltree = { workspace = true, optional = true }
 
 [features]
 default = ["parallel"]
@@ -39,3 +40,4 @@ parallel = ["dep:rayon"]
 mmap = ["dep:memmap2"]
 render = ["dep:pdfium-render", "dep:image"]
 signatures = ["dep:x509-parser", "dep:cms", "dep:der", "dep:sha2", "dep:sha1", "dep:rsa", "dep:p256", "dep:pkcs8", "dep:spki"]
+validation = ["dep:roxmltree"]

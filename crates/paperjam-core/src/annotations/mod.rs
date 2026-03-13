@@ -4,6 +4,17 @@ use lopdf::{dictionary, Object, ObjectId};
 
 use crate::error::{PdfError, Result};
 
+/// Where a link annotation points to.
+#[derive(Debug, Clone)]
+pub enum LinkDestination {
+    /// External URI (e.g. "https://example.com").
+    Uri(String),
+    /// Go to a specific page within the document.
+    GoTo { page: u32 },
+    /// A named destination string.
+    Named(String),
+}
+
 /// Type of PDF annotation.
 #[derive(Debug, Clone)]
 pub enum AnnotationType {
@@ -97,6 +108,8 @@ pub struct Annotation {
     pub color: Option<[f64; 3]>,
     pub creation_date: Option<String>,
     pub opacity: Option<f64>,
+    pub url: Option<String>,
+    pub destination: Option<LinkDestination>,
 }
 
 /// Options for adding a new annotation.
@@ -210,6 +223,9 @@ pub fn extract_annotations(
         // Parse opacity
         let opacity = dict.get(b"CA").ok().and_then(obj_to_f64);
 
+        // Parse link destination from /A action or /Dest key
+        let (url, destination) = parse_link_destination(dict, doc);
+
         annotations.push(Annotation {
             annotation_type: annot_type,
             rect,
@@ -218,10 +234,129 @@ pub fn extract_annotations(
             color,
             creation_date,
             opacity,
+            url,
+            destination,
         });
     }
 
     Ok(annotations)
+}
+
+/// Parse link destination from an annotation dictionary.
+///
+/// Checks the `/A` (action) dict for `/URI` or `/GoTo` actions,
+/// and falls back to the `/Dest` key for direct destinations.
+fn parse_link_destination(
+    dict: &lopdf::Dictionary,
+    doc: &lopdf::Document,
+) -> (Option<String>, Option<LinkDestination>) {
+    // Try /A action dictionary first
+    if let Ok(action_obj) = dict.get(b"A") {
+        let action_dict = match action_obj {
+            Object::Dictionary(d) => Some(d),
+            Object::Reference(id) => doc
+                .get_object(*id)
+                .ok()
+                .and_then(|o| o.as_dict().ok()),
+            _ => None,
+        };
+        if let Some(ad) = action_dict {
+            // Check action type /S
+            if let Ok(Object::Name(s_type)) = ad.get(b"S") {
+                match s_type.as_slice() {
+                    b"URI" => {
+                        if let Ok(uri_obj) = ad.get(b"URI") {
+                            let uri = obj_to_string(uri_obj, doc);
+                            if let Some(ref u) = uri {
+                                return (
+                                    Some(u.clone()),
+                                    Some(LinkDestination::Uri(u.clone())),
+                                );
+                            }
+                        }
+                    }
+                    b"GoTo" => {
+                        if let Ok(dest_obj) = ad.get(b"D") {
+                            if let Some(dest) = parse_dest_value(dest_obj, doc) {
+                                return (None, Some(dest));
+                            }
+                        }
+                    }
+                    b"GoToR" => {
+                        // Remote GoTo — extract the file/URI if present
+                        if let Ok(f_obj) = ad.get(b"F") {
+                            let uri = obj_to_string(f_obj, doc);
+                            if let Some(u) = uri {
+                                return (Some(u.clone()), Some(LinkDestination::Uri(u)));
+                            }
+                        }
+                    }
+                    _ => {}
+                }
+            }
+        }
+    }
+
+    // Fallback: check /Dest key directly
+    if let Ok(dest_obj) = dict.get(b"Dest") {
+        if let Some(dest) = parse_dest_value(dest_obj, doc) {
+            return (None, Some(dest));
+        }
+    }
+
+    (None, None)
+}
+
+/// Parse a destination value (array or named string).
+fn parse_dest_value(obj: &Object, doc: &lopdf::Document) -> Option<LinkDestination> {
+    match obj {
+        Object::Array(arr) => {
+            // First element is page reference or page number
+            if let Some(first) = arr.first() {
+                match first {
+                    Object::Reference(id) => {
+                        // Find page number from page reference
+                        let pages = doc.get_pages();
+                        for (&page_num, &page_id) in &pages {
+                            if page_id == *id {
+                                return Some(LinkDestination::GoTo { page: page_num });
+                            }
+                        }
+                        None
+                    }
+                    Object::Integer(n) => {
+                        Some(LinkDestination::GoTo { page: (*n as u32) + 1 })
+                    }
+                    _ => None,
+                }
+            } else {
+                None
+            }
+        }
+        Object::String(bytes, _) => {
+            Some(LinkDestination::Named(String::from_utf8_lossy(bytes).to_string()))
+        }
+        Object::Name(bytes) => {
+            Some(LinkDestination::Named(String::from_utf8_lossy(bytes).to_string()))
+        }
+        Object::Reference(id) => {
+            doc.get_object(*id).ok().and_then(|o| parse_dest_value(o, doc))
+        }
+        _ => None,
+    }
+}
+
+/// Extract only link annotations from a specific page.
+pub fn extract_links(
+    doc: &lopdf::Document,
+    page_number: u32,
+    page_map: &BTreeMap<u32, ObjectId>,
+) -> Result<Vec<Annotation>> {
+    let all = extract_annotations(doc, page_number, page_map)?;
+    Ok(all
+        .into_iter()
+        .filter(|a| matches!(a.annotation_type, AnnotationType::Link))
+        .collect())
 }
 
 /// Add an annotation to a specific page.

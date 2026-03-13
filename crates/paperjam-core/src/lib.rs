@@ -23,4 +23,8 @@ pub mod sanitize;
 pub mod structure;
 pub mod table;
 pub mod text;
+pub mod stamp;
+pub mod toc;
+#[cfg(feature = "validation")]
+pub mod validation;
 pub mod watermark;

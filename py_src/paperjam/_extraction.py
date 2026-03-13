@@ -9,7 +9,7 @@ from paperjam._enums import TableStrategy
 from paperjam._page import _raw_block_to_content_block
 
 if TYPE_CHECKING:
-    from paperjam._types import ContentBlock, SearchResult, Table
+    from paperjam._types import ContentBlock, Link, SearchResult, Table
 
 
 def _extract_structure(
@@ -114,7 +114,16 @@ def _extract_tables(
     return tables
 
 
+def _extract_links(self: Document) -> list[Link]:
+    """Extract all hyperlinks from all pages."""
+    links: list[Link] = []
+    for page in self.pages:
+        links.extend(page.extract_links())
+    return links
+
+
 Document.extract_structure = _extract_structure  # type: ignore[method-assign]
 Document.to_markdown = _to_markdown  # type: ignore[method-assign]
 Document.search = _search  # type: ignore[method-assign]
 Document.extract_tables = _extract_tables  # type: ignore[method-assign]
+Document.extract_links = _extract_links  # type: ignore[method-assign]

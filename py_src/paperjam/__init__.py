@@ -13,7 +13,10 @@ import paperjam._forms
 import paperjam._manipulation
 import paperjam._render
 import paperjam._security
-import paperjam._signature  # noqa: F401
+import paperjam._signature
+import paperjam._stamp
+import paperjam._toc
+import paperjam._validation  # noqa: F401
 from paperjam._async import (
     amerge,
     aopen,
@@ -72,6 +75,7 @@ from paperjam._types import (
     FormField,
     Image,
     LayoutRegion,
+    Link,
     Metadata,
     ModifyFieldResult,
     OptimizeResult,
@@ -92,6 +96,10 @@ from paperjam._types import (
     Table,
     TextLine,
     TextSpan,
+    ValidationIssue,
+    ValidationReport,
+    VisualDiffPage,
+    VisualDiffResult,
 )
 
 __all__ = [
@@ -118,6 +126,7 @@ __all__ = [
     "ImageFormat",
     "InvalidPassword",
     "LayoutRegion",
+    "Link",
     "Metadata",
     "ModifyFieldResult",
     "OptimizationError",
@@ -152,6 +161,10 @@ __all__ = [
     "TextLine",
     "TextSpan",
     "UnsupportedFeature",
+    "ValidationIssue",
+    "ValidationReport",
+    "VisualDiffPage",
+    "VisualDiffResult",
     "WatermarkError",
     "WatermarkLayer",
     "WatermarkPosition",

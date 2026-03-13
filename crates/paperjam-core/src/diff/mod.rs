@@ -1,3 +1,6 @@
+#[cfg(feature = "render")]
+pub mod visual;
+
 use crate::document::Document;
 use crate::error::Result;
 use crate::text::layout::TextLine;

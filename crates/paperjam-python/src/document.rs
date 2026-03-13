@@ -188,6 +188,31 @@ impl PyDocument {
             )?;
             dict.set_item("creation_date", annot.creation_date.as_deref())?;
             dict.set_item("opacity", annot.opacity)?;
+            dict.set_item("url", annot.url.as_deref())?;
+            // Convert LinkDestination to a Python dict
+            match &annot.destination {
+                Some(paperjam_core::annotations::LinkDestination::Uri(uri)) => {
+                    let dest = PyDict::new(py);
+                    dest.set_item("type", "uri")?;
+                    dest.set_item("uri", uri.as_str())?;
+                    dict.set_item("destination", dest)?;
+                }
+                Some(paperjam_core::annotations::LinkDestination::GoTo { page }) => {
+                    let dest = PyDict::new(py);
+                    dest.set_item("type", "goto")?;
+                    dest.set_item("page", *page)?;
+                    dict.set_item("destination", dest)?;
+                }
+                Some(paperjam_core::annotations::LinkDestination::Named(name)) => {
+                    let dest = PyDict::new(py);
+                    dest.set_item("type", "named")?;
+                    dest.set_item("name", name.as_str())?;
+                    dict.set_item("destination", dest)?;
+                }
+                None => {
+                    dict.set_item("destination", py.None())?;
+                }
+            }
             list.append(dict)?;
         }
         Ok(list)
