@@ -7,7 +7,7 @@ license.workspace = true
 description = "Pure Rust PDF engine — parsing, text extraction, table detection, manipulation"
 
 [dependencies]
-lopdf = "0.34"
+lopdf = "0.40"
 regex = "1"
 md-5 = "0.10"
 aes = "0.8"
