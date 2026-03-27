@@ -59,4 +59,4 @@ See [CHANGELOG.md](CHANGELOG.md) for a detailed release history.
 
 ## License
 
-MIT OR Apache-2.0
+MIT
