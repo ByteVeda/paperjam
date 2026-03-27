@@ -1,41 +1,28 @@
-# Website
+# paperjam docs
 
-This website is built using [Docusaurus](https://docusaurus.io/), a modern static website generator.
+Documentation site built with [Docusaurus](https://docusaurus.io/) and a WASM playground.
 
-## Installation
-
-```bash
-yarn
-```
-
-## Local Development
+## Development
 
 ```bash
-yarn start
+npm ci
+npm start
 ```
-
-This command starts a local development server and opens up a browser window. Most changes are reflected live without having to restart the server.
 
 ## Build
 
 ```bash
-yarn build
+# Build WASM (from project root)
+wasm-pack build crates/paperjam-wasm --target web --release --out-dir ../../docs-site/static/wasm
+
+# Build site
+npm run build
 ```
 
-This command generates static content into the `build` directory and can be served using any static contents hosting service.
-
-## Deployment
-
-Using SSH:
+## Linting
 
 ```bash
-USE_SSH=true yarn deploy
+npm run lint        # biome check
+npm run lint:fix    # biome auto-fix
+npm run typecheck   # typescript check
 ```
-
-Not using SSH:
-
-```bash
-GIT_USER=<Your GitHub username> yarn deploy
-```
-
-If you are using GitHub pages for hosting, this command is a convenient way to build the website and push to the `gh-pages` branch.
