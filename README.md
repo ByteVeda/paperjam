@@ -2,7 +2,6 @@
   <img src="docs-site/static/img/logo.jpeg" alt="paperjam logo" width="250">
 </p>
 
-<h1 align="center">paperjam</h1>
 
 <p align="center">Fast PDF processing powered by Rust.</p>
 
