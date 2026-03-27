@@ -1,18 +1,8 @@
 # Async API
 
-paperjam's core operations are CPU-bound Rust code. To avoid blocking an asyncio event loop (for example in a FastAPI or aiohttp server), all expensive operations have async counterparts that dispatch work to a thread pool.
+paperjam provides native async support powered by Rust and [tokio](https://tokio.rs/). All CPU-bound operations have async counterparts that run on tokio's blocking thread pool, keeping your asyncio event loop responsive.
 
-## Configuring the thread pool
-
-Call `configure_async()` before using any async method. The default pool size is the number of CPU cores:
-
-```python
-from paperjam import configure_async
-
-configure_async(max_workers=4)
-```
-
-This should be called once at application startup.
+Under the hood, the `paperjam-async` Rust crate wraps `paperjam-core` operations with `tokio::task::spawn_blocking`, and the `paperjam-py` bindings expose these as native Python coroutines via [`pyo3-async-runtimes`](https://github.com/PyO3/pyo3-async-runtimes). No Python-level thread pool management is needed.
 
 ## Top-level async functions
 
@@ -77,13 +67,8 @@ md     = await page.ato_markdown()
 from fastapi import FastAPI, UploadFile
 from fastapi.responses import Response
 import paperjam
-from paperjam import configure_async
 
 app = FastAPI()
-
-@app.on_event("startup")
-def startup():
-    configure_async(max_workers=4)
 
 @app.post("/extract-text")
 async def extract_text(file: UploadFile):
@@ -109,14 +94,11 @@ async def to_markdown(file: UploadFile):
 
 ## Concurrency example
 
-Because each async call runs in a thread pool, you can process multiple documents concurrently without creating extra threads yourself:
+Because each async call runs on tokio's blocking thread pool, you can process multiple documents concurrently:
 
 ```python
 import asyncio
 import paperjam
-from paperjam import configure_async
-
-configure_async(max_workers=8)
 
 async def process_file(path: str) -> str:
     doc = await paperjam.aopen(path)
@@ -124,7 +106,6 @@ async def process_file(path: str) -> str:
 
 async def main():
     paths = [f"report_{i}.pdf" for i in range(10)]
-    # All 10 files processed concurrently (up to max_workers at a time)
     results = await asyncio.gather(*[process_file(p) for p in paths])
     for path, md in zip(paths, results):
         print(f"{path}: {len(md)} chars")
