@@ -6,9 +6,6 @@ on:
   pull_request:
     branches: [main]
 
-env:
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
-
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
@@ -17,18 +14,16 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
         with:
           components: rustfmt, clippy
 
-      - uses: Swatinem/rust-cache@v2
+      - uses: Swatinem/rust-cache@v2.9.1
 
-      - uses: astral-sh/setup-uv@v4
-        with:
-          version: "latest"
+      - uses: astral-sh/setup-uv@v7
 
       - name: Check Rust formatting
         run: cargo fmt --all --check
@@ -39,12 +34,14 @@ jobs:
   rust-test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
 
-      - uses: Swatinem/rust-cache@v2
+      - uses: Swatinem/rust-cache@v2.9.1
+        with:
+          save-if: false
 
       - name: Run Rust tests
         run: cargo test --workspace
@@ -58,28 +55,33 @@ jobs:
         python-version: ["3.12", "3.13"]
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v6
+        with:
+          python-version: ${{ matrix.python-version }}
 
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
 
-      - uses: Swatinem/rust-cache@v2
+      - uses: Swatinem/rust-cache@v2.9.1
 
-      - uses: astral-sh/setup-uv@v4
+      - uses: astral-sh/setup-uv@v7
         with:
-          version: "latest"
+          cache-dependency-glob: pyproject.toml
 
-      - name: Set up Python ${{ matrix.python-version }}
-        run: uv python install ${{ matrix.python-version }}
+      - name: Install dependencies
+        run: uv sync --extra dev
 
-      - name: Install maturin
-        run: uv tool install maturin
-
-      - name: Build extension
-        run: uv run --extra dev maturin develop --release
+      - name: Build native extension
+        uses: PyO3/maturin-action@v1
+        with:
+          command: develop
+          args: --release
 
       - name: Run tests
-        run: uv run --extra dev pytest tests/python/ -v --tb=short --junit-xml=results.xml
+        run: uv run pytest tests/python/ -v --tb=short --junit-xml=results.xml
 
       - name: Upload test results
         if: always()
