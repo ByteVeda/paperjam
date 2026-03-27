@@ -7,12 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
-## [0.1.1] — 2026-03-27
+## [0.1.2] — 2026-03-27
 
 ### Fixed
 
-- Pin Python 3.12/3.13 interpreters in publish workflow (PyO3 0.23.5 doesn't support 3.14)
-- Fix license field in README to MIT
+- Fix publish workflow: move `id-token: write` to job-level permissions
+- Upgrade artifact actions to v7/v8
+- Add `verbose` and `skip-existing` to PyPI publish step
+- Pin Python 3.12/3.13 interpreters (PyO3 0.23.5 doesn't support 3.14)
+- Fix license to MIT in pyproject.toml, Cargo.toml, and README
 
 ## [0.1.0] — 2026-03-27
 
