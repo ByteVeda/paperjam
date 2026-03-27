@@ -1,49 +1,35 @@
-"""Async wrappers for CPU-bound paperjam operations.
+"""Async methods for Document and Page, powered by Rust + tokio.
 
-All async methods delegate to the sync counterparts via
-``loop.run_in_executor()``, keeping the event loop responsive.
+All async methods delegate to native Rust coroutines exposed via
+``pyo3-async-runtimes``, using tokio's blocking thread pool under the hood.
 """
 
 from __future__ import annotations
 
-import asyncio
 import os
-from concurrent.futures import ThreadPoolExecutor
-from functools import partial
 from typing import TYPE_CHECKING
 
+from paperjam import _paperjam
 from paperjam._document import Document
 from paperjam._page import Page
+from paperjam._types import (
+    DiffOp,
+    DiffResult,
+    DiffSummary,
+    PageDiff,
+    RedactedItem,
+    RedactResult,
+    RenderedImage,
+)
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
     from paperjam._enums import TableStrategy
     from paperjam._types import (
-        DiffResult,
-        RedactResult,
-        RenderedImage,
         SearchResult,
         Table,
     )
-
-_executor = ThreadPoolExecutor(max_workers=min(4, os.cpu_count() or 4))
-
-
-def configure(*, max_workers: int | None = None) -> None:
-    """Reconfigure the async thread pool.
-
-    Args:
-        max_workers: Maximum number of threads for async operations.
-    """
-    global _executor
-    if max_workers is not None:
-        _executor.shutdown(wait=False)
-        _executor = ThreadPoolExecutor(max_workers=max_workers)
-
-
-def _get_executor() -> ThreadPoolExecutor:
-    return _executor
 
 
 # ---------------------------------------------------------------------------
@@ -56,18 +42,40 @@ async def _aopen(
     *,
     password: str | None = None,
 ) -> Document:
-    loop = asyncio.get_running_loop()
-    return await loop.run_in_executor(_get_executor(), partial(Document, path_or_bytes, password=password))
+    if isinstance(path_or_bytes, (str, os.PathLike)):
+        path = str(path_or_bytes)
+        if password is not None:
+            rust_doc = await _paperjam.aopen_with_password(path, password)
+        else:
+            rust_doc = await _paperjam.aopen(path)
+        doc = object.__new__(Document)
+        doc._inner = rust_doc
+        doc._closed = False
+        with open(path, "rb") as f:
+            doc._raw_bytes = f.read()
+        return doc
+    elif isinstance(path_or_bytes, (bytes, bytearray, memoryview)):
+        data = bytes(path_or_bytes)
+        if password is not None:
+            rust_doc = await _paperjam.aopen_bytes_with_password(data, password)
+        else:
+            rust_doc = await _paperjam.aopen_bytes(data)
+        doc = object.__new__(Document)
+        doc._inner = rust_doc
+        doc._closed = False
+        doc._raw_bytes = data
+        return doc
+    else:
+        msg = f"Expected str, os.PathLike, or bytes, got {type(path_or_bytes).__name__}"
+        raise TypeError(msg)
 
 
 async def _asave(self: Document, path: str | os.PathLike[str]) -> None:
-    loop = asyncio.get_running_loop()
-    await loop.run_in_executor(_get_executor(), partial(self.save, path))
+    await _paperjam.asave(self._ensure_open(), str(path))
 
 
 async def _asave_bytes(self: Document) -> bytes:
-    loop = asyncio.get_running_loop()
-    return await loop.run_in_executor(_get_executor(), self.save_bytes)
+    return await _paperjam.asave_bytes(self._ensure_open())
 
 
 async def _arender_page(
@@ -81,20 +89,17 @@ async def _arender_page(
     scale_to_width: int | None = None,
     scale_to_height: int | None = None,
 ) -> RenderedImage:
-    loop = asyncio.get_running_loop()
-    return await loop.run_in_executor(
-        _get_executor(),
-        partial(
-            self.render_page,
-            page_number,
-            dpi=dpi,
-            format=format,
-            quality=quality,
-            background_color=background_color,
-            scale_to_width=scale_to_width,
-            scale_to_height=scale_to_height,
-        ),
+    raw = await _paperjam.arender_page(
+        self._ensure_open(),
+        page_number,
+        dpi=dpi,
+        format=format,
+        quality=quality,
+        background_color=list(background_color) if background_color else None,
+        scale_to_width=scale_to_width,
+        scale_to_height=scale_to_height,
     )
+    return RenderedImage(data=bytes(raw["data"]), width=raw["width"], height=raw["height"], format=raw["format"], page=raw["page"])
 
 
 async def _arender_pages(
@@ -108,20 +113,17 @@ async def _arender_pages(
     scale_to_width: int | None = None,
     scale_to_height: int | None = None,
 ) -> list[RenderedImage]:
-    loop = asyncio.get_running_loop()
-    return await loop.run_in_executor(
-        _get_executor(),
-        partial(
-            self.render_pages,
-            pages=pages,
-            dpi=dpi,
-            format=format,
-            quality=quality,
-            background_color=background_color,
-            scale_to_width=scale_to_width,
-            scale_to_height=scale_to_height,
-        ),
+    raw_list = await _paperjam.arender_pages(
+        self._ensure_open(),
+        pages=pages,
+        dpi=dpi,
+        format=format,
+        quality=quality,
+        background_color=list(background_color) if background_color else None,
+        scale_to_width=scale_to_width,
+        scale_to_height=scale_to_height,
     )
+    return [RenderedImage(data=bytes(r["data"]), width=r["width"], height=r["height"], format=r["format"], page=r["page"]) for r in raw_list]
 
 
 async def _aextract_tables(
@@ -134,9 +136,11 @@ async def _aextract_tables(
     row_tolerance: float = 0.5,
     min_col_gap: float = 10.0,
 ) -> list[Table]:
-    loop = asyncio.get_running_loop()
-    return await loop.run_in_executor(
-        _get_executor(),
+    """Extract tables from all pages asynchronously."""
+    import asyncio
+    from functools import partial
+
+    return await asyncio.to_thread(
         partial(
             self.extract_tables,
             strategy=strategy,
@@ -145,13 +149,12 @@ async def _aextract_tables(
             snap_tolerance=snap_tolerance,
             row_tolerance=row_tolerance,
             min_col_gap=min_col_gap,
-        ),
+        )
     )
 
 
 async def _ato_markdown(self: Document, **kwargs) -> str:
-    loop = asyncio.get_running_loop()
-    return await loop.run_in_executor(_get_executor(), partial(self.to_markdown, **kwargs))
+    return await _paperjam.ato_markdown(self._ensure_open(), **kwargs)
 
 
 async def _asearch(
@@ -162,22 +165,29 @@ async def _asearch(
     max_results: int = 0,
     use_regex: bool = False,
 ) -> list[SearchResult]:
-    loop = asyncio.get_running_loop()
-    return await loop.run_in_executor(
-        _get_executor(),
+    """Search across all pages asynchronously."""
+    import asyncio
+    from functools import partial
+
+    return await asyncio.to_thread(
         partial(
             self.search,
             query,
             case_sensitive=case_sensitive,
             max_results=max_results,
             use_regex=use_regex,
-        ),
+        )
     )
 
 
 async def _adiff(self: Document, other: Document) -> DiffResult:
-    loop = asyncio.get_running_loop()
-    return await loop.run_in_executor(_get_executor(), partial(self.diff, other))
+    raw = await _paperjam.adiff_documents(self._ensure_open(), other._ensure_open())
+    page_diffs = []
+    for pd in raw["page_diffs"]:
+        ops = tuple(DiffOp(**op) for op in pd["ops"])
+        page_diffs.append(PageDiff(page=pd["page"], ops=ops))
+    summary = DiffSummary(**raw["summary"])
+    return DiffResult(page_diffs=tuple(page_diffs), summary=summary)
 
 
 async def _aredact_text(
@@ -188,17 +198,24 @@ async def _aredact_text(
     use_regex: bool = False,
     fill_color: tuple[float, float, float] | None = None,
 ) -> tuple[Document, RedactResult]:
-    loop = asyncio.get_running_loop()
-    return await loop.run_in_executor(
-        _get_executor(),
-        partial(
-            self.redact_text,
-            query,
-            case_sensitive=case_sensitive,
-            use_regex=use_regex,
-            fill_color=fill_color,
-        ),
+    color_list = list(fill_color) if fill_color else None
+    rust_doc, raw = await _paperjam.aredact_text(
+        self._ensure_open(),
+        query,
+        case_sensitive=case_sensitive,
+        use_regex=use_regex,
+        fill_color=color_list,
     )
+    new_doc = object.__new__(Document)
+    new_doc._inner = rust_doc
+    new_doc._closed = False
+    items = tuple(RedactedItem(**item) for item in raw["items"])
+    result = RedactResult(
+        pages_modified=raw["pages_modified"],
+        items_redacted=raw["items_redacted"],
+        items=items,
+    )
+    return new_doc, result
 
 
 # ---------------------------------------------------------------------------
@@ -207,8 +224,7 @@ async def _aredact_text(
 
 
 async def _page_aextract_text(self: Page) -> str:
-    loop = asyncio.get_running_loop()
-    return await loop.run_in_executor(_get_executor(), self.extract_text)
+    return await _paperjam.apage_extract_text(self._inner)
 
 
 async def _page_aextract_tables(
@@ -221,9 +237,10 @@ async def _page_aextract_tables(
     row_tolerance: float = 0.5,
     min_col_gap: float = 10.0,
 ) -> list[Table]:
-    loop = asyncio.get_running_loop()
-    return await loop.run_in_executor(
-        _get_executor(),
+    import asyncio
+    from functools import partial
+
+    return await asyncio.to_thread(
         partial(
             self.extract_tables,
             strategy=strategy,
@@ -232,13 +249,12 @@ async def _page_aextract_tables(
             snap_tolerance=snap_tolerance,
             row_tolerance=row_tolerance,
             min_col_gap=min_col_gap,
-        ),
+        )
     )
 
 
 async def _page_ato_markdown(self: Page, **kwargs) -> str:
-    loop = asyncio.get_running_loop()
-    return await loop.run_in_executor(_get_executor(), partial(self.to_markdown, **kwargs))
+    return await _paperjam.apage_to_markdown(self._inner, **kwargs)
 
 
 # ---------------------------------------------------------------------------
@@ -261,13 +277,12 @@ async def amerge(
     deduplicate_resources: bool = False,
 ) -> Document:
     """Merge multiple documents asynchronously."""
-    from paperjam._functions import merge
-
-    loop = asyncio.get_running_loop()
-    return await loop.run_in_executor(
-        _get_executor(),
-        partial(merge, documents, deduplicate_resources=deduplicate_resources),
-    )
+    inners = [doc._ensure_open() for doc in documents]
+    rust_doc = await _paperjam.amerge(inners, deduplicate_resources=deduplicate_resources)
+    new_doc = object.__new__(Document)
+    new_doc._inner = rust_doc
+    new_doc._closed = False
+    return new_doc
 
 
 async def arender(
@@ -282,23 +297,22 @@ async def arender(
     scale_to_height: int | None = None,
 ) -> RenderedImage:
     """Render a page from a PDF asynchronously."""
-    from paperjam._render import render
-
-    loop = asyncio.get_running_loop()
-    return await loop.run_in_executor(
-        _get_executor(),
-        partial(
-            render,
-            path_or_bytes,
-            page=page,
-            dpi=dpi,
-            format=format,
-            quality=quality,
-            background_color=background_color,
-            scale_to_width=scale_to_width,
-            scale_to_height=scale_to_height,
-        ),
+    if isinstance(path_or_bytes, (str, os.PathLike)):
+        with open(str(path_or_bytes), "rb") as f:
+            data = f.read()
+    else:
+        data = bytes(path_or_bytes)
+    raw = await _paperjam.arender_file(
+        data,
+        page_number=page,
+        dpi=dpi,
+        format=format,
+        quality=quality,
+        background_color=list(background_color) if background_color else None,
+        scale_to_width=scale_to_width,
+        scale_to_height=scale_to_height,
     )
+    return RenderedImage(data=bytes(raw["data"]), width=raw["width"], height=raw["height"], format=raw["format"], page=raw["page"])
 
 
 async def ato_markdown(
@@ -308,13 +322,8 @@ async def ato_markdown(
     **kwargs,
 ) -> str:
     """Open a PDF and convert to Markdown asynchronously."""
-    from paperjam._functions import to_markdown
-
-    loop = asyncio.get_running_loop()
-    return await loop.run_in_executor(
-        _get_executor(),
-        partial(to_markdown, path_or_bytes, password=password, **kwargs),
-    )
+    doc = await aopen(path_or_bytes, password=password)
+    return await doc.ato_markdown(**kwargs)
 
 
 # ---------------------------------------------------------------------------

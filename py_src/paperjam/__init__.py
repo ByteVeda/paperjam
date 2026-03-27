@@ -23,9 +23,6 @@ from paperjam._async import (
     arender,
     ato_markdown,
 )
-from paperjam._async import (
-    configure as configure_async,
-)
 from paperjam._document import Document
 from paperjam._enums import (
     AnnotationType,
@@ -172,7 +169,6 @@ __all__ = [
     "aopen",
     "arender",
     "ato_markdown",
-    "configure_async",
     "diff",
     "merge",
     "merge_files",

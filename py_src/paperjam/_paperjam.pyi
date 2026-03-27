@@ -1,5 +1,6 @@
 """Type stubs for the native Rust extension module."""
 
+from collections.abc import Coroutine
 from typing import Any
 
 # --- Exception classes ---
@@ -334,3 +335,101 @@ def verify_signatures(
     document: RustDocument,
     raw_bytes: bytes,
 ) -> list[dict[str, Any]]: ...
+
+# --- Async functions ---
+
+def aopen(path: str) -> Coroutine[Any, Any, RustDocument]: ...
+def aopen_with_password(path: str, password: str) -> Coroutine[Any, Any, RustDocument]: ...
+def aopen_bytes(data: bytes) -> Coroutine[Any, Any, RustDocument]: ...
+def aopen_bytes_with_password(data: bytes, password: str) -> Coroutine[Any, Any, RustDocument]: ...
+def asave(document: RustDocument, path: str) -> Coroutine[Any, Any, None]: ...
+def asave_bytes(document: RustDocument) -> Coroutine[Any, Any, bytes]: ...
+def ato_markdown(
+    document: RustDocument,
+    *,
+    heading_offset: int = 0,
+    page_separator: str = "---",
+    include_page_numbers: bool = False,
+    page_number_format: str = "<!-- page {n} -->",
+    html_tables: bool = False,
+    table_header_first_row: bool = True,
+    normalize_list_markers: bool = True,
+    heading_size_ratio: float = 1.2,
+    detect_lists: bool = True,
+    include_tables: bool = True,
+    layout_aware: bool = False,
+) -> Coroutine[Any, Any, str]: ...
+def arender_page(
+    document: RustDocument,
+    page_number: int,
+    dpi: float = 150.0,
+    format: str = "png",
+    quality: int = 85,
+    background_color: list[int] | None = None,
+    scale_to_width: int | None = None,
+    scale_to_height: int | None = None,
+    library_path: str | None = None,
+) -> Coroutine[Any, Any, dict[str, Any]]: ...
+def arender_pages(
+    document: RustDocument,
+    pages: list[int] | None = None,
+    dpi: float = 150.0,
+    format: str = "png",
+    quality: int = 85,
+    background_color: list[int] | None = None,
+    scale_to_width: int | None = None,
+    scale_to_height: int | None = None,
+    library_path: str | None = None,
+) -> Coroutine[Any, Any, list[dict[str, Any]]]: ...
+def arender_file(
+    data: bytes,
+    page_number: int = 1,
+    dpi: float = 150.0,
+    format: str = "png",
+    quality: int = 85,
+    background_color: list[int] | None = None,
+    scale_to_width: int | None = None,
+    scale_to_height: int | None = None,
+    library_path: str | None = None,
+) -> Coroutine[Any, Any, dict[str, Any]]: ...
+def adiff_documents(
+    document_a: RustDocument,
+    document_b: RustDocument,
+) -> Coroutine[Any, Any, dict[str, Any]]: ...
+def aredact_text(
+    document: RustDocument,
+    query: str,
+    case_sensitive: bool = True,
+    use_regex: bool = False,
+    fill_color: list[float] | None = None,
+) -> Coroutine[Any, Any, tuple[RustDocument, dict[str, Any]]]: ...
+def amerge(
+    documents: list[RustDocument],
+    deduplicate_resources: bool = False,
+) -> Coroutine[Any, Any, RustDocument]: ...
+def apage_extract_text(page: RustPage) -> Coroutine[Any, Any, str]: ...
+def apage_extract_tables(
+    page: RustPage,
+    *,
+    strategy: str = "auto",
+    min_rows: int = 2,
+    min_cols: int = 2,
+    snap_tolerance: float = 3.0,
+    row_tolerance: float = 0.5,
+    min_col_gap: float = 10.0,
+) -> Coroutine[Any, Any, list[dict[str, Any]]]: ...
+def apage_to_markdown(
+    page: RustPage,
+    *,
+    heading_offset: int = 0,
+    page_separator: str = "---",
+    include_page_numbers: bool = False,
+    page_number_format: str = "<!-- page {n} -->",
+    html_tables: bool = False,
+    table_header_first_row: bool = True,
+    normalize_list_markers: bool = True,
+    heading_size_ratio: float = 1.2,
+    detect_lists: bool = True,
+    include_tables: bool = True,
+    layout_aware: bool = False,
+) -> Coroutine[Any, Any, str]: ...
