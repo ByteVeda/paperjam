@@ -1,0 +1,17 @@
+---
+title: Security
+description: Sanitize, redact, and encrypt PDF documents
+---
+
+# Security
+
+Sanitize PDFs by removing JavaScript and embedded files, redact sensitive text, or encrypt with passwords. All processing happens in your browser.
+
+import BrowserOnly from '@docusaurus/BrowserOnly';
+
+<BrowserOnly>
+  {() => {
+    const Security = require('@site/src/components/playground/Security').default;
+    return <Security />;
+  }}
+</BrowserOnly>

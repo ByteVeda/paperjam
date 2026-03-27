@@ -1,0 +1,17 @@
+---
+title: Structure & Layout
+description: Analyze document structure and page layout
+---
+
+# Structure & Layout
+
+Explore the logical structure of a PDF (headings, paragraphs, list items) and analyze per-page layout including column detection, headers, and footers.
+
+import BrowserOnly from '@docusaurus/BrowserOnly';
+
+<BrowserOnly>
+  {() => {
+    const StructureLayout = require('@site/src/components/playground/StructureLayout').default;
+    return <StructureLayout />;
+  }}
+</BrowserOnly>

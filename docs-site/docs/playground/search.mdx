@@ -1,0 +1,17 @@
+---
+title: Search
+description: Search text across all pages of a PDF
+---
+
+# Search
+
+Search for text across all pages of a PDF. Results are grouped by page with highlighted matches.
+
+import BrowserOnly from '@docusaurus/BrowserOnly';
+
+<BrowserOnly>
+  {() => {
+    const Search = require('@site/src/components/playground/Search').default;
+    return <Search />;
+  }}
+</BrowserOnly>
