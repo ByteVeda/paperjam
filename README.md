@@ -53,6 +53,10 @@ md = await doc.ato_markdown()
 
 Full docs, API reference, and interactive playground at **[docs.byteveda.org/paperjam](https://docs.byteveda.org/paperjam/)**.
 
+## Changelog
+
+See [CHANGELOG.md](CHANGELOG.md) for a detailed release history.
+
 ## License
 
 MIT OR Apache-2.0
