@@ -1,0 +1,17 @@
+---
+title: Table Extraction
+description: Detect and extract tables from PDF pages in your browser
+---
+
+# Table Extraction
+
+Detect and extract structured tables from any PDF page. Tables are rendered as HTML and can be exported as CSV.
+
+import BrowserOnly from '@docusaurus/BrowserOnly';
+
+<BrowserOnly>
+  {() => {
+    const TableExtraction = require('@site/src/components/playground/TableExtraction').default;
+    return <TableExtraction />;
+  }}
+</BrowserOnly>

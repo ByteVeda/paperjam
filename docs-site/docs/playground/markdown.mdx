@@ -1,0 +1,17 @@
+---
+title: Markdown Conversion
+description: Convert PDF documents to Markdown in your browser
+---
+
+# Markdown Conversion
+
+Convert an entire PDF document to Markdown. Toggle layout-aware mode, page numbers, and HTML table output.
+
+import BrowserOnly from '@docusaurus/BrowserOnly';
+
+<BrowserOnly>
+  {() => {
+    const MarkdownConversion = require('@site/src/components/playground/MarkdownConversion').default;
+    return <MarkdownConversion />;
+  }}
+</BrowserOnly>
