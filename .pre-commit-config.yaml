@@ -13,7 +13,7 @@ repos:
         args: [--ignore-missing-imports]
         additional_dependencies: []
         pass_filenames: false
-        entry: mypy py_src/paperjam/
+        entry: mypy py_src/paperjam/ tests/ examples/
 
   - repo: local
     hooks:

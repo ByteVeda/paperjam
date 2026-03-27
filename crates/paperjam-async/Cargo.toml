@@ -1,0 +1,10 @@
+[package]
+name = "paperjam-async"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "Async wrappers for paperjam-core via tokio::spawn_blocking"
+
+[dependencies]
+paperjam-core = { path = "../paperjam-core", features = ["render", "signatures", "validation"] }
+tokio = { workspace = true }
