@@ -17,6 +17,7 @@ flowchart LR
     subgraph RS["Rust Extension  —  _paperjam.abi3.so"]
         direction TB
         Bindings["PyO3 Bindings  —  crates/paperjam-py"]
+        Async["Async Wrappers  —  crates/paperjam-async"]
         Core["Rust Core  —  crates/paperjam-core"]
     end
 
@@ -34,7 +35,9 @@ flowchart LR
     Mods -.->|"monkey-patches"| DocPage
     Types -.- DocPage
     DocPage -->|"FFI via PyO3"| Bindings
-    Bindings --> Core
+    Bindings -->|"sync"| Core
+    Bindings -->|"async"| Async
+    Async -->|"spawn_blocking"| Core
     Core --> F1 & F2 & F3 & F4 & F5
 ```
 
@@ -46,7 +49,7 @@ flowchart LR
 
 **Rust core** — `crates/paperjam-core` owns the PDF object model, parser, text engine, table extractor, manipulation primitives, security operations, and diff algorithm. No Python dependencies; usable as a standalone Rust crate.
 
-**Async API** — `_async.py` wraps every CPU-bound method in `asyncio.get_event_loop().run_in_executor()` with a shared `ThreadPoolExecutor`. Configure the pool with `paperjam.configure_async(max_workers=N)`.
+**Async layer** — `crates/paperjam-async` wraps `paperjam-core` operations with `tokio::task::spawn_blocking`. The PyO3 bindings expose these as native Python coroutines via `pyo3-async-runtimes::tokio::future_into_py()`. The Python `_async.py` module is a thin shim that imports the Rust async functions and attaches them to `Document` and `Page`.
 
 **Feature flags** — Optional capabilities gated behind Cargo features. `parallel` (rayon) is on by default. `render`, `signatures`, `validation`, and `mmap` must be enabled at compile time.
 

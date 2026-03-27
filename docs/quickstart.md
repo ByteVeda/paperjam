@@ -117,13 +117,10 @@ pdf_bytes = doc2.save_bytes()  # in-memory bytes
 
 ## Async API
 
-For async applications (FastAPI, asyncio) all expensive operations can run without blocking the event loop:
+For async applications (FastAPI, asyncio) all expensive operations can run without blocking the event loop. Async is powered natively by Rust and tokio — no Python thread pool configuration needed:
 
 ```python
 import paperjam
-from paperjam import configure_async
-
-configure_async(max_workers=4)
 
 async def process():
     doc = await paperjam.aopen("report.pdf")

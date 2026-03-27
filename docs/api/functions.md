@@ -160,23 +160,3 @@ img    = await paperjam.arender("slides.pdf", page=1)
 md     = await paperjam.ato_markdown("report.pdf")
 ```
 
----
-
-## `configure_async`
-
-```python
-paperjam.configure_async(max_workers: int | None = None) -> None
-```
-
-Configure the thread pool used by all async methods. Call once at application startup.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `max_workers` | `int \| None` | Number of threads. `None` uses the CPU count |
-
-**Example**
-
-```python
-from paperjam import configure_async
-configure_async(max_workers=4)
-```
