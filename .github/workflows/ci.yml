@@ -25,6 +25,19 @@ jobs:
 
       - uses: astral-sh/setup-uv@v7
 
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: docs-site/package-lock.json
+
+      - name: Install docs-site dependencies
+        run: cd docs-site && npm ci
+
+      - name: Add WASM target
+        run: rustup target add wasm32-unknown-unknown
+
       - name: Check Rust formatting
         run: cargo fmt --all --check
 
