@@ -2,7 +2,7 @@
 resolver = "2"
 members = [
     "crates/paperjam-core",
-    "crates/paperjam-python",
+    "crates/paperjam-py",
 ]
 
 [workspace.package]

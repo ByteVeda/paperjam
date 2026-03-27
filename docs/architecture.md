@@ -16,7 +16,7 @@ flowchart LR
 
     subgraph RS["Rust Extension  —  _paperjam.abi3.so"]
         direction TB
-        Bindings["PyO3 Bindings  —  crates/paperjam-python"]
+        Bindings["PyO3 Bindings  —  crates/paperjam-py"]
         Core["Rust Core  —  crates/paperjam-core"]
     end
 

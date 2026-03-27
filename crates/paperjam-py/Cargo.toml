@@ -1,5 +1,5 @@
 [package]
-name = "paperjam-python"
+name = "paperjam-py"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
