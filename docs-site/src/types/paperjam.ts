@@ -2,6 +2,7 @@
 
 export interface WasmModule {
   WasmDocument: new (data: Uint8Array) => WasmDocument;
+  mergePdfs(pdfArrays: number[][]): Uint8Array;
 }
 
 export interface WasmDocument {

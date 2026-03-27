@@ -73,11 +73,11 @@ function SplitMergeInner({ wasm }: { wasm: WasmModule }) {
       return;
     }
     try {
-      const parts = doc.split(ranges);
+      const rawParts = doc.split(ranges);
       setSplitParts(
-        parts.map((bytes, i) => ({
+        rawParts.map((raw: number[] | Uint8Array, i: number) => ({
           index: i,
-          bytes,
+          bytes: raw instanceof Uint8Array ? raw : new Uint8Array(raw),
           rangeLabel: `${ranges[i][0]}-${ranges[i][1]}`,
         })),
       );
@@ -124,27 +124,13 @@ function SplitMergeInner({ wasm }: { wasm: WasmModule }) {
       return;
     }
     try {
-      // Collect all page ranges from all files into a single combined document.
-      // We build the merged result by extracting each file's full page range
-      // and concatenating the raw bytes for download.
-      const totalLength = mergeFiles.reduce(
-        (sum, f) => sum + f.data.byteLength,
-        0,
-      );
-      const combined = new Uint8Array(totalLength);
-      let offset = 0;
-      for (const file of mergeFiles) {
-        combined.set(file.data, offset);
-        offset += file.data.byteLength;
-      }
-
-      // Try to create a single document from the first file's bytes,
-      // then use split with all pages to produce the merged output.
-      // If the WASM module supports multi-file merge natively, this will work.
-      // Otherwise, fall back to downloading the first file's full content.
-      const firstDoc = new wasm.WasmDocument(mergeFiles[0].data);
-      const mergedBytes = firstDoc.saveBytes();
-      downloadPdf(mergedBytes, 'merged.pdf');
+      const arrays = mergeFiles.map((f) => Array.from(f.data));
+      const mergedBytes = (wasm as any).mergePdfs(arrays);
+      const bytes =
+        mergedBytes instanceof Uint8Array
+          ? mergedBytes
+          : new Uint8Array(mergedBytes);
+      downloadPdf(bytes, 'merged.pdf');
     } catch (e) {
       setMergeError(e instanceof Error ? e.message : String(e));
     }

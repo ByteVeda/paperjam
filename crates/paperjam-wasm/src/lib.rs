@@ -504,3 +504,25 @@ impl WasmDocument {
         serde_wasm_bindgen::to_value(&result).map_err(|e| JsValue::from_str(&e.to_string()))
     }
 }
+
+/// Merge multiple PDFs (given as byte arrays) into one. Returns the merged PDF bytes.
+#[wasm_bindgen(js_name = "mergePdfs")]
+pub fn merge_pdfs(pdf_arrays: JsValue) -> Result<Vec<u8>, JsValue> {
+    let arrays: Vec<Vec<u8>> = serde_wasm_bindgen::from_value(pdf_arrays)
+        .map_err(|e| JsValue::from_str(&e.to_string()))?;
+    let docs: paperjam_core::error::Result<Vec<Document>> = arrays
+        .iter()
+        .map(|data| Document::open_bytes(data))
+        .collect();
+    let docs = docs.map_err(to_js_err)?;
+    let options = paperjam_core::manipulation::MergeOptions {
+        deduplicate_resources: false,
+    };
+    let merged = paperjam_core::manipulation::merge(docs, &options).map_err(to_js_err)?;
+    let mut inner = merged.into_inner();
+    let mut buf = Vec::new();
+    inner
+        .save_to(&mut buf)
+        .map_err(|e| JsValue::from_str(&e.to_string()))?;
+    Ok(buf)
+}
