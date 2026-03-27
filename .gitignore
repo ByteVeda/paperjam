@@ -41,3 +41,12 @@ _build
 
 # Lock file (library)
 uv.lock
+
+# Docusaurus
+docs-site/node_modules/
+docs-site/build/
+docs-site/.docusaurus/
+
+# WASM build artifacts
+crates/paperjam-wasm/pkg/
+docs-site/static/wasm/

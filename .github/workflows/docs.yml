@@ -4,8 +4,8 @@ on:
   push:
     branches: [main]
     paths:
-      - "docs/**"
-      - "py_src/**"
+      - "docs-site/**"
+      - "crates/paperjam-wasm/**"
       - ".github/workflows/docs.yml"
   workflow_dispatch:
 
@@ -24,17 +24,37 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
-      - uses: astral-sh/setup-uv@v7
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
 
-      - name: Build HTML
-        run: |
-          cd docs
-          uv run --extra docs make html
+      - name: Rust cache
+        uses: Swatinem/rust-cache@v2.9.1
+
+      - name: Install wasm-pack
+        run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
+
+      - name: Build WASM
+        run: wasm-pack build crates/paperjam-wasm --target web --release --out-dir ../../docs-site/static/wasm
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: docs-site/package-lock.json
+
+      - name: Install dependencies
+        run: cd docs-site && npm ci
+
+      - name: Build Docusaurus
+        run: cd docs-site && npm run build
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: docs/_build/html
+          path: docs-site/build
 
   deploy:
     needs: build
