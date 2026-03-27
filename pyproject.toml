@@ -49,7 +49,7 @@ dev = [
 python-source = "py_src"
 module-name = "paperjam._paperjam"
 features = ["pyo3/extension-module"]
-manifest-path = "crates/paperjam-python/Cargo.toml"
+manifest-path = "crates/paperjam-py/Cargo.toml"
 include = [
     { path = "py_src/paperjam/libpdfium.so", format = "wheel" },
 ]
