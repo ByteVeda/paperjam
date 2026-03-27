@@ -35,3 +35,9 @@ python/paperjam/libpdfium.so
 
 # Test fixtures (generated)
 tests/fixtures/large_*.pdf
+
+# Sphinx
+_build
+
+# Lock file (library)
+uv.lock
