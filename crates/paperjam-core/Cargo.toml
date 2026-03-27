@@ -9,7 +9,7 @@ description = "Pure Rust PDF engine — parsing, text extraction, table detectio
 [dependencies]
 lopdf = "0.34"
 regex = "1"
-md-5 = "0.10"
+md-5 = "0.11"
 aes = "0.8"
 cbc = "0.1"
 rand = "0.8"
