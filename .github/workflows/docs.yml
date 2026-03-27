@@ -9,6 +9,9 @@ on:
       - ".github/workflows/docs.yml"
   workflow_dispatch:
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 permissions:
   contents: read
   pages: write
@@ -28,11 +31,10 @@ jobs:
         with:
           version: "latest"
 
-      - name: Install docs dependencies
-        run: uv pip install --system sphinx furo myst-parser sphinx-copybutton sphinxcontrib-mermaid
-
       - name: Build HTML
-        run: sphinx-build -M html docs docs/_build -q
+        run: |
+          cd docs
+          uv run --extra docs make html
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
