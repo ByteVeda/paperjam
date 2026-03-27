@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.1.3] — 2026-03-28
+
+### Fixed
+
+- Include LICENSE file in sdist (PyPI rejected upload without it)
+
 ## [0.1.2] — 2026-03-27
 
 ### Fixed
