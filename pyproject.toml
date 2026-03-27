@@ -4,7 +4,7 @@ build-backend = "maturin"
 
 [project]
 name = "paperjam"
-version = "0.1.0"
+version = "0.1.1"
 description = "Fast PDF processing powered by Rust"
 license = { text = "MIT OR Apache-2.0" }
 requires-python = ">=3.12"
