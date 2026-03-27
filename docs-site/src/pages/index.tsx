@@ -59,7 +59,6 @@ export default function Home(): React.JSX.Element {
           alt="paperjam logo"
           style={{ width: '200px', height: 'auto', marginBottom: '1rem' }}
         />
-        <h1 style={{ fontSize: '3rem' }}>paperjam</h1>
         <p style={{ fontSize: '1.25rem', opacity: 0.8 }}>
           Fast PDF processing powered by Rust
         </p>
