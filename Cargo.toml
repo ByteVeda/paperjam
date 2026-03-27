@@ -4,6 +4,7 @@ members = [
     "crates/paperjam-core",
     "crates/paperjam-async",
     "crates/paperjam-py",
+    "crates/paperjam-wasm",
 ]
 
 [workspace.package]
