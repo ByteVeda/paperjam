@@ -60,6 +60,41 @@ const config: Config = {
     ],
   ],
 
+  headTags: [
+    {
+      tagName: 'link',
+      attributes: {
+        rel: 'icon',
+        type: 'image/svg+xml',
+        href: '/paperjam/img/favicon.svg',
+      },
+    },
+    {
+      tagName: 'link',
+      attributes: {
+        rel: 'icon',
+        type: 'image/png',
+        sizes: '96x96',
+        href: '/paperjam/img/favicon-96x96.png',
+      },
+    },
+    {
+      tagName: 'link',
+      attributes: {
+        rel: 'apple-touch-icon',
+        sizes: '180x180',
+        href: '/paperjam/img/apple-touch-icon.png',
+      },
+    },
+    {
+      tagName: 'link',
+      attributes: {
+        rel: 'manifest',
+        href: '/paperjam/img/site.webmanifest',
+      },
+    },
+  ],
+
   themeConfig: {
     colorMode: {
       defaultMode: 'dark',
@@ -67,6 +102,10 @@ const config: Config = {
     },
     navbar: {
       title: 'paperjam',
+      logo: {
+        alt: 'paperjam logo',
+        src: 'img/favicon-96x96.png',
+      },
       items: [
         {
           type: 'docSidebar',
