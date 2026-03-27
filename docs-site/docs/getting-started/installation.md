@@ -1,0 +1,68 @@
+# Installation
+
+## Requirements
+
+- Python 3.12 or later
+- A supported platform: Linux (x86-64, ARM64), macOS (x86-64, Apple Silicon), Windows (x86-64)
+
+paperjam ships pre-built wheels for all major platforms. No Rust toolchain is required.
+
+## Install from PyPI
+
+```bash
+pip install paperjam
+```
+
+## Optional extras
+
+### pandas integration
+
+If you want to call `table.to_dataframe()` you need pandas:
+
+```bash
+pip install "paperjam[pandas]"
+```
+
+### Documentation
+
+To build these docs locally:
+
+```bash
+pip install "paperjam[docs]"
+cd docs
+make html
+```
+
+## Installing from source
+
+Building from source requires a Rust toolchain (stable, 1.77+) and [maturin](https://maturin.rs/):
+
+```bash
+pip install maturin
+git clone https://github.com/paperjam/paperjam
+cd paperjam
+maturin develop --release
+```
+
+## Feature flags
+
+The Rust core exposes optional features that affect which methods are available at runtime.
+Pre-built wheels on PyPI include all features.
+
+| Feature | Methods enabled |
+|---------|----------------|
+| `render` | `render_page`, `render_pages`, `page.render`, `visual_diff` |
+| `signatures` | `signatures`, `verify_signatures`, `sign` |
+
+When building from source you can control features with the `--features` flag:
+
+```bash
+maturin develop --release --features render,signatures
+```
+
+## Verifying the installation
+
+```python
+import paperjam
+print(paperjam.__version__)
+```
