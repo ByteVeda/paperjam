@@ -5,7 +5,7 @@ use crate::convert::render::rendered_image_to_py;
 use crate::document::PyDocument;
 use crate::errors::to_py_err;
 
-fn build_render_options(
+pub fn build_render_options(
     dpi: f32,
     format: &str,
     quality: u8,

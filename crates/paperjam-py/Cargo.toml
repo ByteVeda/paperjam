@@ -12,3 +12,12 @@ crate-type = ["cdylib"]
 [dependencies]
 paperjam-core = { path = "../paperjam-core", features = ["render", "signatures", "validation"] }
 pyo3 = { version = "0.23", features = ["extension-module", "abi3-py312"] }
+
+# Async support (feature-gated, default on)
+paperjam-async = { path = "../paperjam-async", optional = true }
+pyo3-async-runtimes = { version = "0.23", features = ["tokio-runtime"], optional = true }
+tokio = { workspace = true, optional = true }
+
+[features]
+default = ["async"]
+async = ["dep:paperjam-async", "dep:pyo3-async-runtimes", "dep:tokio"]
