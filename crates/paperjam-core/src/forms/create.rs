@@ -37,7 +37,9 @@ pub fn create_form_field(
         FormFieldType::ComboBox | FormFieldType::ListBox => "Ch",
         FormFieldType::Signature => "Sig",
         FormFieldType::Unknown(_) => {
-            return Err(PdfError::Form("Cannot create Unknown field type".to_string()))
+            return Err(PdfError::Form(
+                "Cannot create Unknown field type".to_string(),
+            ))
         }
     };
 
@@ -131,10 +133,7 @@ pub fn create_form_field(
                         o.export_value.as_bytes().to_vec(),
                         lopdf::StringFormat::Literal,
                     ),
-                    Object::String(
-                        o.display.as_bytes().to_vec(),
-                        lopdf::StringFormat::Literal,
-                    ),
+                    Object::String(o.display.as_bytes().to_vec(), lopdf::StringFormat::Literal),
                 ])
             })
             .collect();
@@ -159,10 +158,7 @@ pub fn create_form_field(
             annots.push(Object::Reference(field_id));
         }
         _ => {
-            page_dict.set(
-                "Annots",
-                Object::Array(vec![Object::Reference(field_id)]),
-            );
+            page_dict.set("Annots", Object::Array(vec![Object::Reference(field_id)]));
         }
     }
 
@@ -239,8 +235,7 @@ fn ensure_acroform_font(doc: &mut lopdf::Document) -> Result<()> {
             "Encoding" => "WinAnsiEncoding",
         };
         let font_id = doc.new_object_id();
-        doc.objects
-            .insert(font_id, Object::Dictionary(font_dict));
+        doc.objects.insert(font_id, Object::Dictionary(font_dict));
 
         // Set DR
         let af_obj = doc

@@ -60,11 +60,7 @@ pub(crate) fn separate_header_footer(
 }
 
 /// Check if a text line is full-width (spans across gutter boundaries).
-pub(crate) fn is_full_width(
-    line: &TextLine,
-    gutters: &[Gutter],
-    page_width: f64,
-) -> bool {
+pub(crate) fn is_full_width(line: &TextLine, gutters: &[Gutter], page_width: f64) -> bool {
     let line_width = line.bbox.2 - line.bbox.0;
 
     // Spans more than 70% of page width

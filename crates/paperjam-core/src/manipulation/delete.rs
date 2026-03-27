@@ -20,7 +20,9 @@ pub fn delete_pages(doc: &Document, pages_to_delete: &[u32]) -> Result<Document>
 
     // Build the complement: all pages NOT in the delete set
     let delete_set: std::collections::HashSet<u32> = pages_to_delete.iter().copied().collect();
-    let new_order: Vec<u32> = (1..=page_count).filter(|p| !delete_set.contains(p)).collect();
+    let new_order: Vec<u32> = (1..=page_count)
+        .filter(|p| !delete_set.contains(p))
+        .collect();
 
     if new_order.is_empty() {
         return Err(PdfError::Structure(

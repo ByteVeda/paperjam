@@ -6,12 +6,17 @@ pub enum ContentOperator {
     // Graphics state
     SaveGraphicsState,
     RestoreGraphicsState,
-    ConcatMatrix { matrix: [f64; 6] },
+    ConcatMatrix {
+        matrix: [f64; 6],
+    },
 
     // Text state
     BeginText,
     EndText,
-    SetFont { name: String, size: f64 },
+    SetFont {
+        name: String,
+        size: f64,
+    },
     SetCharSpacing(f64),
     SetWordSpacing(f64),
     SetHorizontalScaling(f64),
@@ -19,15 +24,29 @@ pub enum ContentOperator {
     SetTextRise(f64),
 
     // Text positioning
-    MoveTextPosition { tx: f64, ty: f64 },
-    MoveTextPositionSetLeading { tx: f64, ty: f64 },
-    SetTextMatrix { matrix: [f64; 6] },
+    MoveTextPosition {
+        tx: f64,
+        ty: f64,
+    },
+    MoveTextPositionSetLeading {
+        tx: f64,
+        ty: f64,
+    },
+    SetTextMatrix {
+        matrix: [f64; 6],
+    },
     NextLine,
 
     // Text showing
-    ShowText { bytes: Vec<u8> },
-    ShowTextArray { elements: Vec<TJElement> },
-    NextLineShowText { bytes: Vec<u8> },
+    ShowText {
+        bytes: Vec<u8>,
+    },
+    ShowTextArray {
+        elements: Vec<TJElement>,
+    },
+    NextLineShowText {
+        bytes: Vec<u8>,
+    },
     SetSpacingNextLineShowText {
         word_spacing: f64,
         char_spacing: f64,
@@ -35,9 +54,20 @@ pub enum ContentOperator {
     },
 
     // Path operators (for table line detection)
-    MoveTo { x: f64, y: f64 },
-    LineTo { x: f64, y: f64 },
-    Rectangle { x: f64, y: f64, w: f64, h: f64 },
+    MoveTo {
+        x: f64,
+        y: f64,
+    },
+    LineTo {
+        x: f64,
+        y: f64,
+    },
+    Rectangle {
+        x: f64,
+        y: f64,
+        w: f64,
+        h: f64,
+    },
     Stroke,
     CloseAndStroke,
     Fill,
@@ -46,7 +76,9 @@ pub enum ContentOperator {
     SetLineWidth(f64),
 
     /// Unrecognized operator preserved as raw bytes for lossless round-trip.
-    RawOperator { raw: Vec<u8> },
+    RawOperator {
+        raw: Vec<u8>,
+    },
 }
 
 #[derive(Debug, Clone)]
@@ -246,9 +278,7 @@ fn build_operator(keyword: &str, stack: &mut [Operand]) -> Option<ContentOperato
         "TL" if !stack.is_empty() => {
             Some(ContentOperator::SetTextLeading(stack.last()?.as_number()))
         }
-        "Ts" if !stack.is_empty() => {
-            Some(ContentOperator::SetTextRise(stack.last()?.as_number()))
-        }
+        "Ts" if !stack.is_empty() => Some(ContentOperator::SetTextRise(stack.last()?.as_number())),
 
         // Text positioning
         "Td" if stack.len() >= 2 => Some(ContentOperator::MoveTextPosition {
@@ -319,9 +349,7 @@ fn build_operator(keyword: &str, stack: &mut [Operand]) -> Option<ContentOperato
         "f" | "F" => Some(ContentOperator::Fill),
         "f*" => Some(ContentOperator::FillEvenOdd),
         "h" => Some(ContentOperator::ClosePath),
-        "w" if !stack.is_empty() => {
-            Some(ContentOperator::SetLineWidth(stack.last()?.as_number()))
-        }
+        "w" if !stack.is_empty() => Some(ContentOperator::SetLineWidth(stack.last()?.as_number())),
 
         _ => None,
     }
@@ -383,7 +411,7 @@ fn parse_string_literal(bytes: &[u8], pos: &mut usize) -> Result<Vec<u8>> {
                         b'n' => result.push(b'\n'),
                         b'r' => result.push(b'\r'),
                         b't' => result.push(b'\t'),
-                        b'b' => result.push(8), // backspace
+                        b'b' => result.push(8),  // backspace
                         b'f' => result.push(12), // form feed
                         b'(' => result.push(b'('),
                         b')' => result.push(b')'),
@@ -483,12 +511,7 @@ fn parse_keyword(bytes: &[u8], pos: &mut usize) -> String {
     let start = *pos;
     while *pos < bytes.len() {
         let b = bytes[*pos];
-        if b.is_ascii_whitespace()
-            || b == b'/'
-            || b == b'('
-            || b == b'<'
-            || b == b'['
-            || b == b'{'
+        if b.is_ascii_whitespace() || b == b'/' || b == b'(' || b == b'<' || b == b'[' || b == b'{'
         {
             break;
         }

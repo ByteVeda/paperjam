@@ -210,9 +210,7 @@ fn glyph_name_to_char(name: &str) -> Option<char> {
         // Try parsing "uniXXXX" format
         _ => {
             if let Some(hex) = name.strip_prefix("uni") {
-                u32::from_str_radix(hex, 16)
-                    .ok()
-                    .and_then(char::from_u32)
+                u32::from_str_radix(hex, 16).ok().and_then(char::from_u32)
             } else if name.len() == 1 {
                 name.chars().next()
             } else {

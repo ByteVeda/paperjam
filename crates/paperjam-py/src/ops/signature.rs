@@ -47,9 +47,7 @@ pub fn py_extract_signatures<'py>(
     let bytes = raw_bytes.to_vec();
 
     let sigs = py
-        .allow_threads(move || {
-            paperjam_core::signature::extract_signatures(inner.inner(), &bytes)
-        })
+        .allow_threads(move || paperjam_core::signature::extract_signatures(inner.inner(), &bytes))
         .map_err(to_py_err)?;
 
     let list = PyList::empty(py);
@@ -71,9 +69,7 @@ pub fn py_verify_signatures<'py>(
     let bytes = raw_bytes.to_vec();
 
     let results = py
-        .allow_threads(move || {
-            paperjam_core::signature::verify_signatures(inner.inner(), &bytes)
-        })
+        .allow_threads(move || paperjam_core::signature::verify_signatures(inner.inner(), &bytes))
         .map_err(to_py_err)?;
 
     let list = PyList::empty(py);

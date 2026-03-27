@@ -22,8 +22,7 @@ pub fn py_add_watermark(
     custom_y: Option<f64>,
 ) -> PyResult<PyDocument> {
     let inner_clone = document.inner.inner().clone();
-    let mut doc =
-        paperjam_core::document::Document::from_lopdf(inner_clone).map_err(to_py_err)?;
+    let mut doc = paperjam_core::document::Document::from_lopdf(inner_clone).map_err(to_py_err)?;
 
     let color_arr = {
         let mut arr = [0.5f64; 3];

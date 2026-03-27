@@ -39,10 +39,7 @@ pub fn page_layout_to_py<'py>(
         for line in &region.lines {
             let line_dict = PyDict::new(py);
             line_dict.set_item("text", line.text())?;
-            line_dict.set_item(
-                "bbox",
-                (line.bbox.0, line.bbox.1, line.bbox.2, line.bbox.3),
-            )?;
+            line_dict.set_item("bbox", (line.bbox.0, line.bbox.1, line.bbox.2, line.bbox.3))?;
 
             let spans_list = PyList::empty(py);
             for span in &line.spans {

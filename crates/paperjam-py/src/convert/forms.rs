@@ -10,10 +10,7 @@ pub fn form_field_to_py<'py>(py: Python<'py>, field: &FormField) -> PyResult<Bou
     dict.set_item("value", field.value.as_deref())?;
     dict.set_item("default_value", field.default_value.as_deref())?;
     dict.set_item("page", field.page)?;
-    dict.set_item(
-        "rect",
-        field.rect.map(|r| (r[0], r[1], r[2], r[3])),
-    )?;
+    dict.set_item("rect", field.rect.map(|r| (r[0], r[1], r[2], r[3])))?;
     dict.set_item("read_only", field.read_only)?;
     dict.set_item("required", field.required)?;
     dict.set_item("max_length", field.max_length)?;

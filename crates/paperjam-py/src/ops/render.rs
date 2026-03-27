@@ -57,7 +57,14 @@ pub fn py_render_page<'py>(
         })
         .map_err(to_py_err)?;
 
-    let options = build_render_options(dpi, format, quality, background_color, scale_to_width, scale_to_height);
+    let options = build_render_options(
+        dpi,
+        format,
+        quality,
+        background_color,
+        scale_to_width,
+        scale_to_height,
+    );
 
     let img = py
         .allow_threads(move || {
@@ -99,7 +106,14 @@ pub fn py_render_pages<'py>(
         })
         .map_err(to_py_err)?;
 
-    let options = build_render_options(dpi, format, quality, background_color, scale_to_width, scale_to_height);
+    let options = build_render_options(
+        dpi,
+        format,
+        quality,
+        background_color,
+        scale_to_width,
+        scale_to_height,
+    );
 
     let images = py
         .allow_threads(move || {
@@ -136,7 +150,14 @@ pub fn py_render_pages_bytes<'py>(
     library_path: Option<String>,
 ) -> PyResult<Bound<'py, PyList>> {
     let data = data.to_vec();
-    let options = build_render_options(dpi, format, quality, background_color, scale_to_width, scale_to_height);
+    let options = build_render_options(
+        dpi,
+        format,
+        quality,
+        background_color,
+        scale_to_width,
+        scale_to_height,
+    );
 
     let images = py
         .allow_threads(move || {
@@ -173,7 +194,14 @@ pub fn py_render_file<'py>(
     library_path: Option<String>,
 ) -> PyResult<Bound<'py, PyDict>> {
     let data = data.to_vec();
-    let options = build_render_options(dpi, format, quality, background_color, scale_to_width, scale_to_height);
+    let options = build_render_options(
+        dpi,
+        format,
+        quality,
+        background_color,
+        scale_to_width,
+        scale_to_height,
+    );
 
     let img = py
         .allow_threads(move || {

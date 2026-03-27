@@ -77,10 +77,9 @@ fn get_da_string(doc: &lopdf::Document, field_id: ObjectId) -> String {
                 if let Ok(root_dict) = root_obj.as_dict() {
                     let af_dict = match root_dict.get(b"AcroForm") {
                         Ok(Object::Dictionary(d)) => Some(d),
-                        Ok(Object::Reference(id)) => doc
-                            .get_object(*id)
-                            .ok()
-                            .and_then(|o| o.as_dict().ok()),
+                        Ok(Object::Reference(id)) => {
+                            doc.get_object(*id).ok().and_then(|o| o.as_dict().ok())
+                        }
                         _ => None,
                     };
                     if let Some(af) = af_dict {
@@ -137,20 +136,18 @@ fn resolve_font_ref(doc: &mut lopdf::Document, font_name: &str) -> ObjectId {
                         if let Ok(dr) = af.get(b"DR") {
                             let dr_dict = match dr {
                                 Object::Dictionary(d) => Some(d),
-                                Object::Reference(id) => doc
-                                    .get_object(*id)
-                                    .ok()
-                                    .and_then(|o| o.as_dict().ok()),
+                                Object::Reference(id) => {
+                                    doc.get_object(*id).ok().and_then(|o| o.as_dict().ok())
+                                }
                                 _ => None,
                             };
                             if let Some(dr) = dr_dict {
                                 if let Ok(fonts) = dr.get(b"Font") {
                                     let fonts_dict = match fonts {
                                         Object::Dictionary(d) => Some(d),
-                                        Object::Reference(id) => doc
-                                            .get_object(*id)
-                                            .ok()
-                                            .and_then(|o| o.as_dict().ok()),
+                                        Object::Reference(id) => {
+                                            doc.get_object(*id).ok().and_then(|o| o.as_dict().ok())
+                                        }
                                         _ => None,
                                     };
                                     if let Some(fd) = fonts_dict {
@@ -177,8 +174,7 @@ fn resolve_font_ref(doc: &mut lopdf::Document, font_name: &str) -> ObjectId {
         "Encoding" => "WinAnsiEncoding",
     };
     let font_id = doc.new_object_id();
-    doc.objects
-        .insert(font_id, Object::Dictionary(font_dict));
+    doc.objects.insert(font_id, Object::Dictionary(font_dict));
     font_id
 }
 
@@ -293,10 +289,7 @@ fn generate_checkbox_appearance(
     let h = (rect[3] - rect[1]).abs();
 
     // "Yes" appearance — checkmark
-    let yes_content = format!(
-        "q 0 0 1 rg BT /ZaDb {} Tf 0.5 0.5 Td (4) Tj ET Q",
-        h * 0.8
-    );
+    let yes_content = format!("q 0 0 1 rg BT /ZaDb {} Tf 0.5 0.5 Td (4) Tj ET Q", h * 0.8);
     let yes_stream = create_form_xobject(doc, w, h, yes_content.into_bytes());
 
     // "Off" appearance — empty box
@@ -340,9 +333,7 @@ fn generate_radio_appearance(
         .clone();
 
     let widget_ids: Vec<ObjectId> = if let Ok(Object::Array(kids)) = dict.get(b"Kids") {
-        kids.iter()
-            .filter_map(|k| k.as_reference().ok())
-            .collect()
+        kids.iter().filter_map(|k| k.as_reference().ok()).collect()
     } else {
         vec![field_id]
     };
@@ -402,12 +393,7 @@ fn generate_radio_appearance(
 }
 
 /// Create a Form XObject and return its ObjectId.
-fn create_form_xobject(
-    doc: &mut lopdf::Document,
-    w: f64,
-    h: f64,
-    content: Vec<u8>,
-) -> ObjectId {
+fn create_form_xobject(doc: &mut lopdf::Document, w: f64, h: f64, content: Vec<u8>) -> ObjectId {
     let bbox = Object::Array(vec![
         Object::Real(0.0),
         Object::Real(0.0),

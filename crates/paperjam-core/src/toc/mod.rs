@@ -137,10 +137,7 @@ fn build_hierarchy(headings: &[(&str, u8, u32)]) -> Vec<BookmarkSpec> {
 }
 
 /// Navigate the tree to get a mutable reference to the spec at the given stack path.
-fn get_spec_mut<'a>(
-    roots: &'a mut [BookmarkSpec],
-    stack: &[(u8, usize)],
-) -> &'a mut BookmarkSpec {
+fn get_spec_mut<'a>(roots: &'a mut [BookmarkSpec], stack: &[(u8, usize)]) -> &'a mut BookmarkSpec {
     let mut current = &mut roots[stack[0].1];
     for &(_, idx) in &stack[1..] {
         current = &mut current.children[idx];

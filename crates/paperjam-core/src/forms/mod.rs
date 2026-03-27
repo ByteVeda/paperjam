@@ -217,9 +217,7 @@ fn set_field_in_tree(
             .get(b"T")
             .ok()
             .and_then(|o| match o {
-                Object::String(bytes, _) => {
-                    Some(String::from_utf8_lossy(bytes).to_string())
-                }
+                Object::String(bytes, _) => Some(String::from_utf8_lossy(bytes).to_string()),
                 _ => None,
             })
             .unwrap_or_default();
@@ -250,14 +248,7 @@ fn set_field_in_tree(
 
             if has_subfields {
                 // Recurse into sub-fields
-                if set_field_in_tree(
-                    doc,
-                    &kids_clone,
-                    &fq_name,
-                    target_name,
-                    value,
-                    field_type,
-                )? {
+                if set_field_in_tree(doc, &kids_clone, &fq_name, target_name, value, field_type)? {
                     return Ok(true);
                 }
             } else if fq_name == target_name {
@@ -328,11 +319,7 @@ fn set_value_on_field(
 /// For checkboxes: matching widget gets /AS=Name(value), others get /AS=Name("Off").
 /// For radio buttons: walk kids, check each widget's /AP/N dict keys to find the
 /// matching export value. Set that widget's /AS to the export value, others to "Off".
-fn set_as_on_widget_kids(
-    doc: &mut lopdf::Document,
-    kids: &[Object],
-    value: &str,
-) -> Result<()> {
+fn set_as_on_widget_kids(doc: &mut lopdf::Document, kids: &[Object], value: &str) -> Result<()> {
     // First pass: collect widget IDs and their export values
     let widget_info: Vec<(lopdf::ObjectId, Option<String>)> = kids
         .iter()
@@ -373,7 +360,10 @@ fn set_as_on_widget_kids(
 }
 
 /// Get the export value of a widget from /AP/N dict keys (the non-"Off" key).
-fn get_widget_export_value_for_as(doc: &lopdf::Document, widget_id: lopdf::ObjectId) -> Option<String> {
+fn get_widget_export_value_for_as(
+    doc: &lopdf::Document,
+    widget_id: lopdf::ObjectId,
+) -> Option<String> {
     let obj = doc.get_object(widget_id).ok()?;
     let dict = obj.as_dict().ok()?;
     let ap = dict.get(b"AP").ok()?;
@@ -485,10 +475,7 @@ pub fn modify_form_field(
                         o.export_value.as_bytes().to_vec(),
                         lopdf::StringFormat::Literal,
                     ),
-                    Object::String(
-                        o.display.as_bytes().to_vec(),
-                        lopdf::StringFormat::Literal,
-                    ),
+                    Object::String(o.display.as_bytes().to_vec(), lopdf::StringFormat::Literal),
                 ])
             })
             .collect();
@@ -563,10 +550,7 @@ pub(crate) fn add_field_to_acroform(
             fields.push(Object::Reference(field_id));
         }
         _ => {
-            af_dict.set(
-                "Fields",
-                Object::Array(vec![Object::Reference(field_id)]),
-            );
+            af_dict.set("Fields", Object::Array(vec![Object::Reference(field_id)]));
         }
     }
 

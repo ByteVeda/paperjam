@@ -13,11 +13,9 @@ pub fn get_page_content(doc: &lopdf::Document, page_dict: &lopdf::Dictionary) ->
         lopdf::Object::Array(arr) => {
             let mut all_bytes = Vec::new();
             for item in arr {
-                let (_, obj) = doc
-                    .dereference(item)
-                    .map_err(|_| {
-                        PdfError::Structure("Failed to dereference content stream".into())
-                    })?;
+                let (_, obj) = doc.dereference(item).map_err(|_| {
+                    PdfError::Structure("Failed to dereference content stream".into())
+                })?;
                 if let Ok(stream) = obj.as_stream() {
                     let bytes = get_stream_bytes(stream)?;
                     all_bytes.extend_from_slice(&bytes);

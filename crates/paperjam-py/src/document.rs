@@ -46,11 +46,7 @@ impl PyDocument {
     }
 
     #[staticmethod]
-    fn from_bytes_with_password(
-        py: Python<'_>,
-        data: &[u8],
-        password: String,
-    ) -> PyResult<Self> {
+    fn from_bytes_with_password(py: Python<'_>, data: &[u8], password: String) -> PyResult<Self> {
         let data = data.to_vec();
         let doc = py
             .allow_threads(move || Document::open_bytes_with_password(&data, &password))
@@ -162,11 +158,7 @@ impl PyDocument {
         Ok(list)
     }
 
-    fn annotations<'py>(
-        &self,
-        py: Python<'py>,
-        page_number: u32,
-    ) -> PyResult<Bound<'py, PyList>> {
+    fn annotations<'py>(&self, py: Python<'py>, page_number: u32) -> PyResult<Bound<'py, PyList>> {
         let inner = Arc::clone(&self.inner);
         let annots = py
             .allow_threads(move || inner.extract_annotations(page_number))
@@ -176,16 +168,10 @@ impl PyDocument {
         for annot in &annots {
             let dict = PyDict::new(py);
             dict.set_item("type", annot.annotation_type.as_str())?;
-            dict.set_item(
-                "rect",
-                annot.rect.to_vec(),
-            )?;
+            dict.set_item("rect", annot.rect.to_vec())?;
             dict.set_item("contents", annot.contents.as_deref())?;
             dict.set_item("author", annot.author.as_deref())?;
-            dict.set_item(
-                "color",
-                annot.color.map(|c| c.to_vec()),
-            )?;
+            dict.set_item("color", annot.color.map(|c| c.to_vec()))?;
             dict.set_item("creation_date", annot.creation_date.as_deref())?;
             dict.set_item("opacity", annot.opacity)?;
             dict.set_item("url", annot.url.as_deref())?;

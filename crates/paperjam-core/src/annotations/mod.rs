@@ -254,10 +254,7 @@ fn parse_link_destination(
     if let Ok(action_obj) = dict.get(b"A") {
         let action_dict = match action_obj {
             Object::Dictionary(d) => Some(d),
-            Object::Reference(id) => doc
-                .get_object(*id)
-                .ok()
-                .and_then(|o| o.as_dict().ok()),
+            Object::Reference(id) => doc.get_object(*id).ok().and_then(|o| o.as_dict().ok()),
             _ => None,
         };
         if let Some(ad) = action_dict {
@@ -268,10 +265,7 @@ fn parse_link_destination(
                         if let Ok(uri_obj) = ad.get(b"URI") {
                             let uri = obj_to_string(uri_obj, doc);
                             if let Some(ref u) = uri {
-                                return (
-                                    Some(u.clone()),
-                                    Some(LinkDestination::Uri(u.clone())),
-                                );
+                                return (Some(u.clone()), Some(LinkDestination::Uri(u.clone())));
                             }
                         }
                     }
@@ -324,24 +318,25 @@ fn parse_dest_value(obj: &Object, doc: &lopdf::Document) -> Option<LinkDestinati
                         }
                         None
                     }
-                    Object::Integer(n) => {
-                        Some(LinkDestination::GoTo { page: (*n as u32) + 1 })
-                    }
+                    Object::Integer(n) => Some(LinkDestination::GoTo {
+                        page: (*n as u32) + 1,
+                    }),
                     _ => None,
                 }
             } else {
                 None
             }
         }
-        Object::String(bytes, _) => {
-            Some(LinkDestination::Named(String::from_utf8_lossy(bytes).to_string()))
-        }
-        Object::Name(bytes) => {
-            Some(LinkDestination::Named(String::from_utf8_lossy(bytes).to_string()))
-        }
-        Object::Reference(id) => {
-            doc.get_object(*id).ok().and_then(|o| parse_dest_value(o, doc))
-        }
+        Object::String(bytes, _) => Some(LinkDestination::Named(
+            String::from_utf8_lossy(bytes).to_string(),
+        )),
+        Object::Name(bytes) => Some(LinkDestination::Named(
+            String::from_utf8_lossy(bytes).to_string(),
+        )),
+        Object::Reference(id) => doc
+            .get_object(*id)
+            .ok()
+            .and_then(|o| parse_dest_value(o, doc)),
         _ => None,
     }
 }
@@ -380,11 +375,17 @@ pub fn add_annotation(
     };
 
     if let Some(ref contents) = options.contents {
-        annot_dict.set("Contents", Object::String(contents.as_bytes().to_vec(), lopdf::StringFormat::Literal));
+        annot_dict.set(
+            "Contents",
+            Object::String(contents.as_bytes().to_vec(), lopdf::StringFormat::Literal),
+        );
     }
 
     if let Some(ref author) = options.author {
-        annot_dict.set("T", Object::String(author.as_bytes().to_vec(), lopdf::StringFormat::Literal));
+        annot_dict.set(
+            "T",
+            Object::String(author.as_bytes().to_vec(), lopdf::StringFormat::Literal),
+        );
     }
 
     if let Some(color) = options.color {
@@ -401,7 +402,12 @@ pub fn add_annotation(
     if let Some(ref quad_points) = options.quad_points {
         annot_dict.set(
             "QuadPoints",
-            Object::Array(quad_points.iter().map(|&v| Object::Real(v as f32)).collect()),
+            Object::Array(
+                quad_points
+                    .iter()
+                    .map(|&v| Object::Real(v as f32))
+                    .collect(),
+            ),
         );
     }
 
@@ -416,8 +422,7 @@ pub fn add_annotation(
 
     // Add the annotation as a new object
     let annot_id = doc.new_object_id();
-    doc.objects
-        .insert(annot_id, Object::Dictionary(annot_dict));
+    doc.objects.insert(annot_id, Object::Dictionary(annot_dict));
 
     // Append to the page's /Annots array
     let page_obj = doc
@@ -432,10 +437,7 @@ pub fn add_annotation(
             arr.push(Object::Reference(annot_id));
         }
         _ => {
-            page_dict.set(
-                "Annots",
-                Object::Array(vec![Object::Reference(annot_id)]),
-            );
+            page_dict.set("Annots", Object::Array(vec![Object::Reference(annot_id)]));
         }
     }
 
@@ -565,10 +567,7 @@ fn obj_to_f64(obj: &Object) -> Option<f64> {
 fn obj_to_string(obj: &Object, doc: &lopdf::Document) -> Option<String> {
     match obj {
         Object::String(bytes, _) => Some(String::from_utf8_lossy(bytes).to_string()),
-        Object::Reference(id) => doc
-            .get_object(*id)
-            .ok()
-            .and_then(|o| obj_to_string(o, doc)),
+        Object::Reference(id) => doc.get_object(*id).ok().and_then(|o| obj_to_string(o, doc)),
         _ => None,
     }
 }

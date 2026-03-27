@@ -170,7 +170,9 @@ pub fn py_ato_markdown<'py>(
         let md = paperjam_async::document::to_markdown(inner, options)
             .await
             .map_err(to_py_err)?;
-        Ok(Python::with_gil(|py| md.into_pyobject(py).unwrap().into_any().unbind()))
+        Ok(Python::with_gil(|py| {
+            md.into_pyobject(py).unwrap().into_any().unbind()
+        }))
     })
 }
 
@@ -306,10 +308,9 @@ pub fn py_arender_file<'py>(
     );
 
     pyo3_async_runtimes::tokio::future_into_py(py, async move {
-        let img =
-            paperjam_async::document::render_page(data, page_number, options, library_path)
-                .await
-                .map_err(to_py_err)?;
+        let img = paperjam_async::document::render_page(data, page_number, options, library_path)
+            .await
+            .map_err(to_py_err)?;
         Python::with_gil(|py| {
             let dict = rendered_image_to_py(py, &img)?;
             Ok(dict.into_any().unbind())
@@ -392,10 +393,15 @@ pub fn py_aredact_text<'py>(
     });
 
     pyo3_async_runtimes::tokio::future_into_py(py, async move {
-        let (redacted, result) =
-            paperjam_async::document::redact_text(inner, query, case_sensitive, use_regex, color_arr)
-                .await
-                .map_err(to_py_err)?;
+        let (redacted, result) = paperjam_async::document::redact_text(
+            inner,
+            query,
+            case_sensitive,
+            use_regex,
+            color_arr,
+        )
+        .await
+        .map_err(to_py_err)?;
         Python::with_gil(|py| {
             let py_doc = PyDocument {
                 inner: Arc::new(redacted),

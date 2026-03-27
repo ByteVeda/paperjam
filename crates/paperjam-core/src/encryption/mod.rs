@@ -216,11 +216,7 @@ fn ensure_file_id(doc: &mut lopdf::Document) -> Result<Vec<u8>> {
 }
 
 /// Encrypt all objects in the document using RC4.
-fn encrypt_objects_rc4(
-    doc: &mut lopdf::Document,
-    key: &[u8],
-    encrypt_id: ObjectId,
-) -> Result<()> {
+fn encrypt_objects_rc4(doc: &mut lopdf::Document, key: &[u8], encrypt_id: ObjectId) -> Result<()> {
     let obj_ids: Vec<ObjectId> = doc.objects.keys().copied().collect();
 
     for obj_id in obj_ids {
@@ -309,8 +305,7 @@ fn encrypt_object_recursive_aes128(key: &[u8], obj_id: ObjectId, obj: Object) ->
             Object::String(encrypted, lopdf::StringFormat::Hexadecimal)
         }
         Object::Stream(mut stream) => {
-            let encrypted =
-                key::encrypt_object_aes128(key, obj_id.0, obj_id.1, &stream.content);
+            let encrypted = key::encrypt_object_aes128(key, obj_id.0, obj_id.1, &stream.content);
             stream.content = encrypted;
 
             let dict_entries: Vec<(Vec<u8>, Object)> = stream

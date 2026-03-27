@@ -11,10 +11,7 @@ use crate::error::{PdfError, Result};
 /// - `width` and `height` are in PDF points (72 points = 1 inch)
 ///
 /// Returns a new document with the blank pages inserted.
-pub fn insert_blank_pages(
-    doc: &Document,
-    positions: &[(u32, f64, f64)],
-) -> Result<Document> {
+pub fn insert_blank_pages(doc: &Document, positions: &[(u32, f64, f64)]) -> Result<Document> {
     let mut new_doc = doc.inner().clone();
     let page_count = doc.page_count() as u32;
 
@@ -82,16 +79,10 @@ fn insert_page_into_kids(
     new_page_id: ObjectId,
     after_page: u32,
 ) -> Result<()> {
-    let pages_obj = doc
-        .get_object_mut(pages_id)
-        .map_err(PdfError::Lopdf)?;
-    let pages_dict = pages_obj
-        .as_dict_mut()
-        .map_err(PdfError::Lopdf)?;
+    let pages_obj = doc.get_object_mut(pages_id).map_err(PdfError::Lopdf)?;
+    let pages_dict = pages_obj.as_dict_mut().map_err(PdfError::Lopdf)?;
 
-    let kids = pages_dict
-        .get_mut(b"Kids")
-        .map_err(PdfError::Lopdf)?;
+    let kids = pages_dict.get_mut(b"Kids").map_err(PdfError::Lopdf)?;
 
     if let Object::Array(ref mut kids_arr) = kids {
         let insert_idx = after_page as usize;

@@ -23,9 +23,7 @@ pub async fn extract_tables(
 }
 
 pub async fn to_markdown(page: Arc<Page>, options: MarkdownOptions) -> Result<String> {
-    tokio::task::spawn_blocking(move || {
-        paperjam_core::markdown::page_to_markdown(&page, &options)
-    })
-    .await
-    .map_err(join_err)?
+    tokio::task::spawn_blocking(move || paperjam_core::markdown::page_to_markdown(&page, &options))
+        .await
+        .map_err(join_err)?
 }

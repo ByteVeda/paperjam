@@ -15,12 +15,10 @@ pub fn build_annot_page_map(doc: &lopdf::Document) -> BTreeMap<ObjectId, u32> {
                 if let Ok(annots) = dict.get(b"Annots") {
                     let annot_array = match annots {
                         Object::Array(arr) => arr.clone(),
-                        Object::Reference(id) => {
-                            match doc.get_object(*id) {
-                                Ok(Object::Array(arr)) => arr.clone(),
-                                _ => continue,
-                            }
-                        }
+                        Object::Reference(id) => match doc.get_object(*id) {
+                            Ok(Object::Array(arr)) => arr.clone(),
+                            _ => continue,
+                        },
                         _ => continue,
                     };
                     for annot_ref in &annot_array {
@@ -157,14 +155,7 @@ pub fn walk_fields(
                 });
             } else {
                 // Non-terminal: recurse into kids
-                let child_fields = walk_fields(
-                    doc,
-                    kids,
-                    &fq_name,
-                    ft,
-                    ff,
-                    annot_page_map,
-                )?;
+                let child_fields = walk_fields(doc, kids, &fq_name, ft, ff, annot_page_map)?;
                 fields.extend(child_fields);
             }
         } else {
@@ -202,10 +193,7 @@ pub fn walk_fields(
 ///
 /// Walks the AcroForm field tree looking for a field matching `target_name`.
 /// Returns `Ok(Some(id))` if found, `Ok(None)` if not found.
-pub(crate) fn find_field_id(
-    doc: &lopdf::Document,
-    target_name: &str,
-) -> Result<Option<ObjectId>> {
+pub(crate) fn find_field_id(doc: &lopdf::Document, target_name: &str) -> Result<Option<ObjectId>> {
     let root_id = doc
         .trailer
         .get(b"Root")
@@ -340,10 +328,7 @@ fn extract_value(dict: &lopdf::Dictionary, doc: &lopdf::Document) -> Option<Stri
     dict.get(b"V").ok().and_then(|o| match o {
         Object::String(bytes, _) => Some(String::from_utf8_lossy(bytes).to_string()),
         Object::Name(name) => Some(String::from_utf8_lossy(name).to_string()),
-        Object::Reference(id) => doc
-            .get_object(*id)
-            .ok()
-            .and_then(extract_obj_string),
+        Object::Reference(id) => doc.get_object(*id).ok().and_then(extract_obj_string),
         _ => None,
     })
 }
@@ -353,10 +338,7 @@ fn extract_default_value(dict: &lopdf::Dictionary, doc: &lopdf::Document) -> Opt
     dict.get(b"DV").ok().and_then(|o| match o {
         Object::String(bytes, _) => Some(String::from_utf8_lossy(bytes).to_string()),
         Object::Name(name) => Some(String::from_utf8_lossy(name).to_string()),
-        Object::Reference(id) => doc
-            .get_object(*id)
-            .ok()
-            .and_then(extract_obj_string),
+        Object::Reference(id) => doc.get_object(*id).ok().and_then(extract_obj_string),
         _ => None,
     })
 }
@@ -445,10 +427,7 @@ fn obj_to_string(obj: &Object, doc: &lopdf::Document) -> Option<String> {
     match obj {
         Object::String(bytes, _) => Some(String::from_utf8_lossy(bytes).to_string()),
         Object::Name(name) => Some(String::from_utf8_lossy(name).to_string()),
-        Object::Reference(id) => doc
-            .get_object(*id)
-            .ok()
-            .and_then(|o| obj_to_string(o, doc)),
+        Object::Reference(id) => doc.get_object(*id).ok().and_then(|o| obj_to_string(o, doc)),
         _ => None,
     }
 }

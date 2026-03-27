@@ -21,7 +21,9 @@ pub fn sign_document(
     options: &SignOptions,
 ) -> Result<Vec<u8>> {
     if cert_der_list.is_empty() {
-        return Err(PdfError::Signature("At least one certificate is required".to_string()));
+        return Err(PdfError::Signature(
+            "At least one certificate is required".to_string(),
+        ));
     }
 
     let signing_cert = &cert_der_list[0];
@@ -150,7 +152,8 @@ pub fn sign_document(
         // Pad with spaces to fill the same length
         let available = br_end - br_start;
         let mut padded = vec![b' '; available];
-        padded[..br_bytes.len().min(available)].copy_from_slice(&br_bytes[..br_bytes.len().min(available)]);
+        padded[..br_bytes.len().min(available)]
+            .copy_from_slice(&br_bytes[..br_bytes.len().min(available)]);
         pdf_bytes[br_start..br_end].copy_from_slice(&padded);
     }
 
@@ -217,10 +220,7 @@ fn ensure_acroform_field(doc: &mut lopdf::Document, field_id: lopdf::ObjectId) -
                 fields.push(Object::Reference(field_id));
             }
             _ => {
-                af_dict.set(
-                    "Fields",
-                    Object::Array(vec![Object::Reference(field_id)]),
-                );
+                af_dict.set("Fields", Object::Array(vec![Object::Reference(field_id)]));
             }
         }
         // Set SigFlags to indicate signatures exist
@@ -232,8 +232,7 @@ fn ensure_acroform_field(doc: &mut lopdf::Document, field_id: lopdf::ObjectId) -
             "SigFlags" => Object::Integer(3),
         };
         let af_id = doc.new_object_id();
-        doc.objects
-            .insert(af_id, Object::Dictionary(acroform));
+        doc.objects.insert(af_id, Object::Dictionary(acroform));
 
         let root_obj = doc
             .get_object_mut(root_id)
@@ -265,10 +264,7 @@ fn add_annot_to_first_page(doc: &mut lopdf::Document, field_id: lopdf::ObjectId)
             annots.push(Object::Reference(field_id));
         }
         _ => {
-            page_dict.set(
-                "Annots",
-                Object::Array(vec![Object::Reference(field_id)]),
-            );
+            page_dict.set("Annots", Object::Array(vec![Object::Reference(field_id)]));
         }
     }
 

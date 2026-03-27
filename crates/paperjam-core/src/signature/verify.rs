@@ -109,18 +109,17 @@ fn verify_sig_fields(
             })
             .unwrap_or_else(|| "unnamed".to_string());
 
-        let signer = sig_dict
-            .get(b"Name")
-            .ok()
-            .and_then(|o| match o {
-                Object::String(bytes, _) => Some(String::from_utf8_lossy(bytes).to_string()),
-                _ => None,
-            });
+        let signer = sig_dict.get(b"Name").ok().and_then(|o| match o {
+            Object::String(bytes, _) => Some(String::from_utf8_lossy(bytes).to_string()),
+            _ => None,
+        });
 
         // Get PKCS#7 signature bytes (trim trailing zeros from hex padding)
         let pkcs7_bytes = match sig_dict.get(b"Contents") {
             Ok(Object::String(bytes, _)) => {
-                let trimmed = bytes.iter().rposition(|&b| b != 0)
+                let trimmed = bytes
+                    .iter()
+                    .rposition(|&b| b != 0)
                     .map(|pos| bytes[..=pos].to_vec())
                     .unwrap_or_default();
                 trimmed

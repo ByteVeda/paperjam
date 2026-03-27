@@ -18,8 +18,7 @@ pub fn py_rotate_pages(
 ) -> PyResult<PyDocument> {
     // Clone the lopdf document directly (no serialize/reparse)
     let inner_clone = document.inner.inner().clone();
-    let mut doc =
-        paperjam_core::document::Document::from_lopdf(inner_clone).map_err(to_py_err)?;
+    let mut doc = paperjam_core::document::Document::from_lopdf(inner_clone).map_err(to_py_err)?;
 
     let rotations: Vec<(u32, paperjam_core::manipulation::Rotation)> = page_rotations
         .into_iter()
@@ -99,9 +98,7 @@ pub fn py_insert_blank_pages(
 ) -> PyResult<PyDocument> {
     let inner = std::sync::Arc::clone(&document.inner);
     let result = py
-        .allow_threads(move || {
-            paperjam_core::manipulation::insert_blank_pages(&inner, &insertions)
-        })
+        .allow_threads(move || paperjam_core::manipulation::insert_blank_pages(&inner, &insertions))
         .map_err(to_py_err)?;
 
     Ok(PyDocument {

@@ -102,16 +102,8 @@ impl TextLine {
             if line.spans.is_empty() {
                 continue;
             }
-            let x_min = line
-                .spans
-                .iter()
-                .map(|s| s.x)
-                .fold(f64::INFINITY, f64::min);
-            let y_min = line
-                .spans
-                .iter()
-                .map(|s| s.y)
-                .fold(f64::INFINITY, f64::min);
+            let x_min = line.spans.iter().map(|s| s.x).fold(f64::INFINITY, f64::min);
+            let y_min = line.spans.iter().map(|s| s.y).fold(f64::INFINITY, f64::min);
             let x_max = line
                 .spans
                 .iter()

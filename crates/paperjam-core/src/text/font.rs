@@ -256,11 +256,8 @@ fn get_cid_default_width(doc: &lopdf::Document, dict: &lopdf::Dictionary) -> Opt
     let first = arr.first()?;
     let (_, desc_font) = doc.dereference(first).ok()?;
     let desc_dict = desc_font.as_dict().ok()?;
-    desc_dict
-        .get(b"DW")
-        .ok()
-        .and_then(|v| {
-            let (_, v) = doc.dereference(v).unwrap_or((None, v));
-            obj_to_f64(v).ok()
-        })
+    desc_dict.get(b"DW").ok().and_then(|v| {
+        let (_, v) = doc.dereference(v).unwrap_or((None, v));
+        obj_to_f64(v).ok()
+    })
 }

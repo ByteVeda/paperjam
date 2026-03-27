@@ -31,8 +31,7 @@ where
         }
         if opt.is_none() {
             let bindings = if let Some(path) = library_path {
-                Pdfium::bind_to_library(path)
-                    .or_else(|_| Pdfium::bind_to_system_library())
+                Pdfium::bind_to_library(path).or_else(|_| Pdfium::bind_to_system_library())
             } else {
                 Pdfium::bind_to_system_library()
             }
@@ -177,28 +176,27 @@ fn render_pdfium_page(
     let height_pts = page.height().value;
 
     // Determine pixel dimensions based on scale_to_width/height or DPI
-    let (pixel_width, pixel_height) =
-        match (options.scale_to_width, options.scale_to_height) {
-            (Some(tw), Some(th)) => {
-                // Fit within both constraints (preserve aspect ratio)
-                let scale_w = tw as f32 / width_pts;
-                let scale_h = th as f32 / height_pts;
-                let scale = scale_w.min(scale_h);
-                ((width_pts * scale) as u32, (height_pts * scale) as u32)
-            }
-            (Some(tw), None) => {
-                let scale = tw as f32 / width_pts;
-                (tw, (height_pts * scale) as u32)
-            }
-            (None, Some(th)) => {
-                let scale = th as f32 / height_pts;
-                ((width_pts * scale) as u32, th)
-            }
-            (None, None) => {
-                let scale = options.dpi / 72.0;
-                ((width_pts * scale) as u32, (height_pts * scale) as u32)
-            }
-        };
+    let (pixel_width, pixel_height) = match (options.scale_to_width, options.scale_to_height) {
+        (Some(tw), Some(th)) => {
+            // Fit within both constraints (preserve aspect ratio)
+            let scale_w = tw as f32 / width_pts;
+            let scale_h = th as f32 / height_pts;
+            let scale = scale_w.min(scale_h);
+            ((width_pts * scale) as u32, (height_pts * scale) as u32)
+        }
+        (Some(tw), None) => {
+            let scale = tw as f32 / width_pts;
+            (tw, (height_pts * scale) as u32)
+        }
+        (None, Some(th)) => {
+            let scale = th as f32 / height_pts;
+            ((width_pts * scale) as u32, th)
+        }
+        (None, None) => {
+            let scale = options.dpi / 72.0;
+            ((width_pts * scale) as u32, (height_pts * scale) as u32)
+        }
+    };
 
     let mut config = PdfRenderConfig::new()
         .set_target_width(pixel_width as i32)
@@ -226,10 +224,7 @@ fn render_pdfium_page(
 }
 
 /// Encode an image buffer to the requested format.
-fn encode_image(
-    img: &image::RgbaImage,
-    options: &RenderOptions,
-) -> Result<Vec<u8>> {
+fn encode_image(img: &image::RgbaImage, options: &RenderOptions) -> Result<Vec<u8>> {
     // Pre-allocate based on estimated compressed size
     let estimated = (img.width() * img.height()) as usize;
     let mut buf = Cursor::new(Vec::with_capacity(estimated));
@@ -240,10 +235,8 @@ fn encode_image(
                 .map_err(|e| PdfError::Render(format!("PNG encode failed: {}", e)))?;
         }
         ImageFormat::Jpeg => {
-            let mut encoder = image::codecs::jpeg::JpegEncoder::new_with_quality(
-                &mut buf,
-                options.quality,
-            );
+            let mut encoder =
+                image::codecs::jpeg::JpegEncoder::new_with_quality(&mut buf, options.quality);
             encoder
                 .encode_image(img)
                 .map_err(|e| PdfError::Render(format!("JPEG encode failed: {}", e)))?;

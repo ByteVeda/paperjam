@@ -79,8 +79,9 @@ pub fn sanitize(doc: &Document, options: &SanitizeOptions) -> Result<(Document, 
     inner.renumber_objects();
     inner.adjust_zero_pages();
 
-    let result_doc = Document::from_lopdf(inner)
-        .map_err(|e| PdfError::Sanitize(format!("Failed to reconstruct sanitized document: {}", e)))?;
+    let result_doc = Document::from_lopdf(inner).map_err(|e| {
+        PdfError::Sanitize(format!("Failed to reconstruct sanitized document: {}", e))
+    })?;
 
     Ok((result_doc, result))
 }
@@ -161,7 +162,9 @@ fn remove_javascript(doc: &mut lopdf::Document, result: &mut SanitizeResult) {
         let names_ref = get_dict_reference(doc, catalog_id, b"Names");
         if let Some(names_id) = names_ref {
             let has_js_tree = if let Some(obj) = doc.objects.get(&names_id) {
-                obj.as_dict().map(|d| d.get(b"JavaScript").is_ok()).unwrap_or(false)
+                obj.as_dict()
+                    .map(|d| d.get(b"JavaScript").is_ok())
+                    .unwrap_or(false)
             } else {
                 false
             };
@@ -233,7 +236,14 @@ fn remove_embedded_files(doc: &mut lopdf::Document, result: &mut SanitizeResult)
         }
 
         // 2. Remove /AF (associated files) from catalog
-        remove_dict_key(doc, catalog_id, b"AF", "embedded_file", "Removed /AF from catalog", result);
+        remove_dict_key(
+            doc,
+            catalog_id,
+            b"AF",
+            "embedded_file",
+            "Removed /AF from catalog",
+            result,
+        );
     }
 
     // 3. Remove /FileAttachment annotations from all pages
@@ -251,7 +261,9 @@ fn remove_actions(doc: &mut lopdf::Document, result: &mut SanitizeResult) {
         }
 
         let had_open_action = if let Some(obj) = doc.objects.get(&catalog_id) {
-            obj.as_dict().map(|d| d.get(b"OpenAction").is_ok()).unwrap_or(false)
+            obj.as_dict()
+                .map(|d| d.get(b"OpenAction").is_ok())
+                .unwrap_or(false)
         } else {
             false
         };
@@ -312,7 +324,14 @@ fn remove_actions(doc: &mut lopdf::Document, result: &mut SanitizeResult) {
     }
 
     // 3. Remove dangerous action types: /Launch, /GoToR, /GoToE, /SubmitForm, /ImportData
-    let dangerous_actions: &[&[u8]] = &[b"Launch", b"GoToR", b"GoToE", b"SubmitForm", b"ImportData", b"RichMediaExecute"];
+    let dangerous_actions: &[&[u8]] = &[
+        b"Launch",
+        b"GoToR",
+        b"GoToE",
+        b"SubmitForm",
+        b"ImportData",
+        b"RichMediaExecute",
+    ];
     for id in &all_ids {
         let is_dangerous = if let Some(obj) = doc.objects.get(id) {
             is_dangerous_action(obj, dangerous_actions)
@@ -450,11 +469,7 @@ fn has_dangerous_annotation_action(
 }
 
 /// Get a reference to an object stored under a key in a dictionary object.
-fn get_dict_reference(
-    doc: &lopdf::Document,
-    dict_id: ObjectId,
-    key: &[u8],
-) -> Option<ObjectId> {
+fn get_dict_reference(doc: &lopdf::Document, dict_id: ObjectId, key: &[u8]) -> Option<ObjectId> {
     let obj = doc.objects.get(&dict_id)?;
     let dict = match obj {
         Object::Dictionary(d) => d,
@@ -521,9 +536,7 @@ fn collect_name_tree_refs(
 
     let tree_ref = if let Some(obj) = doc.objects.get(&names_dict_id) {
         if let Ok(dict) = obj.as_dict() {
-            dict.get(tree_key)
-                .ok()
-                .and_then(|v| v.as_reference().ok())
+            dict.get(tree_key).ok().and_then(|v| v.as_reference().ok())
         } else {
             None
         }
@@ -540,11 +553,7 @@ fn collect_name_tree_refs(
 }
 
 /// Recursively collect references from a name tree node.
-fn collect_name_tree_node_refs(
-    doc: &lopdf::Document,
-    node_id: ObjectId,
-    refs: &mut Vec<ObjectId>,
-) {
+fn collect_name_tree_node_refs(doc: &lopdf::Document, node_id: ObjectId, refs: &mut Vec<ObjectId>) {
     let obj = match doc.objects.get(&node_id) {
         Some(o) => o,
         None => return,
@@ -607,12 +616,10 @@ fn remove_annotations_by_subtype(
 
             match &annots_obj {
                 Object::Array(arr) => arr.clone(),
-                Object::Reference(id) => {
-                    match doc.get_object(*id) {
-                        Ok(Object::Array(arr)) => arr.clone(),
-                        _ => continue,
-                    }
-                }
+                Object::Reference(id) => match doc.get_object(*id) {
+                    Ok(Object::Array(arr)) => arr.clone(),
+                    _ => continue,
+                },
                 _ => continue,
             }
         };

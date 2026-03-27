@@ -41,9 +41,7 @@ fn remap_refs(object: &mut Object, offset: u32) {
 /// document N (2-based) with "docN_" to avoid collisions.
 pub fn merge(documents: Vec<Document>, _options: &MergeOptions) -> Result<Document> {
     if documents.is_empty() {
-        return Err(PdfError::Structure(
-            "Cannot merge zero documents".into(),
-        ));
+        return Err(PdfError::Structure("Cannot merge zero documents".into()));
     }
 
     let mut inners: Vec<lopdf::Document> = documents.into_iter().map(|d| d.into_inner()).collect();
@@ -198,10 +196,7 @@ fn merge_acroforms(
                         let old_name = String::from_utf8_lossy(bytes).to_string();
                         let new_name = format!("{}{}", prefix, old_name);
                         let fmt = *fmt;
-                        field_dict.set(
-                            "T",
-                            Object::String(new_name.into_bytes(), fmt),
-                        );
+                        field_dict.set("T", Object::String(new_name.into_bytes(), fmt));
                     }
                 }
             }
@@ -223,13 +218,10 @@ fn merge_acroforms(
             .as_dict()
             .map_err(|_| PdfError::Structure("/Root not dict".to_string()))?;
 
-        target_root
-            .get(b"AcroForm")
-            .ok()
-            .and_then(|o| match o {
-                Object::Reference(id) => Some(*id),
-                _ => None,
-            })
+        target_root.get(b"AcroForm").ok().and_then(|o| match o {
+            Object::Reference(id) => Some(*id),
+            _ => None,
+        })
     };
 
     if let Some(af_id) = target_af_ref {
@@ -257,12 +249,12 @@ fn merge_acroforms(
 
         // Merge /SigFlags — OR the bits together
         if let Ok(Object::Integer(other_flags)) = other_af_dict.get(b"SigFlags") {
-            let af_obj = target.get_object_mut(af_id).map_err(|e| {
-                PdfError::Structure(format!("AcroForm get: {}", e))
-            })?;
-            let af_dict = af_obj.as_dict_mut().map_err(|_| {
-                PdfError::Structure("AcroForm not dict".to_string())
-            })?;
+            let af_obj = target
+                .get_object_mut(af_id)
+                .map_err(|e| PdfError::Structure(format!("AcroForm get: {}", e)))?;
+            let af_dict = af_obj
+                .as_dict_mut()
+                .map_err(|_| PdfError::Structure("AcroForm not dict".to_string()))?;
             let current = af_dict
                 .get(b"SigFlags")
                 .ok()
@@ -279,9 +271,7 @@ fn merge_acroforms(
             "Fields" => Object::Array(other_fields),
         };
         let af_id = target.new_object_id();
-        target
-            .objects
-            .insert(af_id, Object::Dictionary(acroform));
+        target.objects.insert(af_id, Object::Dictionary(acroform));
 
         let root_obj = target
             .get_object_mut(target_root_id)
@@ -296,12 +286,12 @@ fn merge_acroforms(
             merge_dr_into(target, af_id, other_dr.clone())?;
         }
         if let Ok(Object::Integer(flags)) = other_af_dict.get(b"SigFlags") {
-            let af_obj = target.get_object_mut(af_id).map_err(|e| {
-                PdfError::Structure(format!("AcroForm get: {}", e))
-            })?;
-            let af_dict = af_obj.as_dict_mut().map_err(|_| {
-                PdfError::Structure("AcroForm not dict".to_string())
-            })?;
+            let af_obj = target
+                .get_object_mut(af_id)
+                .map_err(|e| PdfError::Structure(format!("AcroForm get: {}", e)))?;
+            let af_dict = af_obj
+                .as_dict_mut()
+                .map_err(|_| PdfError::Structure("AcroForm not dict".to_string()))?;
             af_dict.set("SigFlags", Object::Integer(*flags));
         }
     }
@@ -347,10 +337,7 @@ fn merge_dr_into(
             if let Ok(Object::Dictionary(target_fonts)) = target_dr.get_mut(b"Font") {
                 for (key, val) in other_fonts.iter() {
                     if target_fonts.get(key).is_err() {
-                        target_fonts.set(
-                            std::str::from_utf8(key).unwrap_or(""),
-                            val.clone(),
-                        );
+                        target_fonts.set(std::str::from_utf8(key).unwrap_or(""), val.clone());
                     }
                 }
             } else {

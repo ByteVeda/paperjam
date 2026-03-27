@@ -31,14 +31,8 @@ pub fn py_diff_documents<'py>(
             op_dict.set_item("page", op.page)?;
             op_dict.set_item("text_a", op.text_a.as_deref())?;
             op_dict.set_item("text_b", op.text_b.as_deref())?;
-            op_dict.set_item(
-                "bbox_a",
-                op.bbox_a.map(|b| (b.0, b.1, b.2, b.3)),
-            )?;
-            op_dict.set_item(
-                "bbox_b",
-                op.bbox_b.map(|b| (b.0, b.1, b.2, b.3)),
-            )?;
+            op_dict.set_item("bbox_a", op.bbox_a.map(|b| (b.0, b.1, b.2, b.3)))?;
+            op_dict.set_item("bbox_b", op.bbox_b.map(|b| (b.0, b.1, b.2, b.3)))?;
             op_dict.set_item("line_index_a", op.line_index_a)?;
             op_dict.set_item("line_index_b", op.line_index_b)?;
             ops_list.append(op_dict)?;

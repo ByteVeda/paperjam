@@ -7,5 +7,5 @@ pub mod verify;
 
 pub use extract::extract_signatures;
 pub use sign::sign_document;
-pub use types::{CertificateInfo, SignatureInfo, SignatureValidity, SignOptions};
+pub use types::{CertificateInfo, SignOptions, SignatureInfo, SignatureValidity};
 pub use verify::verify_signatures;

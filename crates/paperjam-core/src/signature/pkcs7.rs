@@ -155,11 +155,9 @@ fn build_simple_cms(cert_der: &[u8], signature: &[u8]) -> Result<Vec<u8>> {
     use spki::AlgorithmIdentifierOwned;
 
     let sha256_oid = der::oid::ObjectIdentifier::new_unwrap("2.16.840.1.101.3.4.2.1");
-    let rsa_oid =
-        der::oid::ObjectIdentifier::new_unwrap("1.2.840.113549.1.1.11"); // sha256WithRSAEncryption
+    let rsa_oid = der::oid::ObjectIdentifier::new_unwrap("1.2.840.113549.1.1.11"); // sha256WithRSAEncryption
     let data_oid = der::oid::ObjectIdentifier::new_unwrap("1.2.840.113549.1.7.1"); // id-data
-    let signed_data_oid =
-        der::oid::ObjectIdentifier::new_unwrap("1.2.840.113549.1.7.2"); // id-signedData
+    let signed_data_oid = der::oid::ObjectIdentifier::new_unwrap("1.2.840.113549.1.7.2"); // id-signedData
 
     // Parse the certificate for issuer/serial
     let cert = cms::cert::x509::Certificate::from_der(cert_der)

@@ -94,9 +94,7 @@ pub fn py_modify_form_field<'py>(
                 let export_value: String = opt_dict
                     .get_item("export_value")?
                     .ok_or_else(|| {
-                        pyo3::exceptions::PyValueError::new_err(
-                            "Option missing 'export_value' key",
-                        )
+                        pyo3::exceptions::PyValueError::new_err("Option missing 'export_value' key")
                     })?
                     .extract()?;
                 choice_opts.push(paperjam_core::forms::types::ChoiceOption {
@@ -212,7 +210,9 @@ pub fn py_add_form_field<'py>(
     };
 
     let (new_doc, result) = py
-        .allow_threads(move || paperjam_core::forms::create::create_form_field(&inner, &create_options))
+        .allow_threads(move || {
+            paperjam_core::forms::create::create_form_field(&inner, &create_options)
+        })
         .map_err(to_py_err)?;
 
     let result_dict = PyDict::new(py);

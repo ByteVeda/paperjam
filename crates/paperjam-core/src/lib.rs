@@ -5,10 +5,6 @@ pub mod document;
 pub mod encryption;
 pub mod error;
 pub mod forms;
-#[cfg(feature = "render")]
-pub mod render;
-#[cfg(feature = "signatures")]
-pub mod signature;
 pub mod image;
 pub mod io;
 pub mod layout;
@@ -19,11 +15,15 @@ pub mod optimization;
 pub mod page;
 pub mod parallel;
 pub mod redact;
+#[cfg(feature = "render")]
+pub mod render;
 pub mod sanitize;
+#[cfg(feature = "signatures")]
+pub mod signature;
+pub mod stamp;
 pub mod structure;
 pub mod table;
 pub mod text;
-pub mod stamp;
 pub mod toc;
 #[cfg(feature = "validation")]
 pub mod validation;

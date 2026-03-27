@@ -1,5 +1,5 @@
 use crate::text::font::FontInfo;
-use crate::text::operators::{ContentOperator, TextState, TJElement};
+use crate::text::operators::{ContentOperator, TJElement, TextState};
 
 /// A redacted text item: (decoded_text, bounding_box).
 pub type RedactedItem = (String, [f64; 4]);
@@ -111,8 +111,7 @@ pub fn filter_ops(
                 for elem in elements {
                     match elem {
                         TJElement::Text(bytes) => {
-                            let (text, bbox) =
-                                compute_text_info(bytes, &text_state, &ctm, fonts);
+                            let (text, bbox) = compute_text_info(bytes, &text_state, &ctm, fonts);
                             if overlaps_any_region(&bbox, regions) {
                                 redacted_texts.push((text, bbox));
                                 should_redact = true;
@@ -123,10 +122,8 @@ pub fn filter_ops(
                             let displacement = -offset / 1000.0
                                 * text_state.font_size
                                 * text_state.horizontal_scaling;
-                            text_state.text_matrix[4] +=
-                                displacement * text_state.text_matrix[0];
-                            text_state.text_matrix[5] +=
-                                displacement * text_state.text_matrix[1];
+                            text_state.text_matrix[4] += displacement * text_state.text_matrix[0];
+                            text_state.text_matrix[5] += displacement * text_state.text_matrix[1];
                         }
                     }
                 }

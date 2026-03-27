@@ -84,9 +84,7 @@ pub fn blocks_to_markdown(blocks: &[ContentBlock], options: &MarkdownOptions) ->
         current_page = Some(block_page);
 
         match block {
-            ContentBlock::Heading {
-                text, level, ..
-            } => {
+            ContentBlock::Heading { text, level, .. } => {
                 in_list = false;
                 let effective_level =
                     (*level as u16 + options.heading_offset as u16).clamp(1, 6) as u8;
@@ -156,8 +154,7 @@ pub fn page_to_markdown(page: &Page, options: &MarkdownOptions) -> Result<String
 
 /// Extract structure from all pages and convert to Markdown.
 pub fn document_to_markdown(doc: &Document, options: &MarkdownOptions) -> Result<String> {
-    let blocks =
-        crate::structure::extract_document_structure(doc, &options.structure_options)?;
+    let blocks = crate::structure::extract_document_structure(doc, &options.structure_options)?;
     Ok(blocks_to_markdown(&blocks, options))
 }
 
@@ -182,7 +179,14 @@ fn strip_list_marker(text: &str) -> String {
 
     // Bullet markers
     for prefix in &[
-        "- ", "* ", "\u{2022} ", "\u{2023} ", "\u{25E6} ", "\u{2043} ", "\u{2013} ", "\u{2014} ",
+        "- ",
+        "* ",
+        "\u{2022} ",
+        "\u{2023} ",
+        "\u{25E6} ",
+        "\u{2043} ",
+        "\u{2013} ",
+        "\u{2014} ",
     ] {
         if let Some(rest) = trimmed.strip_prefix(prefix) {
             return rest.to_string();
