@@ -1,11 +1,11 @@
-import React, { useState, useCallback } from 'react';
-import type { WasmModule } from '@site/src/types/paperjam';
 import { useDocumentLoader } from '@site/src/hooks/useDocumentLoader';
-import WasmLoader from './WasmLoader';
+import type { WasmModule } from '@site/src/types/paperjam';
+import { useCallback, useState } from 'react';
 import PdfUploader from './PdfUploader';
+import styles from './playground.module.css';
 import ErrorAlert from './ui/ErrorAlert';
 import Tabs from './ui/Tabs';
-import styles from './playground.module.css';
+import WasmLoader from './WasmLoader';
 
 const TABS = [
   { id: 'split', label: 'Split' },
@@ -29,9 +29,13 @@ function parseRanges(input: string): [number, number][] {
     .filter(Boolean)
     .map((part) => {
       const match = part.match(/^(\d+)\s*-\s*(\d+)$/);
-      if (match) return [parseInt(match[1], 10), parseInt(match[2], 10)] as [number, number];
+      if (match)
+        return [parseInt(match[1], 10), parseInt(match[2], 10)] as [
+          number,
+          number,
+        ];
       const single = parseInt(part, 10);
-      if (!isNaN(single)) return [single, single] as [number, number];
+      if (!Number.isNaN(single)) return [single, single] as [number, number];
       return null;
     })
     .filter((r): r is [number, number] => r !== null);
@@ -123,7 +127,10 @@ function SplitMergeInner({ wasm }: { wasm: WasmModule }) {
       // Collect all page ranges from all files into a single combined document.
       // We build the merged result by extracting each file's full page range
       // and concatenating the raw bytes for download.
-      const totalLength = mergeFiles.reduce((sum, f) => sum + f.data.byteLength, 0);
+      const totalLength = mergeFiles.reduce(
+        (sum, f) => sum + f.data.byteLength,
+        0,
+      );
       const combined = new Uint8Array(totalLength);
       let offset = 0;
       for (const file of mergeFiles) {
@@ -162,13 +169,24 @@ function SplitMergeInner({ wasm }: { wasm: WasmModule }) {
                   placeholder="e.g. 1-3, 5-7, 10"
                   value={rangeInput}
                   onChange={(e) => setRangeInput(e.target.value)}
-                  onKeyDown={(e) => { if (e.key === 'Enter') handleSplit(); }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') handleSplit();
+                  }}
                   aria-label="Page ranges"
                 />
-                <button className={`${styles.btn} ${styles.btnPrimary}`} onClick={handleSplit}>
+                <button
+                  type="button"
+                  className={`${styles.btn} ${styles.btnPrimary}`}
+                  onClick={handleSplit}
+                >
                   Split PDF
                 </button>
-                <span style={{ fontSize: '0.85rem', color: 'var(--ifm-color-emphasis-600)' }}>
+                <span
+                  style={{
+                    fontSize: '0.85rem',
+                    color: 'var(--ifm-color-emphasis-600)',
+                  }}
+                >
                   {pageCount} page{pageCount !== 1 ? 's' : ''}
                 </span>
               </div>
@@ -179,12 +197,23 @@ function SplitMergeInner({ wasm }: { wasm: WasmModule }) {
                     <div key={part.index} className={styles.pageCard}>
                       <strong>Part {part.index + 1}</strong>
                       <span>Pages {part.rangeLabel}</span>
-                      <span style={{ fontSize: '0.8rem', color: 'var(--ifm-color-emphasis-500)' }}>
+                      <span
+                        style={{
+                          fontSize: '0.8rem',
+                          color: 'var(--ifm-color-emphasis-500)',
+                        }}
+                      >
                         {(part.bytes.byteLength / 1024).toFixed(1)} KB
                       </span>
                       <button
+                        type="button"
                         className={styles.downloadBtn}
-                        onClick={() => downloadPdf(part.bytes, `${baseName}_p${part.rangeLabel}.pdf`)}
+                        onClick={() =>
+                          downloadPdf(
+                            part.bytes,
+                            `${baseName}_p${part.rangeLabel}.pdf`,
+                          )
+                        }
                         style={{ marginTop: '0.5rem' }}
                       >
                         Download
@@ -210,6 +239,7 @@ function SplitMergeInner({ wasm }: { wasm: WasmModule }) {
                     <span>{file.name}</span>
                     <div className={styles.fileItemActions}>
                       <button
+                        type="button"
                         className={styles.btn}
                         onClick={() => handleMoveUp(index)}
                         disabled={index === 0}
@@ -218,6 +248,7 @@ function SplitMergeInner({ wasm }: { wasm: WasmModule }) {
                         &#x25B2;
                       </button>
                       <button
+                        type="button"
                         className={styles.btn}
                         onClick={() => handleMoveDown(index)}
                         disabled={index === mergeFiles.length - 1}
@@ -226,6 +257,7 @@ function SplitMergeInner({ wasm }: { wasm: WasmModule }) {
                         &#x25BC;
                       </button>
                       <button
+                        type="button"
                         className={styles.btn}
                         onClick={() => handleRemoveMergeFile(file.id)}
                         aria-label="Remove file"
@@ -236,7 +268,11 @@ function SplitMergeInner({ wasm }: { wasm: WasmModule }) {
                   </li>
                 ))}
               </ul>
-              <button className={`${styles.btn} ${styles.btnPrimary}`} onClick={handleMerge}>
+              <button
+                type="button"
+                className={`${styles.btn} ${styles.btnPrimary}`}
+                onClick={handleMerge}
+              >
                 Merge {mergeFiles.length} PDFs
               </button>
             </>

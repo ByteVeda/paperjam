@@ -1,5 +1,5 @@
-import { useState, useCallback } from 'react';
-import type { WasmModule, WasmDocument } from '@site/src/types/paperjam';
+import type { WasmDocument, WasmModule } from '@site/src/types/paperjam';
+import { useCallback, useState } from 'react';
 
 interface DocumentLoaderState {
   doc: WasmDocument | null;
@@ -20,7 +20,9 @@ export function useDocumentLoader(wasm: WasmModule): DocumentLoaderState {
   const loadFile = useCallback(
     (data: Uint8Array, name: string) => {
       if (data.byteLength > MAX_FILE_SIZE) {
-        setError(`File too large (${(data.byteLength / 1024 / 1024).toFixed(1)} MB). Maximum is 100 MB.`);
+        setError(
+          `File too large (${(data.byteLength / 1024 / 1024).toFixed(1)} MB). Maximum is 100 MB.`,
+        );
         return;
       }
       try {

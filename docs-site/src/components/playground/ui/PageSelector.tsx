@@ -1,4 +1,3 @@
-import React from 'react';
 import styles from '../playground.module.css';
 
 interface Props {
@@ -11,6 +10,7 @@ export default function PageSelector({ page, pageCount, onChange }: Props) {
   return (
     <div className={styles.pageSelector}>
       <button
+        type="button"
         className={styles.btn}
         disabled={page <= 1}
         onClick={() => onChange(page - 1)}
@@ -35,6 +35,7 @@ export default function PageSelector({ page, pageCount, onChange }: Props) {
         of {pageCount}
       </label>
       <button
+        type="button"
         className={styles.btn}
         disabled={page >= pageCount}
         onClick={() => onChange(page + 1)}

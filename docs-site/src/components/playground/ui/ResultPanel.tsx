@@ -1,6 +1,6 @@
-import React from 'react';
-import CopyButton from './CopyButton';
+import type React from 'react';
 import styles from '../playground.module.css';
+import CopyButton from './CopyButton';
 
 interface Props {
   children: React.ReactNode;

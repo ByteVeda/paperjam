@@ -1,6 +1,6 @@
-import React from 'react';
 import { usePaperjam } from '@site/src/hooks/usePaperjam';
 import type { WasmModule } from '@site/src/types/paperjam';
+import type React from 'react';
 import styles from './playground.module.css';
 
 interface Props {
@@ -11,9 +11,7 @@ export default function WasmLoader({ children }: Props) {
   const { paperjam, loading, error } = usePaperjam();
 
   if (loading) {
-    return (
-      <div className={styles.emptyState}>Loading WASM module...</div>
-    );
+    return <div className={styles.emptyState}>Loading WASM module...</div>;
   }
 
   if (error) {

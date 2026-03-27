@@ -1,4 +1,3 @@
-import React from 'react';
 import { useClipboard } from '@site/src/hooks/useClipboard';
 import styles from '../playground.module.css';
 
@@ -12,6 +11,7 @@ export default function CopyButton({ text, label = 'Copy' }: Props) {
 
   return (
     <button
+      type="button"
       className={styles.copyBtn}
       onClick={() => copy(text)}
       aria-label={copied ? 'Copied' : label}

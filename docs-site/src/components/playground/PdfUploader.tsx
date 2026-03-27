@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import { useCallback, useState } from 'react';
 import styles from './playground.module.css';
 
 interface Props {
@@ -13,7 +13,7 @@ export default function PdfUploader({ onFileLoaded }: Props) {
     (file: File) => {
       const reader = new FileReader();
       reader.onload = (e) => {
-        const data = new Uint8Array(e.target!.result as ArrayBuffer);
+        const data = new Uint8Array(e.target?.result as ArrayBuffer);
         setFileName(file.name);
         onFileLoaded(data, file.name);
       };
@@ -37,7 +37,9 @@ export default function PdfUploader({ onFileLoaded }: Props) {
       }}
     >
       <p>
-        {fileName ? `Loaded: ${fileName}` : 'Drop a PDF here or click to upload'}
+        {fileName
+          ? `Loaded: ${fileName}`
+          : 'Drop a PDF here or click to upload'}
       </p>
       <input
         type="file"
