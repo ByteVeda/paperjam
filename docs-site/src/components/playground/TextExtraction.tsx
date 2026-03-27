@@ -1,13 +1,18 @@
-import React, { useState, useCallback, useMemo } from 'react';
-import type { WasmModule, TextLine, SearchMatch } from '@site/src/types/paperjam';
 import { useDocumentLoader } from '@site/src/hooks/useDocumentLoader';
-import WasmLoader from './WasmLoader';
+import type {
+  SearchMatch,
+  TextLine,
+  WasmModule,
+} from '@site/src/types/paperjam';
+import type React from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import PdfUploader from './PdfUploader';
+import styles from './playground.module.css';
 import ErrorAlert from './ui/ErrorAlert';
-import Tabs from './ui/Tabs';
 import PageSelector from './ui/PageSelector';
 import ResultPanel from './ui/ResultPanel';
-import styles from './playground.module.css';
+import Tabs from './ui/Tabs';
+import WasmLoader from './WasmLoader';
 
 const TABS = [
   { id: 'plain', label: 'Plain Text' },
@@ -20,7 +25,9 @@ function highlightText(text: string, query: string): React.ReactNode {
   const parts = text.split(new RegExp(`(${escaped})`, 'gi'));
   return parts.map((part, i) =>
     part.toLowerCase() === query.toLowerCase() ? (
-      <span key={i} className={styles.highlight}>{part}</span>
+      <span key={i} className={styles.highlight}>
+        {part}
+      </span>
     ) : (
       part
     ),
@@ -93,28 +100,50 @@ function TextExtractionInner({ wasm }: { wasm: WasmModule }) {
       {doc && (
         <>
           <div className={styles.toolbar}>
-            <PageSelector page={page} pageCount={pageCount} onChange={handlePageChange} />
+            <PageSelector
+              page={page}
+              pageCount={pageCount}
+              onChange={handlePageChange}
+            />
             <input
               type="text"
               className={styles.searchInput}
               placeholder="Search text..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              onKeyDown={(e) => { if (e.key === 'Enter') handleSearch(); }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') handleSearch();
+              }}
               aria-label="Search text"
             />
-            <button className={`${styles.btn} ${styles.btnPrimary}`} onClick={handleSearch}>
+            <button
+              type="button"
+              className={`${styles.btn} ${styles.btnPrimary}`}
+              onClick={handleSearch}
+            >
               Search All Pages
             </button>
           </div>
 
           {searchResults.length > 0 && (
             <div className={styles.searchResults}>
-              <strong>{searchResults.length} result{searchResults.length !== 1 ? 's' : ''} across all pages:</strong>
-              <div className={styles.resultPanel} style={{ maxHeight: '200px', marginTop: '0.5rem', marginBottom: '1rem' }}>
+              <strong>
+                {searchResults.length} result
+                {searchResults.length !== 1 ? 's' : ''} across all pages:
+              </strong>
+              <div
+                className={styles.resultPanel}
+                style={{
+                  maxHeight: '200px',
+                  marginTop: '0.5rem',
+                  marginBottom: '1rem',
+                }}
+              >
                 {searchResults.map((r, i) => (
                   <div key={i} style={{ marginBottom: '0.25rem' }}>
-                    <strong>Page {r.page}, Line {r.line_number}:</strong>{' '}
+                    <strong>
+                      Page {r.page}, Line {r.line_number}:
+                    </strong>{' '}
                     {highlightText(r.text, searchQuery)}
                   </div>
                 ))}
@@ -127,7 +156,9 @@ function TextExtractionInner({ wasm }: { wasm: WasmModule }) {
           {activeTab === 'plain' && (
             <ResultPanel copyText={plainText}>
               <pre style={{ margin: 0, whiteSpace: 'pre-wrap' }}>
-                {searchQuery ? highlightText(plainText, searchQuery) : plainText}
+                {searchQuery
+                  ? highlightText(plainText, searchQuery)
+                  : plainText}
               </pre>
             </ResultPanel>
           )}
@@ -140,14 +171,29 @@ function TextExtractionInner({ wasm }: { wasm: WasmModule }) {
                 <div style={{ overflowX: 'auto' }}>
                   <table className={styles.table}>
                     <thead>
-                      <tr><th>#</th><th>Text</th><th>Bounding Box</th><th>Spans</th></tr>
+                      <tr>
+                        <th>#</th>
+                        <th>Text</th>
+                        <th>Bounding Box</th>
+                        <th>Spans</th>
+                      </tr>
                     </thead>
                     <tbody>
                       {filteredLines.map((line, i) => (
                         <tr key={i}>
                           <td>{i + 1}</td>
-                          <td>{searchQuery ? highlightText(line.text, searchQuery) : line.text}</td>
-                          <td style={{ fontFamily: 'monospace', fontSize: '0.8rem', whiteSpace: 'nowrap' }}>
+                          <td>
+                            {searchQuery
+                              ? highlightText(line.text, searchQuery)
+                              : line.text}
+                          </td>
+                          <td
+                            style={{
+                              fontFamily: 'monospace',
+                              fontSize: '0.8rem',
+                              whiteSpace: 'nowrap',
+                            }}
+                          >
                             [{line.bbox.map((v) => v.toFixed(1)).join(', ')}]
                           </td>
                           <td>{line.spans?.length ?? 0}</td>
@@ -166,5 +212,7 @@ function TextExtractionInner({ wasm }: { wasm: WasmModule }) {
 }
 
 export default function TextExtraction() {
-  return <WasmLoader>{(wasm) => <TextExtractionInner wasm={wasm} />}</WasmLoader>;
+  return (
+    <WasmLoader>{(wasm) => <TextExtractionInner wasm={wasm} />}</WasmLoader>
+  );
 }

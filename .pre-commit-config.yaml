@@ -29,3 +29,21 @@ repos:
         language: system
         types: [rust]
         pass_filenames: false
+      - id: wasm-check
+        name: wasm check
+        entry: cargo check -p paperjam-wasm --target wasm32-unknown-unknown
+        language: system
+        files: ^crates/paperjam-(wasm|core)/
+        pass_filenames: false
+      - id: biome
+        name: biome
+        entry: bash -c 'cd docs-site && npx biome ci src/'
+        language: system
+        files: ^docs-site/src/
+        pass_filenames: false
+      - id: docs-typecheck
+        name: docs typecheck
+        entry: bash -c 'cd docs-site && npx tsc --noEmit'
+        language: system
+        files: ^docs-site/src/
+        pass_filenames: false

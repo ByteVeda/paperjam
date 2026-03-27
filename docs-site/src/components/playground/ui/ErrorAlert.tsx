@@ -1,4 +1,3 @@
-import React from 'react';
 import styles from '../playground.module.css';
 
 interface Props {

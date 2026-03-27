@@ -1,11 +1,11 @@
-import React, { useState, useCallback } from 'react';
-import type { WasmModule } from '@site/src/types/paperjam';
 import { useDocumentLoader } from '@site/src/hooks/useDocumentLoader';
-import WasmLoader from './WasmLoader';
+import type { WasmModule } from '@site/src/types/paperjam';
+import { useCallback, useState } from 'react';
 import PdfUploader from './PdfUploader';
+import styles from './playground.module.css';
 import ErrorAlert from './ui/ErrorAlert';
 import ResultPanel from './ui/ResultPanel';
-import styles from './playground.module.css';
+import WasmLoader from './WasmLoader';
 
 function MarkdownConversionInner({ wasm }: { wasm: WasmModule }) {
   const { doc, error, loadFile } = useDocumentLoader(wasm);
@@ -34,19 +34,35 @@ function MarkdownConversionInner({ wasm }: { wasm: WasmModule }) {
           <div className={styles.toolbar}>
             <div className={styles.checkboxGroup}>
               <label>
-                <input type="checkbox" checked={layoutAware} onChange={(e) => setLayoutAware(e.target.checked)} />
+                <input
+                  type="checkbox"
+                  checked={layoutAware}
+                  onChange={(e) => setLayoutAware(e.target.checked)}
+                />
                 Layout-aware
               </label>
               <label>
-                <input type="checkbox" checked={includePageNumbers} onChange={(e) => setIncludePageNumbers(e.target.checked)} />
+                <input
+                  type="checkbox"
+                  checked={includePageNumbers}
+                  onChange={(e) => setIncludePageNumbers(e.target.checked)}
+                />
                 Page numbers
               </label>
               <label>
-                <input type="checkbox" checked={htmlTables} onChange={(e) => setHtmlTables(e.target.checked)} />
+                <input
+                  type="checkbox"
+                  checked={htmlTables}
+                  onChange={(e) => setHtmlTables(e.target.checked)}
+                />
                 HTML tables
               </label>
             </div>
-            <button className={`${styles.btn} ${styles.btnPrimary}`} onClick={handleConvert}>
+            <button
+              type="button"
+              className={`${styles.btn} ${styles.btnPrimary}`}
+              onClick={handleConvert}
+            >
               Convert to Markdown
             </button>
           </div>
@@ -57,7 +73,9 @@ function MarkdownConversionInner({ wasm }: { wasm: WasmModule }) {
 
           {markdown && (
             <ResultPanel copyText={markdown} copyLabel="Copy Markdown">
-              <pre style={{ margin: 0, whiteSpace: 'pre-wrap' }}>{markdown}</pre>
+              <pre style={{ margin: 0, whiteSpace: 'pre-wrap' }}>
+                {markdown}
+              </pre>
             </ResultPanel>
           )}
         </>
@@ -67,5 +85,7 @@ function MarkdownConversionInner({ wasm }: { wasm: WasmModule }) {
 }
 
 export default function MarkdownConversion() {
-  return <WasmLoader>{(wasm) => <MarkdownConversionInner wasm={wasm} />}</WasmLoader>;
+  return (
+    <WasmLoader>{(wasm) => <MarkdownConversionInner wasm={wasm} />}</WasmLoader>
+  );
 }

@@ -5,7 +5,9 @@
   text-align: center;
   cursor: pointer;
   position: relative;
-  transition: border-color 0.2s, background-color 0.2s;
+  transition:
+    border-color 0.2s,
+    background-color 0.2s;
   margin-bottom: 1.5rem;
 }
 
@@ -20,7 +22,7 @@
   border-style: solid;
 }
 
-[data-theme='dark'] .dropZoneActive {
+[data-theme="dark"] .dropZoneActive {
   background-color: rgba(255, 107, 74, 0.1);
 }
 
@@ -57,7 +59,9 @@
   color: var(--ifm-color-emphasis-600);
   border-bottom: 2px solid transparent;
   margin-bottom: -2px;
-  transition: color 0.2s, border-color 0.2s;
+  transition:
+    color 0.2s,
+    border-color 0.2s;
 }
 
 .tab:hover {
@@ -95,7 +99,9 @@
   color: var(--ifm-font-color-base);
   font-size: 0.875rem;
   cursor: pointer;
-  transition: background-color 0.15s, border-color 0.15s;
+  transition:
+    background-color 0.15s,
+    border-color 0.15s;
 }
 
 .btn:hover {
@@ -211,7 +217,7 @@
   padding: 0 1px;
 }
 
-[data-theme='dark'] .highlight {
+[data-theme="dark"] .highlight {
   background-color: rgba(255, 200, 0, 0.25);
 }
 
@@ -266,7 +272,7 @@
   color: var(--ifm-color-primary-darkest);
 }
 
-[data-theme='dark'] .structureBadgeHeading {
+[data-theme="dark"] .structureBadgeHeading {
   background: rgba(255, 107, 74, 0.15);
   color: var(--ifm-color-primary-lighter);
 }
@@ -345,7 +351,7 @@
   font-size: 0.9rem;
 }
 
-[data-theme='dark'] .errorAlert {
+[data-theme="dark"] .errorAlert {
   background: rgba(220, 38, 38, 0.15);
   color: #fca5a5;
 }
@@ -394,7 +400,9 @@
   color: var(--ifm-color-primary);
   font-size: 0.875rem;
   cursor: pointer;
-  transition: background-color 0.15s, color 0.15s;
+  transition:
+    background-color 0.15s,
+    color 0.15s;
 }
 
 .downloadBtn:hover {

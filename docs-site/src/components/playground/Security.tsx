@@ -1,11 +1,15 @@
-import React, { useState, useCallback } from 'react';
-import type { WasmModule, SanitizeResult, RedactResult } from '@site/src/types/paperjam';
 import { useDocumentLoader } from '@site/src/hooks/useDocumentLoader';
-import WasmLoader from './WasmLoader';
+import type {
+  RedactResult,
+  SanitizeResult,
+  WasmModule,
+} from '@site/src/types/paperjam';
+import { useCallback, useState } from 'react';
 import PdfUploader from './PdfUploader';
+import styles from './playground.module.css';
 import ErrorAlert from './ui/ErrorAlert';
 import Tabs from './ui/Tabs';
-import styles from './playground.module.css';
+import WasmLoader from './WasmLoader';
 
 const TABS = [
   { id: 'sanitize', label: 'Sanitize' },
@@ -32,7 +36,9 @@ function SecurityInner({ wasm }: { wasm: WasmModule }) {
   const [removeFiles, setRemoveFiles] = useState(true);
   const [removeActions, setRemoveActions] = useState(true);
   const [removeLinks, setRemoveLinks] = useState(false);
-  const [sanitizeResult, setSanitizeResult] = useState<SanitizeResult | null>(null);
+  const [sanitizeResult, setSanitizeResult] = useState<SanitizeResult | null>(
+    null,
+  );
   const [sanitizeBytes, setSanitizeBytes] = useState<Uint8Array | null>(null);
   const [sanitizeError, setSanitizeError] = useState<string | null>(null);
 
@@ -68,7 +74,12 @@ function SecurityInner({ wasm }: { wasm: WasmModule }) {
     if (!doc) return;
     setSanitizeError(null);
     try {
-      const output = doc.sanitize(removeJs, removeFiles, removeActions, removeLinks);
+      const output = doc.sanitize(
+        removeJs,
+        removeFiles,
+        removeActions,
+        removeLinks,
+      );
       setSanitizeResult(output.result);
       setSanitizeBytes(output.doc_bytes);
     } catch (e) {
@@ -116,26 +127,49 @@ function SecurityInner({ wasm }: { wasm: WasmModule }) {
 
           {activeTab === 'sanitize' && (
             <>
-              <div className={styles.checkboxGroup} style={{ marginBottom: '1rem' }}>
+              <div
+                className={styles.checkboxGroup}
+                style={{ marginBottom: '1rem' }}
+              >
                 <label>
-                  <input type="checkbox" checked={removeJs} onChange={(e) => setRemoveJs(e.target.checked)} />
+                  <input
+                    type="checkbox"
+                    checked={removeJs}
+                    onChange={(e) => setRemoveJs(e.target.checked)}
+                  />
                   Remove JavaScript
                 </label>
                 <label>
-                  <input type="checkbox" checked={removeFiles} onChange={(e) => setRemoveFiles(e.target.checked)} />
+                  <input
+                    type="checkbox"
+                    checked={removeFiles}
+                    onChange={(e) => setRemoveFiles(e.target.checked)}
+                  />
                   Remove Embedded Files
                 </label>
                 <label>
-                  <input type="checkbox" checked={removeActions} onChange={(e) => setRemoveActions(e.target.checked)} />
+                  <input
+                    type="checkbox"
+                    checked={removeActions}
+                    onChange={(e) => setRemoveActions(e.target.checked)}
+                  />
                   Remove Actions
                 </label>
                 <label>
-                  <input type="checkbox" checked={removeLinks} onChange={(e) => setRemoveLinks(e.target.checked)} />
+                  <input
+                    type="checkbox"
+                    checked={removeLinks}
+                    onChange={(e) => setRemoveLinks(e.target.checked)}
+                  />
                   Remove Links
                 </label>
               </div>
               <div className={styles.toolbar}>
-                <button className={`${styles.btn} ${styles.btnPrimary}`} onClick={handleSanitize}>
+                <button
+                  type="button"
+                  className={`${styles.btn} ${styles.btnPrimary}`}
+                  onClick={handleSanitize}
+                >
                   Sanitize PDF
                 </button>
               </div>
@@ -144,10 +178,12 @@ function SecurityInner({ wasm }: { wasm: WasmModule }) {
                 <>
                   <div className={styles.layoutInfo}>
                     <div className={styles.statCard}>
-                      JavaScript <strong>{sanitizeResult.javascript_removed}</strong>
+                      JavaScript{' '}
+                      <strong>{sanitizeResult.javascript_removed}</strong>
                     </div>
                     <div className={styles.statCard}>
-                      Embedded Files <strong>{sanitizeResult.embedded_files_removed}</strong>
+                      Embedded Files{' '}
+                      <strong>{sanitizeResult.embedded_files_removed}</strong>
                     </div>
                     <div className={styles.statCard}>
                       Actions <strong>{sanitizeResult.actions_removed}</strong>
@@ -158,8 +194,11 @@ function SecurityInner({ wasm }: { wasm: WasmModule }) {
                   </div>
                   {sanitizeBytes && (
                     <button
+                      type="button"
                       className={styles.downloadBtn}
-                      onClick={() => downloadPdf(sanitizeBytes, `${baseName}_sanitized.pdf`)}
+                      onClick={() =>
+                        downloadPdf(sanitizeBytes, `${baseName}_sanitized.pdf`)
+                      }
                     >
                       Download Sanitized PDF
                     </button>
@@ -178,7 +217,9 @@ function SecurityInner({ wasm }: { wasm: WasmModule }) {
                   placeholder="Text to redact..."
                   value={redactQuery}
                   onChange={(e) => setRedactQuery(e.target.value)}
-                  onKeyDown={(e) => { if (e.key === 'Enter') handleRedact(); }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') handleRedact();
+                  }}
                   aria-label="Redact query"
                 />
                 <div className={styles.checkboxGroup}>
@@ -191,7 +232,11 @@ function SecurityInner({ wasm }: { wasm: WasmModule }) {
                     Case sensitive
                   </label>
                 </div>
-                <button className={`${styles.btn} ${styles.btnPrimary}`} onClick={handleRedact}>
+                <button
+                  type="button"
+                  className={`${styles.btn} ${styles.btnPrimary}`}
+                  onClick={handleRedact}
+                >
                   Redact
                 </button>
               </div>
@@ -200,14 +245,19 @@ function SecurityInner({ wasm }: { wasm: WasmModule }) {
                 <>
                   <div className={styles.layoutInfo}>
                     <div className={styles.statCard}>
-                      Pages Modified <strong>{redactResult.pages_modified}</strong>
+                      Pages Modified{' '}
+                      <strong>{redactResult.pages_modified}</strong>
                     </div>
                     <div className={styles.statCard}>
-                      Items Redacted <strong>{redactResult.items_redacted}</strong>
+                      Items Redacted{' '}
+                      <strong>{redactResult.items_redacted}</strong>
                     </div>
                   </div>
                   {redactResult.items.length > 0 && (
-                    <div className={styles.resultPanel} style={{ maxHeight: '300px', marginBottom: '1rem' }}>
+                    <div
+                      className={styles.resultPanel}
+                      style={{ maxHeight: '300px', marginBottom: '1rem' }}
+                    >
                       {redactResult.items.map((item, i) => (
                         <div key={i} style={{ marginBottom: '0.25rem' }}>
                           <strong>Page {item.page}:</strong> {item.text}
@@ -217,8 +267,11 @@ function SecurityInner({ wasm }: { wasm: WasmModule }) {
                   )}
                   {redactBytes && (
                     <button
+                      type="button"
                       className={styles.downloadBtn}
-                      onClick={() => downloadPdf(redactBytes, `${baseName}_redacted.pdf`)}
+                      onClick={() =>
+                        downloadPdf(redactBytes, `${baseName}_redacted.pdf`)
+                      }
                     >
                       Download Redacted PDF
                     </button>
@@ -230,9 +283,24 @@ function SecurityInner({ wasm }: { wasm: WasmModule }) {
 
           {activeTab === 'encrypt' && (
             <>
-              <div className={styles.toolbar} style={{ flexDirection: 'column', alignItems: 'flex-start', gap: '0.5rem' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                  <label style={{ fontSize: '0.9rem', minWidth: '120px' }}>User Password</label>
+              <div
+                className={styles.toolbar}
+                style={{
+                  flexDirection: 'column',
+                  alignItems: 'flex-start',
+                  gap: '0.5rem',
+                }}
+              >
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.75rem',
+                  }}
+                >
+                  <label style={{ fontSize: '0.9rem', minWidth: '120px' }}>
+                    User Password
+                  </label>
                   <input
                     type="password"
                     className={styles.passwordInput}
@@ -242,8 +310,16 @@ function SecurityInner({ wasm }: { wasm: WasmModule }) {
                     aria-label="User password"
                   />
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                  <label style={{ fontSize: '0.9rem', minWidth: '120px' }}>Owner Password</label>
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.75rem',
+                  }}
+                >
+                  <label style={{ fontSize: '0.9rem', minWidth: '120px' }}>
+                    Owner Password
+                  </label>
                   <input
                     type="password"
                     className={styles.passwordInput}
@@ -256,6 +332,7 @@ function SecurityInner({ wasm }: { wasm: WasmModule }) {
               </div>
               <div className={styles.toolbar}>
                 <button
+                  type="button"
                   className={`${styles.btn} ${styles.btnPrimary}`}
                   onClick={handleEncrypt}
                   disabled={!userPassword.trim()}
@@ -266,8 +343,11 @@ function SecurityInner({ wasm }: { wasm: WasmModule }) {
               <ErrorAlert error={encryptError} />
               {encryptBytes && (
                 <button
+                  type="button"
                   className={styles.downloadBtn}
-                  onClick={() => downloadPdf(encryptBytes, `${baseName}_encrypted.pdf`)}
+                  onClick={() =>
+                    downloadPdf(encryptBytes, `${baseName}_encrypted.pdf`)
+                  }
                 >
                   Download Encrypted PDF
                 </button>

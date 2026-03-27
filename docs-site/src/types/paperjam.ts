@@ -22,7 +22,12 @@ export interface WasmDocument {
   searchText(query: string, caseSensitive?: boolean): SearchMatch[];
   saveBytes(): Uint8Array;
   split(ranges: [number, number][]): Uint8Array[];
-  sanitize(removeJs?: boolean, removeFiles?: boolean, removeActions?: boolean, removeLinks?: boolean): SanitizeOutput;
+  sanitize(
+    removeJs?: boolean,
+    removeFiles?: boolean,
+    removeActions?: boolean,
+    removeLinks?: boolean,
+  ): SanitizeOutput;
   redactText(query: string, caseSensitive?: boolean): RedactOutput;
   encrypt(userPassword: string, ownerPassword?: string): Uint8Array;
   analyzeLayout(pageNumber: number): LayoutResult;

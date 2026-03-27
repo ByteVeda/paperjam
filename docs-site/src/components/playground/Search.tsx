@@ -1,12 +1,17 @@
-import React, { useState, useCallback, useMemo } from 'react';
-import type { WasmModule, SearchMatch } from '@site/src/types/paperjam';
 import { useDocumentLoader } from '@site/src/hooks/useDocumentLoader';
-import WasmLoader from './WasmLoader';
+import type { SearchMatch, WasmModule } from '@site/src/types/paperjam';
+import type React from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import PdfUploader from './PdfUploader';
-import ErrorAlert from './ui/ErrorAlert';
 import styles from './playground.module.css';
+import ErrorAlert from './ui/ErrorAlert';
+import WasmLoader from './WasmLoader';
 
-function highlightText(text: string, query: string, caseSensitive: boolean): React.ReactNode {
+function highlightText(
+  text: string,
+  query: string,
+  caseSensitive: boolean,
+): React.ReactNode {
   if (!query) return text;
   const escaped = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   const flags = caseSensitive ? 'g' : 'gi';
@@ -16,7 +21,9 @@ function highlightText(text: string, query: string, caseSensitive: boolean): Rea
       ? part === query
       : part.toLowerCase() === query.toLowerCase();
     return isMatch ? (
-      <span key={i} className={styles.highlight}>{part}</span>
+      <span key={i} className={styles.highlight}>
+        {part}
+      </span>
     ) : (
       part
     );
@@ -81,7 +88,9 @@ function SearchInner({ wasm }: { wasm: WasmModule }) {
               placeholder="Search text..."
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              onKeyDown={(e) => { if (e.key === 'Enter') handleSearch(); }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') handleSearch();
+              }}
               aria-label="Search query"
             />
             <div className={styles.checkboxGroup}>
@@ -94,7 +103,11 @@ function SearchInner({ wasm }: { wasm: WasmModule }) {
                 Case sensitive
               </label>
             </div>
-            <button className={`${styles.btn} ${styles.btnPrimary}`} onClick={handleSearch}>
+            <button
+              type="button"
+              className={`${styles.btn} ${styles.btnPrimary}`}
+              onClick={handleSearch}
+            >
               Search
             </button>
           </div>
@@ -103,21 +116,41 @@ function SearchInner({ wasm }: { wasm: WasmModule }) {
             <div className={styles.searchResults}>
               <strong>
                 {results.length} result{results.length !== 1 ? 's' : ''} found
-                {results.length > 0 && ` across ${groupedResults.size} page${groupedResults.size !== 1 ? 's' : ''}`}
+                {results.length > 0 &&
+                  ` across ${groupedResults.size} page${groupedResults.size !== 1 ? 's' : ''}`}
               </strong>
             </div>
           )}
 
           {results.length > 0 && (
-            <div className={styles.resultPanel} style={{ maxHeight: '600px', marginTop: '0.75rem' }}>
+            <div
+              className={styles.resultPanel}
+              style={{ maxHeight: '600px', marginTop: '0.75rem' }}
+            >
               {Array.from(groupedResults.entries()).map(([page, matches]) => (
                 <div key={page} style={{ marginBottom: '1rem' }}>
-                  <div style={{ fontWeight: 600, marginBottom: '0.25rem', fontSize: '0.9rem' }}>
-                    Page {page} ({matches.length} match{matches.length !== 1 ? 'es' : ''})
+                  <div
+                    style={{
+                      fontWeight: 600,
+                      marginBottom: '0.25rem',
+                      fontSize: '0.9rem',
+                    }}
+                  >
+                    Page {page} ({matches.length} match
+                    {matches.length !== 1 ? 'es' : ''})
                   </div>
                   {matches.map((match, i) => (
-                    <div key={i} style={{ marginBottom: '0.25rem', paddingLeft: '1rem' }}>
-                      <span style={{ color: 'var(--ifm-color-emphasis-500)', fontSize: '0.8rem', marginRight: '0.5rem' }}>
+                    <div
+                      key={i}
+                      style={{ marginBottom: '0.25rem', paddingLeft: '1rem' }}
+                    >
+                      <span
+                        style={{
+                          color: 'var(--ifm-color-emphasis-500)',
+                          fontSize: '0.8rem',
+                          marginRight: '0.5rem',
+                        }}
+                      >
                         Line {match.line_number}:
                       </span>
                       {highlightText(match.text, query, caseSensitive)}

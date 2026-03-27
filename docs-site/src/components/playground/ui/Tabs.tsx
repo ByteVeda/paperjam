@@ -1,4 +1,3 @@
-import React from 'react';
 import styles from '../playground.module.css';
 
 export interface Tab {
@@ -17,6 +16,7 @@ export default function Tabs({ tabs, active, onChange }: Props) {
     <div className={styles.tabs} role="tablist">
       {tabs.map((tab) => (
         <button
+          type="button"
           key={tab.id}
           role="tab"
           aria-selected={active === tab.id}

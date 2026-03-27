@@ -1,12 +1,16 @@
-import React, { useState, useCallback } from 'react';
-import type { WasmModule, StructureBlock, LayoutResult } from '@site/src/types/paperjam';
 import { useDocumentLoader } from '@site/src/hooks/useDocumentLoader';
-import WasmLoader from './WasmLoader';
+import type {
+  LayoutResult,
+  StructureBlock,
+  WasmModule,
+} from '@site/src/types/paperjam';
+import { useCallback, useState } from 'react';
 import PdfUploader from './PdfUploader';
-import ErrorAlert from './ui/ErrorAlert';
-import Tabs from './ui/Tabs';
-import PageSelector from './ui/PageSelector';
 import styles from './playground.module.css';
+import ErrorAlert from './ui/ErrorAlert';
+import PageSelector from './ui/PageSelector';
+import Tabs from './ui/Tabs';
+import WasmLoader from './WasmLoader';
 
 const TABS = [
   { id: 'structure', label: 'Structure' },
@@ -81,22 +85,41 @@ function StructureLayoutInner({ wasm }: { wasm: WasmModule }) {
             <>
               <ErrorAlert error={structureError} />
               {structure.length === 0 ? (
-                <div className={styles.emptyState}>No structure elements found.</div>
+                <div className={styles.emptyState}>
+                  No structure elements found.
+                </div>
               ) : (
-                <div className={styles.resultPanel} style={{ maxHeight: '600px' }}>
+                <div
+                  className={styles.resultPanel}
+                  style={{ maxHeight: '600px' }}
+                >
                   <ul className={styles.structureList}>
                     {structure.map((item, i) => {
-                      const isHeading = item.block_type.toLowerCase().includes('heading');
+                      const isHeading = item.block_type
+                        .toLowerCase()
+                        .includes('heading');
                       const indent = item.level ? (item.level - 1) * 1.25 : 0;
                       return (
-                        <li key={i} className={styles.structureItem} style={{ paddingLeft: `${indent + 0.5}rem` }}>
-                          <span className={`${styles.structureBadge} ${isHeading ? styles.structureBadgeHeading : ''}`}>
+                        <li
+                          key={i}
+                          className={styles.structureItem}
+                          style={{ paddingLeft: `${indent + 0.5}rem` }}
+                        >
+                          <span
+                            className={`${styles.structureBadge} ${isHeading ? styles.structureBadgeHeading : ''}`}
+                          >
                             {item.block_type}
                           </span>
                           <span className={styles.structureText}>
                             {item.text}
                             {item.page != null && (
-                              <span style={{ color: 'var(--ifm-color-emphasis-500)', fontSize: '0.8rem', marginLeft: '0.5rem' }}>
+                              <span
+                                style={{
+                                  color: 'var(--ifm-color-emphasis-500)',
+                                  fontSize: '0.8rem',
+                                  marginLeft: '0.5rem',
+                                }}
+                              >
                                 (p.{item.page})
                               </span>
                             )}
@@ -113,7 +136,11 @@ function StructureLayoutInner({ wasm }: { wasm: WasmModule }) {
           {activeTab === 'layout' && (
             <>
               <div className={styles.toolbar}>
-                <PageSelector page={page} pageCount={pageCount} onChange={handlePageChange} />
+                <PageSelector
+                  page={page}
+                  pageCount={pageCount}
+                  onChange={handlePageChange}
+                />
               </div>
               <ErrorAlert error={layoutError} />
               {layout && (
@@ -133,24 +160,45 @@ function StructureLayoutInner({ wasm }: { wasm: WasmModule }) {
                     </div>
                   </div>
                   {layout.num_columns > 1 && (
-                    <p style={{ fontStyle: 'italic', color: 'var(--ifm-color-primary)', marginBottom: '1rem' }}>
+                    <p
+                      style={{
+                        fontStyle: 'italic',
+                        color: 'var(--ifm-color-primary)',
+                        marginBottom: '1rem',
+                      }}
+                    >
                       {layout.num_columns}-column layout detected
                     </p>
                   )}
                   {layout.regions.length === 0 ? (
-                    <div className={styles.emptyState}>No regions detected on this page.</div>
+                    <div className={styles.emptyState}>
+                      No regions detected on this page.
+                    </div>
                   ) : (
                     layout.regions.map((region, i) => (
                       <div key={i} className={styles.regionCard}>
                         <div style={{ marginBottom: '0.25rem' }}>
                           <strong>{region.region_type}</strong>
-                          <span style={{ fontSize: '0.8rem', color: 'var(--ifm-color-emphasis-500)', marginLeft: '0.75rem' }}>
+                          <span
+                            style={{
+                              fontSize: '0.8rem',
+                              color: 'var(--ifm-color-emphasis-500)',
+                              marginLeft: '0.75rem',
+                            }}
+                          >
                             [{region.bbox.map((v) => v.toFixed(1)).join(', ')}]
                           </span>
                         </div>
                         {region.text && (
-                          <div style={{ fontSize: '0.85rem', color: 'var(--ifm-color-emphasis-700)' }}>
-                            {region.text.length > 100 ? region.text.slice(0, 100) + '...' : region.text}
+                          <div
+                            style={{
+                              fontSize: '0.85rem',
+                              color: 'var(--ifm-color-emphasis-700)',
+                            }}
+                          >
+                            {region.text.length > 100
+                              ? `${region.text.slice(0, 100)}...`
+                              : region.text}
                           </div>
                         )}
                       </div>
@@ -159,7 +207,9 @@ function StructureLayoutInner({ wasm }: { wasm: WasmModule }) {
                 </>
               )}
               {!layout && !layoutError && (
-                <div className={styles.emptyState}>Select a page to analyze its layout.</div>
+                <div className={styles.emptyState}>
+                  Select a page to analyze its layout.
+                </div>
               )}
             </>
           )}
@@ -170,5 +220,7 @@ function StructureLayoutInner({ wasm }: { wasm: WasmModule }) {
 }
 
 export default function StructureLayout() {
-  return <WasmLoader>{(wasm) => <StructureLayoutInner wasm={wasm} />}</WasmLoader>;
+  return (
+    <WasmLoader>{(wasm) => <StructureLayoutInner wasm={wasm} />}</WasmLoader>
+  );
 }

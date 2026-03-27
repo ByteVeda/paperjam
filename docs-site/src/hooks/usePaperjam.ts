@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
 import type { WasmModule } from '@site/src/types/paperjam';
+import { useEffect, useState } from 'react';
 
 let cachedModule: WasmModule | null = null;
 
