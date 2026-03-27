@@ -27,7 +27,7 @@ cms = "0.2"
 der = "0.7"
 sha2 = { version = "0.10", features = ["oid"] }
 spki = "0.7"
-sha1 = "0.10"
+sha1 = "0.11"
 rsa = "0.9"
 p256 = { version = "0.13", features = ["ecdsa"] }
 pkcs8 = "0.10"
