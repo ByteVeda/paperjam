@@ -47,8 +47,16 @@ pub fn parse_x509_info(der_bytes: &[u8]) -> Result<CertificateInfo> {
     let subject = cert.subject().to_string();
     let issuer = cert.issuer().to_string();
     let serial_number = cert.serial.to_str_radix(16);
-    let not_before = cert.validity().not_before.to_rfc2822().unwrap_or_else(|_| "unknown".to_string());
-    let not_after = cert.validity().not_after.to_rfc2822().unwrap_or_else(|_| "unknown".to_string());
+    let not_before = cert
+        .validity()
+        .not_before
+        .to_rfc2822()
+        .unwrap_or_else(|_| "unknown".to_string());
+    let not_after = cert
+        .validity()
+        .not_after
+        .to_rfc2822()
+        .unwrap_or_else(|_| "unknown".to_string());
 
     let is_self_signed = cert.subject() == cert.issuer();
 

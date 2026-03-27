@@ -118,11 +118,7 @@ fn check_encryption(doc: &lopdf::Document, issues: &mut Vec<ValidationIssue>) {
 }
 
 /// Check XMP metadata presence and PDF/A identification.
-fn check_xmp_metadata(
-    doc: &lopdf::Document,
-    level: PdfALevel,
-    issues: &mut Vec<ValidationIssue>,
-) {
+fn check_xmp_metadata(doc: &lopdf::Document, level: PdfALevel, issues: &mut Vec<ValidationIssue>) {
     let catalog = match doc.catalog() {
         Ok(c) => c,
         Err(_) => {
@@ -144,7 +140,9 @@ fn check_xmp_metadata(
             issues.push(ValidationIssue {
                 severity: Severity::Error,
                 rule: "xmp.missing".to_string(),
-                message: "Document catalog has no /Metadata entry; XMP metadata is required for PDF/A".to_string(),
+                message:
+                    "Document catalog has no /Metadata entry; XMP metadata is required for PDF/A"
+                        .to_string(),
                 page: None,
             });
             return;
@@ -300,26 +298,20 @@ fn check_font_embedding(
                     Err(_) => {
                         // Type1 base14 fonts may not need a descriptor,
                         // but PDF/A requires all fonts to be embedded
-                        let subtype = fd
-                            .get(b"Subtype")
-                            .ok()
-                            .and_then(|o| {
-                                if let Object::Name(n) = o {
-                                    Some(String::from_utf8_lossy(n).to_string())
-                                } else {
-                                    None
-                                }
-                            });
-                        let base_font = fd
-                            .get(b"BaseFont")
-                            .ok()
-                            .and_then(|o| {
-                                if let Object::Name(n) = o {
-                                    Some(String::from_utf8_lossy(n).to_string())
-                                } else {
-                                    None
-                                }
-                            });
+                        let subtype = fd.get(b"Subtype").ok().and_then(|o| {
+                            if let Object::Name(n) = o {
+                                Some(String::from_utf8_lossy(n).to_string())
+                            } else {
+                                None
+                            }
+                        });
+                        let base_font = fd.get(b"BaseFont").ok().and_then(|o| {
+                            if let Object::Name(n) = o {
+                                Some(String::from_utf8_lossy(n).to_string())
+                            } else {
+                                None
+                            }
+                        });
 
                         if subtype.as_deref() == Some("Type1") {
                             if let Some(ref name) = base_font {
@@ -387,10 +379,9 @@ fn check_output_intents(doc: &lopdf::Document, issues: &mut Vec<ValidationIssue>
         Ok(Object::Array(arr)) => {
             let has_pdfa_intent = arr.iter().any(|item| {
                 let dict = match item {
-                    Object::Reference(id) => doc
-                        .get_object(*id)
-                        .ok()
-                        .and_then(|o| o.as_dict().ok()),
+                    Object::Reference(id) => {
+                        doc.get_object(*id).ok().and_then(|o| o.as_dict().ok())
+                    }
                     Object::Dictionary(d) => Some(d),
                     _ => None,
                 };
@@ -414,10 +405,9 @@ fn check_output_intents(doc: &lopdf::Document, issues: &mut Vec<ValidationIssue>
             if let Ok(Object::Array(arr)) = doc.get_object(*id) {
                 let has_pdfa_intent = arr.iter().any(|item| {
                     let dict = match item {
-                        Object::Reference(id) => doc
-                            .get_object(*id)
-                            .ok()
-                            .and_then(|o| o.as_dict().ok()),
+                        Object::Reference(id) => {
+                            doc.get_object(*id).ok().and_then(|o| o.as_dict().ok())
+                        }
                         Object::Dictionary(d) => Some(d),
                         _ => None,
                     };
@@ -469,10 +459,7 @@ fn check_transparency(
         if let Ok(group_obj) = page_dict.get(b"Group") {
             let group_dict = match group_obj {
                 Object::Dictionary(d) => Some(d),
-                Object::Reference(id) => doc
-                    .get_object(*id)
-                    .ok()
-                    .and_then(|o| o.as_dict().ok()),
+                Object::Reference(id) => doc.get_object(*id).ok().and_then(|o| o.as_dict().ok()),
                 _ => None,
             };
             if let Some(gd) = group_dict {
@@ -496,10 +483,9 @@ fn check_transparency(
             if let Ok(gs_obj) = res.get(b"ExtGState") {
                 let gs_dict = match gs_obj {
                     Object::Dictionary(d) => Some(d),
-                    Object::Reference(id) => doc
-                        .get_object(*id)
-                        .ok()
-                        .and_then(|o| o.as_dict().ok()),
+                    Object::Reference(id) => {
+                        doc.get_object(*id).ok().and_then(|o| o.as_dict().ok())
+                    }
                     _ => None,
                 };
                 if let Some(gsd) = gs_dict {
@@ -574,10 +560,7 @@ fn check_javascript(
     if let Ok(names_obj) = catalog.get(b"Names") {
         let names_dict = match names_obj {
             Object::Dictionary(d) => Some(d),
-            Object::Reference(id) => doc
-                .get_object(*id)
-                .ok()
-                .and_then(|o| o.as_dict().ok()),
+            Object::Reference(id) => doc.get_object(*id).ok().and_then(|o| o.as_dict().ok()),
             _ => None,
         };
         if let Some(nd) = names_dict {

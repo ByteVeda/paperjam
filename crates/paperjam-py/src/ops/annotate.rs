@@ -20,8 +20,7 @@ pub fn py_add_annotation(
     url: Option<String>,
 ) -> PyResult<PyDocument> {
     let inner_clone = document.inner.inner().clone();
-    let mut doc =
-        paperjam_core::document::Document::from_lopdf(inner_clone).map_err(to_py_err)?;
+    let mut doc = paperjam_core::document::Document::from_lopdf(inner_clone).map_err(to_py_err)?;
 
     let color_arr = color.map(|c| {
         let mut arr = [0.0f64; 3];
@@ -70,18 +69,15 @@ pub fn py_remove_annotations(
     indices: Option<Vec<usize>>,
 ) -> PyResult<(PyDocument, usize)> {
     let inner_clone = document.inner.inner().clone();
-    let mut doc =
-        paperjam_core::document::Document::from_lopdf(inner_clone).map_err(to_py_err)?;
+    let mut doc = paperjam_core::document::Document::from_lopdf(inner_clone).map_err(to_py_err)?;
 
     let count = py
         .allow_threads(move || {
-            let type_refs: Option<Vec<&str>> =
-                annotation_types.as_ref().map(|v| v.iter().map(|s| s.as_str()).collect());
-            let count = doc.remove_annotations(
-                page_number,
-                type_refs.as_deref(),
-                indices.as_deref(),
-            )?;
+            let type_refs: Option<Vec<&str>> = annotation_types
+                .as_ref()
+                .map(|v| v.iter().map(|s| s.as_str()).collect());
+            let count =
+                doc.remove_annotations(page_number, type_refs.as_deref(), indices.as_deref())?;
             Ok::<_, paperjam_core::error::PdfError>((doc, count))
         })
         .map_err(to_py_err)?;

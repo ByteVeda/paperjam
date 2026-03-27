@@ -72,10 +72,13 @@ pub fn redact(doc: &Document, options: &RedactOptions) -> Result<(Document, Reda
     let mut pages_modified = 0u32;
 
     for (&page_num, page_regions) in &regions_by_page {
-        let page_id = page_map.get(&page_num).copied().ok_or(PdfError::PageOutOfRange {
-            page: page_num as usize,
-            total: page_map.len(),
-        })?;
+        let page_id = page_map
+            .get(&page_num)
+            .copied()
+            .ok_or(PdfError::PageOutOfRange {
+                page: page_num as usize,
+                total: page_map.len(),
+            })?;
 
         // Parse the page to get content bytes and fonts
         let page = Page::parse(&inner, page_num, page_id)?;
@@ -216,7 +219,13 @@ pub fn redact_text(
         ));
     }
 
-    redact(doc, &RedactOptions { regions, fill_color })
+    redact(
+        doc,
+        &RedactOptions {
+            regions,
+            fill_color,
+        },
+    )
 }
 
 /// Replace a page's /Contents with a single new content stream.

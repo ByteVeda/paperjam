@@ -6,7 +6,10 @@ pub enum PdfError {
     Io(#[from] std::io::Error),
 
     #[error("PDF parsing error: {message}")]
-    Parse { message: String, offset: Option<u64> },
+    Parse {
+        message: String,
+        offset: Option<u64>,
+    },
 
     #[error("Invalid PDF structure: {0}")]
     Structure(String),

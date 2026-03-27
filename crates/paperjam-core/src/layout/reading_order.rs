@@ -22,8 +22,15 @@ fn compute_bbox_owned(lines: &[TextLine]) -> (f64, f64, f64, f64) {
 /// A tagged line for sorting: either full-width or belonging to a column.
 #[derive(Debug)]
 enum TaggedLine {
-    FullWidth { y_top: f64, line: TextLine },
-    Column { col: usize, y_top: f64, line: TextLine },
+    FullWidth {
+        y_top: f64,
+        line: TextLine,
+    },
+    Column {
+        col: usize,
+        y_top: f64,
+        line: TextLine,
+    },
 }
 
 /// Assemble layout regions in correct reading order.

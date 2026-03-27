@@ -161,10 +161,7 @@ fn is_aligned(line: &AnalyzedLine, boundaries: &[f64]) -> bool {
     let mut aligned_count = 0;
 
     for (x_start, _, _) in &line.words {
-        if boundaries
-            .iter()
-            .any(|b| (x_start - b).abs() < tolerance)
-        {
+        if boundaries.iter().any(|b| (x_start - b).abs() < tolerance) {
             aligned_count += 1;
         }
     }

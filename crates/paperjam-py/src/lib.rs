@@ -55,7 +55,10 @@ fn _paperjam(m: &Bound<'_, PyModule>) -> PyResult<()> {
         m.add_function(wrap_pyfunction!(async_ops::py_aopen, m)?)?;
         m.add_function(wrap_pyfunction!(async_ops::py_aopen_with_password, m)?)?;
         m.add_function(wrap_pyfunction!(async_ops::py_aopen_bytes, m)?)?;
-        m.add_function(wrap_pyfunction!(async_ops::py_aopen_bytes_with_password, m)?)?;
+        m.add_function(wrap_pyfunction!(
+            async_ops::py_aopen_bytes_with_password,
+            m
+        )?)?;
         m.add_function(wrap_pyfunction!(async_ops::py_asave, m)?)?;
         m.add_function(wrap_pyfunction!(async_ops::py_asave_bytes, m)?)?;
         m.add_function(wrap_pyfunction!(async_ops::py_ato_markdown, m)?)?;

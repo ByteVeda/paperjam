@@ -333,8 +333,10 @@ fn get_page_dimensions(doc: &lopdf::Document, page_id: ObjectId) -> Result<(f64,
 
     // Try MediaBox on page, then walk up to parent
     let media_box = find_media_box(doc, page_dict)?;
-    let width = obj_to_f64(&media_box[2]).unwrap_or(612.0) - obj_to_f64(&media_box[0]).unwrap_or(0.0);
-    let height = obj_to_f64(&media_box[3]).unwrap_or(792.0) - obj_to_f64(&media_box[1]).unwrap_or(0.0);
+    let width =
+        obj_to_f64(&media_box[2]).unwrap_or(612.0) - obj_to_f64(&media_box[0]).unwrap_or(0.0);
+    let height =
+        obj_to_f64(&media_box[3]).unwrap_or(792.0) - obj_to_f64(&media_box[1]).unwrap_or(0.0);
 
     Ok((width, height))
 }
@@ -405,9 +407,7 @@ fn ensure_page_resources(doc: &mut lopdf::Document, page_id: ObjectId) -> Result
                     if let Ok(parent_dict) = parent_obj.as_dict() {
                         if let Ok(res) = parent_dict.get(b"Resources") {
                             let resolved = match res {
-                                Object::Reference(rid) => {
-                                    doc.get_object(*rid).ok().cloned()
-                                }
+                                Object::Reference(rid) => doc.get_object(*rid).ok().cloned(),
                                 other => Some(other.clone()),
                             };
                             resolved

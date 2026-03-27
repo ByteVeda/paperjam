@@ -8,10 +8,7 @@ use crate::signature::types::SignatureInfo;
 ///
 /// We work with the raw bytes because signature verification needs the
 /// original byte offsets from the ByteRange.
-pub fn extract_signatures(
-    doc: &lopdf::Document,
-    raw_bytes: &[u8],
-) -> Result<Vec<SignatureInfo>> {
+pub fn extract_signatures(doc: &lopdf::Document, raw_bytes: &[u8]) -> Result<Vec<SignatureInfo>> {
     let root_id = doc
         .trailer
         .get(b"Root")
@@ -121,10 +118,7 @@ fn collect_sig_fields(
             .ok()
             .and_then(|o| obj_to_string(o, doc));
 
-        let date = sig_dict
-            .get(b"M")
-            .ok()
-            .and_then(|o| obj_to_string(o, doc));
+        let date = sig_dict.get(b"M").ok().and_then(|o| obj_to_string(o, doc));
 
         let contact_info = sig_dict
             .get(b"ContactInfo")
@@ -141,18 +135,21 @@ fn collect_sig_fields(
 
         // Try to extract certificate from /Contents (PKCS#7 signature)
         // Trim trailing zeros from hex placeholder padding
-        let certificate = sig_dict
-            .get(b"Contents")
-            .ok()
-            .and_then(|o| match o {
-                Object::String(bytes, _) => {
-                    let trimmed: Vec<u8> = bytes.iter().copied()
-                        .rev().skip_while(|&b| b == 0).collect::<Vec<_>>()
-                        .into_iter().rev().collect();
-                    parse_certificate_info(&trimmed).ok()
-                }
-                _ => None,
-            });
+        let certificate = sig_dict.get(b"Contents").ok().and_then(|o| match o {
+            Object::String(bytes, _) => {
+                let trimmed: Vec<u8> = bytes
+                    .iter()
+                    .copied()
+                    .rev()
+                    .skip_while(|&b| b == 0)
+                    .collect::<Vec<_>>()
+                    .into_iter()
+                    .rev()
+                    .collect();
+                parse_certificate_info(&trimmed).ok()
+            }
+            _ => None,
+        });
 
         results.push(SignatureInfo {
             name,
@@ -197,7 +194,9 @@ pub fn extract_signed_bytes(raw_bytes: &[u8], byte_range: &[i64; 4]) -> Result<V
     let len2 = byte_range[3] as usize;
 
     if offset1 + len1 > raw_bytes.len() || offset2 + len2 > raw_bytes.len() {
-        return Err(PdfError::Signature("ByteRange extends beyond file".to_string()));
+        return Err(PdfError::Signature(
+            "ByteRange extends beyond file".to_string(),
+        ));
     }
 
     signed.extend_from_slice(&raw_bytes[offset1..offset1 + len1]);
@@ -210,10 +209,7 @@ fn obj_to_string(obj: &Object, doc: &lopdf::Document) -> Option<String> {
     match obj {
         Object::String(bytes, _) => Some(String::from_utf8_lossy(bytes).to_string()),
         Object::Name(name) => Some(String::from_utf8_lossy(name).to_string()),
-        Object::Reference(id) => doc
-            .get_object(*id)
-            .ok()
-            .and_then(|o| obj_to_string(o, doc)),
+        Object::Reference(id) => doc.get_object(*id).ok().and_then(|o| obj_to_string(o, doc)),
         _ => None,
     }
 }

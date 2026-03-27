@@ -82,7 +82,10 @@ pub fn diff_documents(doc_a: &Document, doc_b: &Document) -> Result<DiffResult> 
         let lines_a = page_a.text_lines()?;
         let lines_b = page_b.text_lines()?;
         let ops = diff_lines(&lines_a, &lines_b, page_num);
-        Ok(PageDiff { page: page_num, ops })
+        Ok(PageDiff {
+            page: page_num,
+            ops,
+        })
     });
     let common_diffs = crate::parallel::collect_par_results(common_results)?;
 

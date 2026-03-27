@@ -61,12 +61,13 @@ pub fn stamp_pages(
     let stamp_inner = stamp_doc.inner();
     let stamp_page_map = stamp_inner.get_pages();
 
-    let stamp_page_id = stamp_page_map
-        .get(&options.source_page)
-        .ok_or(PdfError::PageOutOfRange {
-            page: options.source_page as usize,
-            total: stamp_page_map.len(),
-        })?;
+    let stamp_page_id =
+        stamp_page_map
+            .get(&options.source_page)
+            .ok_or(PdfError::PageOutOfRange {
+                page: options.source_page as usize,
+                total: stamp_page_map.len(),
+            })?;
 
     // Get the stamp page's content stream bytes and MediaBox
     let stamp_page_obj = stamp_inner
@@ -144,9 +145,7 @@ pub fn stamp_pages(
 
     let xobj_stream = Stream::new(xobj_dict, stamp_content_bytes);
     let xobj_id = new_doc.new_object_id();
-    new_doc
-        .objects
-        .insert(xobj_id, Object::Stream(xobj_stream));
+    new_doc.objects.insert(xobj_id, Object::Stream(xobj_stream));
 
     // Create ExtGState for opacity if needed
     let gs_id = if options.opacity < 1.0 {
@@ -281,19 +280,12 @@ pub fn stamp_pages(
 }
 
 /// Collect the content stream bytes from a page.
-fn collect_content_stream(
-    doc: &lopdf::Document,
-    page_dict: &lopdf::Dictionary,
-) -> Result<Vec<u8>> {
+fn collect_content_stream(doc: &lopdf::Document, page_dict: &lopdf::Dictionary) -> Result<Vec<u8>> {
     match page_dict.get(b"Contents") {
-        Ok(Object::Reference(id)) => {
-            match doc.get_object(*id) {
-                Ok(Object::Stream(stream)) => {
-                    Ok(stream.content.clone())
-                }
-                _ => Ok(Vec::new()),
-            }
-        }
+        Ok(Object::Reference(id)) => match doc.get_object(*id) {
+            Ok(Object::Stream(stream)) => Ok(stream.content.clone()),
+            _ => Ok(Vec::new()),
+        },
         Ok(Object::Array(arr)) => {
             let mut bytes = Vec::new();
             for item in arr {
@@ -353,10 +345,7 @@ fn get_resolved_resources(
 }
 
 /// Remap references using an explicit ID map.
-fn remap_refs_with_map(
-    object: &mut Object,
-    map: &std::collections::BTreeMap<ObjectId, ObjectId>,
-) {
+fn remap_refs_with_map(object: &mut Object, map: &std::collections::BTreeMap<ObjectId, ObjectId>) {
     match object {
         Object::Reference(id) => {
             if let Some(new_id) = map.get(id) {
@@ -418,9 +407,7 @@ fn ensure_page_resources(doc: &mut lopdf::Document, page_id: ObjectId) -> Result
                     if let Ok(parent_dict) = parent_obj.as_dict() {
                         if let Ok(res) = parent_dict.get(b"Resources") {
                             match res {
-                                Object::Reference(rid) => {
-                                    doc.get_object(*rid).ok().cloned()
-                                }
+                                Object::Reference(rid) => doc.get_object(*rid).ok().cloned(),
                                 other => Some(other.clone()),
                             }
                         } else {

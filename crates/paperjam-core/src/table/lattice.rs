@@ -31,9 +31,7 @@ pub fn extract_lattice_tables(page: &Page, options: &TableExtractionOptions) -> 
     let mut tables = Vec::new();
 
     for region in table_regions {
-        if let Some(table) =
-            super::grid::build_from_intersections(&region, &text_spans, options)?
-        {
+        if let Some(table) = super::grid::build_from_intersections(&region, &text_spans, options)? {
             if table.row_count() >= options.min_rows && table.col_count >= options.min_cols {
                 tables.push(table);
             }
@@ -92,10 +90,30 @@ fn extract_line_segments(page: &Page) -> Result<Vec<LineSegment>> {
             }
             ContentOperator::Rectangle { x, y, w, h } => {
                 // Rectangle = 4 line segments
-                path_segments.push(LineSegment { x1: *x, y1: *y, x2: x + w, y2: *y });
-                path_segments.push(LineSegment { x1: x + w, y1: *y, x2: x + w, y2: y + h });
-                path_segments.push(LineSegment { x1: x + w, y1: y + h, x2: *x, y2: y + h });
-                path_segments.push(LineSegment { x1: *x, y1: y + h, x2: *x, y2: *y });
+                path_segments.push(LineSegment {
+                    x1: *x,
+                    y1: *y,
+                    x2: x + w,
+                    y2: *y,
+                });
+                path_segments.push(LineSegment {
+                    x1: x + w,
+                    y1: *y,
+                    x2: x + w,
+                    y2: y + h,
+                });
+                path_segments.push(LineSegment {
+                    x1: x + w,
+                    y1: y + h,
+                    x2: *x,
+                    y2: y + h,
+                });
+                path_segments.push(LineSegment {
+                    x1: *x,
+                    y1: y + h,
+                    x2: *x,
+                    y2: *y,
+                });
             }
             ContentOperator::ClosePath => {
                 if (current_x - path_start_x).abs() > 0.01
@@ -111,7 +129,10 @@ fn extract_line_segments(page: &Page) -> Result<Vec<LineSegment>> {
                 current_x = path_start_x;
                 current_y = path_start_y;
             }
-            ContentOperator::Stroke | ContentOperator::CloseAndStroke | ContentOperator::Fill | ContentOperator::FillEvenOdd => {
+            ContentOperator::Stroke
+            | ContentOperator::CloseAndStroke
+            | ContentOperator::Fill
+            | ContentOperator::FillEvenOdd => {
                 segments.append(&mut path_segments);
             }
             _ => {}
@@ -145,7 +166,11 @@ fn find_intersections(
     }
 
     // Deduplicate
-    points.sort_by(|a, b| a.0.partial_cmp(&b.0).unwrap().then(a.1.partial_cmp(&b.1).unwrap()));
+    points.sort_by(|a, b| {
+        a.0.partial_cmp(&b.0)
+            .unwrap()
+            .then(a.1.partial_cmp(&b.1).unwrap())
+    });
     points.dedup_by(|a, b| (a.0 - b.0).abs() < snap && (a.1 - b.1).abs() < snap);
 
     points
@@ -155,10 +180,7 @@ fn snap_value(v: f64, snap: f64) -> f64 {
     (v / snap).round() * snap
 }
 
-fn cluster_into_tables(
-    intersections: &[(f64, f64)],
-    snap: f64,
-) -> Vec<Vec<(f64, f64)>> {
+fn cluster_into_tables(intersections: &[(f64, f64)], snap: f64) -> Vec<Vec<(f64, f64)>> {
     if intersections.is_empty() {
         return vec![];
     }

@@ -50,7 +50,9 @@ pub fn split(doc: &Document, ranges: &[(u32, u32)]) -> Result<Vec<Document>> {
             "Kids" => kids,
             "Count" => Object::Integer(wanted_page_ids.len() as i64),
         };
-        new_doc.objects.insert(pages_root_id, Object::Dictionary(pages_dict));
+        new_doc
+            .objects
+            .insert(pages_root_id, Object::Dictionary(pages_dict));
 
         // Update Parent references in each page to point to the new Pages root
         for &page_id in &wanted_page_ids {
@@ -67,16 +69,13 @@ pub fn split(doc: &Document, ranges: &[(u32, u32)]) -> Result<Vec<Document>> {
             "Type" => "Catalog",
             "Pages" => Object::Reference(pages_root_id),
         };
-        new_doc.objects.insert(catalog_id, Object::Dictionary(catalog));
+        new_doc
+            .objects
+            .insert(catalog_id, Object::Dictionary(catalog));
 
         // Set up the trailer
         new_doc.trailer.set("Root", Object::Reference(catalog_id));
-        new_doc.max_id = new_doc
-            .objects
-            .keys()
-            .map(|id| id.0)
-            .max()
-            .unwrap_or(0);
+        new_doc.max_id = new_doc.objects.keys().map(|id| id.0).max().unwrap_or(0);
 
         new_doc.renumber_objects();
         new_doc.adjust_zero_pages();

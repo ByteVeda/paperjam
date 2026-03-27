@@ -267,7 +267,8 @@ fn detect_list_marker(text: &str) -> bool {
         || trimmed.starts_with("\u{25E6} ")  // white bullet
         || trimmed.starts_with("\u{2043} ")  // hyphen bullet
         || trimmed.starts_with("\u{2013} ")  // en dash
-        || trimmed.starts_with("\u{2014} ")  // em dash
+        || trimmed.starts_with("\u{2014} ")
+    // em dash
     {
         return true;
     }
@@ -358,16 +359,8 @@ fn classify_line(
 }
 
 /// Merge a bounding box with another.
-fn union_bbox(
-    a: (f64, f64, f64, f64),
-    b: (f64, f64, f64, f64),
-) -> (f64, f64, f64, f64) {
-    (
-        a.0.min(b.0),
-        a.1.min(b.1),
-        a.2.max(b.2),
-        a.3.max(b.3),
-    )
+fn union_bbox(a: (f64, f64, f64, f64), b: (f64, f64, f64, f64)) -> (f64, f64, f64, f64) {
+    (a.0.min(b.0), a.1.min(b.1), a.2.max(b.2), a.3.max(b.3))
 }
 
 /// Group classified lines into content blocks.

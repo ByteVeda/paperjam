@@ -44,21 +44,15 @@ pub fn set_metadata(doc: &Document, update: &MetadataUpdate) -> Result<Document>
 
     // Get or create the /Info dictionary
     let info_id = if let Ok(info_ref) = new_doc.trailer.get(b"Info") {
-        info_ref
-            .as_reference()
-            .map_err(PdfError::Lopdf)?
+        info_ref.as_reference().map_err(PdfError::Lopdf)?
     } else {
         let id = new_doc.add_object(Object::Dictionary(lopdf::Dictionary::new()));
         new_doc.trailer.set("Info", Object::Reference(id));
         id
     };
 
-    let info_obj = new_doc
-        .get_object_mut(info_id)
-        .map_err(PdfError::Lopdf)?;
-    let info_dict = info_obj
-        .as_dict_mut()
-        .map_err(PdfError::Lopdf)?;
+    let info_obj = new_doc.get_object_mut(info_id).map_err(PdfError::Lopdf)?;
+    let info_dict = info_obj.as_dict_mut().map_err(PdfError::Lopdf)?;
 
     apply_field(info_dict, b"Title", &update.title);
     apply_field(info_dict, b"Author", &update.author);

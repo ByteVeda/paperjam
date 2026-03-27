@@ -85,9 +85,9 @@ pub fn optimize(doc: &Document, options: &OptimizeOptions) -> Result<(Document, 
     let optimized_size = {
         let mut buf = Vec::new();
         let mut measure_clone = inner.clone();
-        measure_clone.save_to(&mut buf).map_err(|e| {
-            PdfError::Structure(format!("Failed to measure optimized size: {}", e))
-        })?;
+        measure_clone
+            .save_to(&mut buf)
+            .map_err(|e| PdfError::Structure(format!("Failed to measure optimized size: {}", e)))?;
         buf.len()
     };
 
@@ -203,7 +203,10 @@ fn remove_duplicates(doc: &mut lopdf::Document) -> usize {
 }
 
 /// Recursively rewrite object references according to a remap table.
-fn rewrite_refs(obj: &mut Object, remap: &std::collections::HashMap<lopdf::ObjectId, lopdf::ObjectId>) {
+fn rewrite_refs(
+    obj: &mut Object,
+    remap: &std::collections::HashMap<lopdf::ObjectId, lopdf::ObjectId>,
+) {
     match obj {
         Object::Reference(id) => {
             if let Some(&new_id) = remap.get(id) {

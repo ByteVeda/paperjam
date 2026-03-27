@@ -36,7 +36,10 @@ pub fn rotate_pages(doc: &mut Document, page_rotations: &[(u32, Rotation)]) -> R
             .map_err(|_| PdfError::ObjectNotFound(object_id.0, object_id.1))?;
 
         if let Ok(dict) = page_obj.as_dict_mut() {
-            dict.set("Rotate", lopdf::Object::Integer(rotation.as_degrees() as i64));
+            dict.set(
+                "Rotate",
+                lopdf::Object::Integer(rotation.as_degrees() as i64),
+            );
         }
     }
 

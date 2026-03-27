@@ -122,9 +122,7 @@ pub fn analyze_layout(page: &Page, options: &LayoutOptions) -> Result<PageLayout
     };
 
     // Step 2: Detect columns from body lines
-    let extents = columns::extract_extents(
-        &body.iter().map(|l| (*l).clone()).collect::<Vec<_>>(),
-    );
+    let extents = columns::extract_extents(&body.iter().map(|l| (*l).clone()).collect::<Vec<_>>());
     let profile = columns::build_x_projection(&extents, page.width, 1.0);
     let gutters = columns::find_gutters(
         &profile,

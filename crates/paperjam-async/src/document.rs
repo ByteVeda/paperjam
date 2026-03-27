@@ -6,7 +6,7 @@ use paperjam_core::error::{PdfError, Result};
 use paperjam_core::manipulation::MergeOptions;
 use paperjam_core::markdown::MarkdownOptions;
 use paperjam_core::redact::RedactResult;
-use paperjam_core::render::{RenderedImage, RenderOptions};
+use paperjam_core::render::{RenderOptions, RenderedImage};
 
 use crate::join_err;
 
@@ -48,10 +48,7 @@ pub async fn save_bytes(doc: Arc<Document>) -> Result<Vec<u8>> {
     tokio::task::spawn_blocking(move || {
         let mut inner = doc.inner().clone();
         let mut buf = Vec::new();
-        inner
-            .save_to(&mut buf)
-            .map(|_| buf)
-            .map_err(PdfError::from)
+        inner.save_to(&mut buf).map(|_| buf).map_err(PdfError::from)
     })
     .await
     .map_err(join_err)?
@@ -65,10 +62,7 @@ pub async fn to_markdown(doc: Arc<Document>, options: MarkdownOptions) -> Result
     .map_err(join_err)?
 }
 
-pub async fn diff_documents(
-    doc_a: Arc<Document>,
-    doc_b: Arc<Document>,
-) -> Result<DiffResult> {
+pub async fn diff_documents(doc_a: Arc<Document>, doc_b: Arc<Document>) -> Result<DiffResult> {
     tokio::task::spawn_blocking(move || paperjam_core::diff::diff_documents(&doc_a, &doc_b))
         .await
         .map_err(join_err)?
@@ -88,10 +82,7 @@ pub async fn redact_text(
     .map_err(join_err)?
 }
 
-pub async fn merge(
-    documents: Vec<Document>,
-    options: MergeOptions,
-) -> Result<Document> {
+pub async fn merge(documents: Vec<Document>, options: MergeOptions) -> Result<Document> {
     tokio::task::spawn_blocking(move || paperjam_core::manipulation::merge(documents, &options))
         .await
         .map_err(join_err)?

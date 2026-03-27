@@ -180,13 +180,12 @@ fn compute_pixel_diff(
             }
 
             let r_diff = (rgba_a[idx_a] as i16 - rgba_b[idx_b] as i16).unsigned_abs() as u8;
-            let g_diff =
-                (rgba_a[idx_a + 1] as i16 - rgba_b[idx_b + 1] as i16).unsigned_abs() as u8;
-            let b_diff =
-                (rgba_a[idx_a + 2] as i16 - rgba_b[idx_b + 2] as i16).unsigned_abs() as u8;
+            let g_diff = (rgba_a[idx_a + 1] as i16 - rgba_b[idx_b + 1] as i16).unsigned_abs() as u8;
+            let b_diff = (rgba_a[idx_a + 2] as i16 - rgba_b[idx_b + 2] as i16).unsigned_abs() as u8;
 
-            let is_changed =
-                r_diff > options.threshold || g_diff > options.threshold || b_diff > options.threshold;
+            let is_changed = r_diff > options.threshold
+                || g_diff > options.threshold
+                || b_diff > options.threshold;
 
             if is_changed {
                 diff_pixels.extend_from_slice(&options.highlight_color);

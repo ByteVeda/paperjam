@@ -60,12 +60,7 @@ pub fn set_bookmarks(doc: &Document, bookmarks: &[BookmarkSpec]) -> Result<Docum
     // Build the outline tree
     let outlines_id = new_doc.new_object_id();
 
-    let child_ids = build_outline_children(
-        &mut new_doc,
-        bookmarks,
-        outlines_id,
-        &page_map,
-    )?;
+    let child_ids = build_outline_children(&mut new_doc, bookmarks, outlines_id, &page_map)?;
 
     let total_count = count_all_items(bookmarks);
 
@@ -81,7 +76,9 @@ pub fn set_bookmarks(doc: &Document, bookmarks: &[BookmarkSpec]) -> Result<Docum
         outlines_dict.set("Last", Object::Reference(*last));
     }
 
-    new_doc.objects.insert(outlines_id, Object::Dictionary(outlines_dict));
+    new_doc
+        .objects
+        .insert(outlines_id, Object::Dictionary(outlines_dict));
 
     // Add /Outlines to catalog
     if let Ok(catalog) = new_doc.catalog_mut() {
@@ -92,10 +89,7 @@ pub fn set_bookmarks(doc: &Document, bookmarks: &[BookmarkSpec]) -> Result<Docum
 }
 
 /// Validate that all page numbers in the bookmark tree are within range.
-fn validate_bookmark_pages(
-    spec: &BookmarkSpec,
-    page_map: &BTreeMap<u32, ObjectId>,
-) -> Result<()> {
+fn validate_bookmark_pages(spec: &BookmarkSpec, page_map: &BTreeMap<u32, ObjectId>) -> Result<()> {
     if !page_map.contains_key(&spec.page) {
         return Err(PdfError::PageOutOfRange {
             page: spec.page as usize,
@@ -205,7 +199,7 @@ fn build_outline_children(
 
 /// Count the total number of items in a bookmark tree (including nested children).
 fn count_all_items(specs: &[BookmarkSpec]) -> usize {
-    specs.iter().fold(0, |acc, s| {
-        acc + 1 + count_all_items(&s.children)
-    })
+    specs
+        .iter()
+        .fold(0, |acc, s| acc + 1 + count_all_items(&s.children))
 }

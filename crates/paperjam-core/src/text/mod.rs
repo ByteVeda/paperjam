@@ -7,7 +7,7 @@ pub mod operators;
 use crate::error::Result;
 use crate::text::font::FontInfo;
 use crate::text::layout::TextSpan;
-use crate::text::operators::{parse_content_stream, ContentOperator, TextState, TJElement};
+use crate::text::operators::{parse_content_stream, ContentOperator, TJElement, TextState};
 
 /// Extract positioned text spans from a content stream using the provided fonts.
 pub fn extract_spans(content_bytes: &[u8], fonts: &[FontInfo]) -> Result<Vec<TextSpan>> {
@@ -67,31 +67,20 @@ pub fn extract_spans(content_bytes: &[u8], fonts: &[FontInfo]) -> Result<Vec<Tex
                 text_state.text_matrix = new_lm;
             }
             ContentOperator::ShowText { bytes } => {
-                process_show_text(
-                    bytes,
-                    &mut text_state,
-                    &ctm,
-                    fonts,
-                    &mut spans,
-                );
+                process_show_text(bytes, &mut text_state, &ctm, fonts, &mut spans);
             }
             ContentOperator::ShowTextArray { elements } => {
                 for elem in elements {
                     match elem {
                         TJElement::Text(bytes) => {
-                            process_show_text(
-                                bytes,
-                                &mut text_state,
-                                &ctm,
-                                fonts,
-                                &mut spans,
-                            );
+                            process_show_text(bytes, &mut text_state, &ctm, fonts, &mut spans);
                         }
                         TJElement::Offset(offset) => {
                             // Offset is in thousandths of a unit of text space.
                             // Negative = move right, positive = move left.
-                            let displacement =
-                                -offset / 1000.0 * text_state.font_size * text_state.horizontal_scaling;
+                            let displacement = -offset / 1000.0
+                                * text_state.font_size
+                                * text_state.horizontal_scaling;
                             text_state.text_matrix[4] += displacement * text_state.text_matrix[0];
                             text_state.text_matrix[5] += displacement * text_state.text_matrix[1];
                         }
