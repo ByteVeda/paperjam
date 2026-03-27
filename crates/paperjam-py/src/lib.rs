@@ -1,5 +1,7 @@
 use pyo3::prelude::*;
 
+#[cfg(feature = "async")]
+mod async_ops;
 mod convert;
 mod document;
 mod errors;
@@ -47,6 +49,26 @@ fn _paperjam(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(ops::py_stamp_pages, m)?)?;
     m.add_function(wrap_pyfunction!(ops::py_visual_diff, m)?)?;
     m.add_function(wrap_pyfunction!(ops::py_validate_pdf_a, m)?)?;
+
+    #[cfg(feature = "async")]
+    {
+        m.add_function(wrap_pyfunction!(async_ops::py_aopen, m)?)?;
+        m.add_function(wrap_pyfunction!(async_ops::py_aopen_with_password, m)?)?;
+        m.add_function(wrap_pyfunction!(async_ops::py_aopen_bytes, m)?)?;
+        m.add_function(wrap_pyfunction!(async_ops::py_aopen_bytes_with_password, m)?)?;
+        m.add_function(wrap_pyfunction!(async_ops::py_asave, m)?)?;
+        m.add_function(wrap_pyfunction!(async_ops::py_asave_bytes, m)?)?;
+        m.add_function(wrap_pyfunction!(async_ops::py_ato_markdown, m)?)?;
+        m.add_function(wrap_pyfunction!(async_ops::py_arender_page, m)?)?;
+        m.add_function(wrap_pyfunction!(async_ops::py_arender_pages, m)?)?;
+        m.add_function(wrap_pyfunction!(async_ops::py_arender_file, m)?)?;
+        m.add_function(wrap_pyfunction!(async_ops::py_adiff_documents, m)?)?;
+        m.add_function(wrap_pyfunction!(async_ops::py_aredact_text, m)?)?;
+        m.add_function(wrap_pyfunction!(async_ops::py_amerge, m)?)?;
+        m.add_function(wrap_pyfunction!(async_ops::py_apage_extract_text, m)?)?;
+        m.add_function(wrap_pyfunction!(async_ops::py_apage_extract_tables, m)?)?;
+        m.add_function(wrap_pyfunction!(async_ops::py_apage_to_markdown, m)?)?;
+    }
 
     Ok(())
 }
