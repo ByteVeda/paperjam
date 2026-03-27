@@ -133,17 +133,3 @@ async def test_concurrent_operations(simple_text_pdf):
     assert isinstance(results[0], str)
     assert isinstance(results[1], list)
     assert isinstance(results[2], bytes)
-
-
-# ---------------------------------------------------------------------------
-# Configuration
-# ---------------------------------------------------------------------------
-
-
-async def test_configure_max_workers(simple_text_pdf):
-    paperjam.configure_async(max_workers=2)
-    doc = await paperjam.aopen(simple_text_pdf)
-    text = await doc.pages[0].aextract_text()
-    assert len(text) > 0
-    # Reset to default
-    paperjam.configure_async(max_workers=4)

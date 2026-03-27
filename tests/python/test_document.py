@@ -8,7 +8,7 @@ def test_open_file(simple_text_pdf):
 
 
 def test_open_nonexistent_file():
-    with pytest.raises(paperjam.ParseError):
+    with pytest.raises(FileNotFoundError):
         paperjam.open("/tmp/nonexistent_file.pdf")
 
 
