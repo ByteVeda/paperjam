@@ -20,6 +20,10 @@ const config: Config = {
   onBrokenLinks: 'throw',
   onBrokenMarkdownLinks: 'warn',
 
+  customFields: {
+    wasmCacheBuster: String(Date.now()),
+  },
+
   markdown: {
     mermaid: true,
   },
