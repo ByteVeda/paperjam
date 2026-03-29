@@ -354,16 +354,16 @@ impl WasmDocument {
         let ranges: Vec<(u32, u32)> = serde_wasm_bindgen::from_value(ranges)
             .map_err(|e| JsValue::from_str(&e.to_string()))?;
         let docs = paperjam_core::manipulation::split(&self.inner, &ranges).map_err(to_js_err)?;
-        let mut byte_arrays: Vec<Vec<u8>> = Vec::new();
+        let result = js_sys::Array::new();
         for doc in docs {
             let mut inner = doc.into_inner();
             let mut buf = Vec::new();
             inner
                 .save_to(&mut buf)
                 .map_err(|e| JsValue::from_str(&e.to_string()))?;
-            byte_arrays.push(buf);
+            result.push(&js_sys::Uint8Array::from(buf.as_slice()));
         }
-        serde_wasm_bindgen::to_value(&byte_arrays).map_err(|e| JsValue::from_str(&e.to_string()))
+        Ok(result.into())
     }
 
     /// Sanitize the document by removing potentially dangerous content.
@@ -396,6 +396,7 @@ impl WasmDocument {
         };
         #[derive(Serialize)]
         struct SanitizeResponse {
+            #[serde(with = "serde_bytes")]
             doc_bytes: Vec<u8>,
             result: SanitizeResultJs,
         }
@@ -432,6 +433,7 @@ impl WasmDocument {
         };
         #[derive(Serialize)]
         struct RedactResponse {
+            #[serde(with = "serde_bytes")]
             doc_bytes: Vec<u8>,
             result: RedactResultJs,
         }

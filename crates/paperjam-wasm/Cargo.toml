@@ -12,6 +12,7 @@ crate-type = ["cdylib"]
 paperjam-core = { path = "../paperjam-core", default-features = false, features = ["signatures", "validation"] }
 wasm-bindgen = "0.2"
 serde = { version = "1.0", features = ["derive"] }
+serde_bytes = "0.11"
 serde-wasm-bindgen = "0.6"
 js-sys = "0.3"
 getrandom_v02 = { package = "getrandom", version = "0.2", features = ["js"] }
