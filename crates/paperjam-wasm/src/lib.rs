@@ -444,13 +444,17 @@ impl WasmDocument {
 
     /// Encrypt the document with user and owner passwords.
     #[wasm_bindgen]
-    pub fn encrypt(&self, user_password: &str, owner_password: &str) -> Result<Vec<u8>, JsValue> {
+    pub fn encrypt(
+        &self,
+        user_password: &str,
+        owner_password: Option<String>,
+    ) -> Result<Vec<u8>, JsValue> {
         use paperjam_core::encryption::{
             encrypt, EncryptionAlgorithm, EncryptionOptions, Permissions,
         };
         let options = EncryptionOptions {
             user_password: user_password.to_string(),
-            owner_password: owner_password.to_string(),
+            owner_password: owner_password.unwrap_or_default(),
             permissions: Permissions::default(),
             algorithm: EncryptionAlgorithm::default(),
         };
