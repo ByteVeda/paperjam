@@ -29,7 +29,11 @@ export interface WasmDocument {
     removeActions?: boolean,
     removeLinks?: boolean,
   ): SanitizeOutput;
-  redactText(query: string, caseSensitive?: boolean): RedactOutput;
+  redactText(
+    query: string,
+    caseSensitive?: boolean,
+    fillColor?: number[],
+  ): RedactOutput;
   encrypt(userPassword: string, ownerPassword?: string): Uint8Array;
   analyzeLayout(pageNumber: number): LayoutResult;
 }
