@@ -409,9 +409,21 @@ impl WasmDocument {
 
     /// Redact all occurrences of a text query across the document.
     #[wasm_bindgen(js_name = "redactText")]
-    pub fn redact_text(&self, query: &str, case_sensitive: bool) -> Result<JsValue, JsValue> {
+    pub fn redact_text(
+        &self,
+        query: &str,
+        case_sensitive: bool,
+        fill_color: Option<Vec<f64>>,
+    ) -> Result<JsValue, JsValue> {
+        let color = fill_color.and_then(|c| {
+            if c.len() == 3 {
+                Some([c[0], c[1], c[2]])
+            } else {
+                None
+            }
+        });
         let (doc, result) =
-            paperjam_core::redact::redact_text(&self.inner, query, case_sensitive, false, None)
+            paperjam_core::redact::redact_text(&self.inner, query, case_sensitive, false, color)
                 .map_err(to_js_err)?;
         let mut inner = doc.into_inner();
         let mut buf = Vec::new();

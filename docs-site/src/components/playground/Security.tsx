@@ -93,7 +93,11 @@ function SecurityInner({ wasm }: { wasm: WasmModule }) {
     if (!doc || !redactQuery.trim()) return;
     setRedactError(null);
     try {
-      const output = doc.redactText(redactQuery, redactCaseSensitive);
+      const output = doc.redactText(
+        redactQuery,
+        redactCaseSensitive,
+        [0, 0, 0],
+      );
       setRedactResult(output.result);
       setRedactBytes(output.doc_bytes);
     } catch (e) {
