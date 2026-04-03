@@ -66,4 +66,4 @@ def _convert_to_pdf_a(
     return new_doc, result
 
 
-Document.convert_to_pdf_a = _convert_to_pdf_a  # type: ignore[attr-defined]
+Document.convert_to_pdf_a = _convert_to_pdf_a  # type: ignore[method-assign]

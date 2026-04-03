@@ -67,4 +67,4 @@ def _validate_pdf_ua(
 
 
 Document.validate_pdf_a = _validate_pdf_a  # type: ignore[method-assign]
-Document.validate_pdf_ua = _validate_pdf_ua  # type: ignore[attr-defined]
+Document.validate_pdf_ua = _validate_pdf_ua  # type: ignore[method-assign]

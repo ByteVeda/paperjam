@@ -16,6 +16,7 @@ if TYPE_CHECKING:
     from paperjam._types import (
         ChoiceOption,
         ContentBlock,
+        ConversionResult,
         CreateFieldResult,
         DiffResult,
         EncryptResult,
@@ -24,6 +25,7 @@ if TYPE_CHECKING:
         Link,
         ModifyFieldResult,
         OptimizeResult,
+        PdfUaReport,
         Permissions,
         RedactRegion,
         RedactResult,
@@ -353,6 +355,36 @@ class Document:
             """
             ...
 
+        def validate_pdf_ua(
+            self,
+            level: str = ...,
+        ) -> PdfUaReport:
+            """Validate PDF/UA accessibility compliance.
+
+            Args:
+                level: PDF/UA level — "1" (default, ISO 14289-1).
+            """
+            ...
+
+        # -- Conversion (attached by _conversion.py) --
+
+        def convert_to_pdf_a(
+            self,
+            *,
+            level: str = ...,
+            force: bool = ...,
+        ) -> tuple[Document, ConversionResult]:
+            """Convert the document to PDF/A conformance.
+
+            Args:
+                level: Target conformance level — "1b" (default), "1a", or "2b".
+                force: If True, proceed even when some issues cannot be fixed.
+
+            Returns:
+                A tuple of (converted_document, conversion_result).
+            """
+            ...
+
         # -- Comparison (attached by _comparison.py) --
 
         def diff(self, other: Document) -> DiffResult:
@@ -619,6 +651,10 @@ class Document:
             location: str | None = ...,
             contact_info: str | None = ...,
             field_name: str = ...,
+            tsa_url: str | None = ...,
+            timestamp_token: bytes | None = ...,
+            ocsp_responses: list[bytes] | None = ...,
+            crls: list[bytes] | None = ...,
         ) -> bytes:
             """Sign the document with a digital signature.
 
@@ -630,6 +666,10 @@ class Document:
                 location: Location of signing.
                 contact_info: Contact information.
                 field_name: Signature field name (default: "Signature1").
+                tsa_url: TSA server URL for RFC 3161 timestamps (LTV).
+                timestamp_token: Pre-fetched timestamp token bytes (LTV).
+                ocsp_responses: OCSP responses to embed (LTV).
+                crls: CRLs to embed (LTV).
 
             Returns:
                 The finalized signed PDF as bytes.

@@ -42,10 +42,13 @@ md = await doc.ato_markdown()
 - **Metadata & bookmarks** — read and edit document properties and outline
 - **Annotations & watermarks** — add, read, remove annotations; text watermarks
 - **Forms** — inspect, fill, create, and modify form fields
-- **Security** — encryption (AES-128/RC4), sanitization, true content-stream redaction
+- **Security** — encryption (AES-128/256, RC4), sanitization, true content-stream redaction
 - **PDF diff** — text-level comparison of two documents
 - **Layout analysis** — multi-column detection, header/footer identification
 - **Native async** — powered by Rust and tokio, no Python thread pools
+- **Digital signatures** — sign, verify, and inspect with LTV timestamp support
+- **PDF/A** — validation and conversion (XMP, ICC profiles, transparency removal)
+- **PDF/UA** — accessibility validation (structure tree, alt text, tagged content)
 - **WASM playground** — try it in the browser at [docs.byteveda.org/paperjam](https://docs.byteveda.org/paperjam/)
 
 ## Documentation
