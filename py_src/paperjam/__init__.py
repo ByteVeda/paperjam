@@ -6,6 +6,7 @@ __version__ = "0.1.0"
 
 import paperjam._async
 import paperjam._comparison
+import paperjam._conversion
 
 # Import feature modules to attach methods to Document
 import paperjam._extraction
@@ -63,6 +64,8 @@ from paperjam._types import (
     CertificateInfo,
     ChoiceOption,
     ContentBlock,
+    ConversionAction,
+    ConversionResult,
     CreateFieldResult,
     DiffOp,
     DiffResult,
@@ -79,6 +82,7 @@ from paperjam._types import (
     PageDiff,
     PageInfo,
     PageLayout,
+    PdfUaReport,
     Permissions,
     RedactedItem,
     RedactRegion,
@@ -108,6 +112,8 @@ __all__ = [
     "CertificateInfo",
     "ChoiceOption",
     "ContentBlock",
+    "ConversionAction",
+    "ConversionResult",
     "CreateFieldResult",
     "DiffOp",
     "DiffResult",
@@ -136,6 +142,7 @@ __all__ = [
     "ParseError",
     "PasswordRequired",
     "PdfError",
+    "PdfUaReport",
     "Permissions",
     "RedactError",
     "RedactRegion",

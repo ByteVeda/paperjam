@@ -1,5 +1,7 @@
 pub mod annotations;
 pub mod bookmarks;
+#[cfg(feature = "validation")]
+pub mod conversion;
 pub mod diff;
 pub mod document;
 pub mod encryption;
