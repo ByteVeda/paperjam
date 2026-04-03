@@ -50,6 +50,7 @@ fn _paperjam(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(ops::py_visual_diff, m)?)?;
     m.add_function(wrap_pyfunction!(ops::py_validate_pdf_a, m)?)?;
     m.add_function(wrap_pyfunction!(ops::py_convert_to_pdf_a, m)?)?;
+    m.add_function(wrap_pyfunction!(ops::py_validate_pdf_ua, m)?)?;
 
     #[cfg(feature = "async")]
     {

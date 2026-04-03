@@ -30,6 +30,6 @@ pub use signature::{py_extract_signatures, py_sign_document, py_verify_signature
 pub use stamp::py_stamp_pages;
 pub use toc::py_generate_toc;
 pub use transform::{py_delete_pages, py_insert_blank_pages, py_reorder_pages, py_rotate_pages};
-pub use validation::py_validate_pdf_a;
+pub use validation::{py_validate_pdf_a, py_validate_pdf_ua};
 pub use visual_diff::py_visual_diff;
 pub use watermark::py_add_watermark;
