@@ -4,19 +4,6 @@ from __future__ import annotations
 
 __version__ = "0.1.0"
 
-import paperjam._async
-import paperjam._comparison
-
-# Import feature modules to attach methods to Document
-import paperjam._extraction
-import paperjam._forms
-import paperjam._manipulation
-import paperjam._render
-import paperjam._security
-import paperjam._signature
-import paperjam._stamp
-import paperjam._toc
-import paperjam._validation  # noqa: F401
 from paperjam._async import (
     amerge,
     aopen,
@@ -63,6 +50,8 @@ from paperjam._types import (
     CertificateInfo,
     ChoiceOption,
     ContentBlock,
+    ConversionAction,
+    ConversionResult,
     CreateFieldResult,
     DiffOp,
     DiffResult,
@@ -79,6 +68,7 @@ from paperjam._types import (
     PageDiff,
     PageInfo,
     PageLayout,
+    PdfUaReport,
     Permissions,
     RedactedItem,
     RedactRegion,
@@ -108,6 +98,8 @@ __all__ = [
     "CertificateInfo",
     "ChoiceOption",
     "ContentBlock",
+    "ConversionAction",
+    "ConversionResult",
     "CreateFieldResult",
     "DiffOp",
     "DiffResult",
@@ -136,6 +128,7 @@ __all__ = [
     "ParseError",
     "PasswordRequired",
     "PdfError",
+    "PdfUaReport",
     "Permissions",
     "RedactError",
     "RedactRegion",

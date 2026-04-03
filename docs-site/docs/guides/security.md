@@ -133,7 +133,7 @@ encrypted_bytes, result = doc.encrypt(
         assemble=False,
         print_high_quality=True,
     ),
-    algorithm="aes128",   # "aes128" (default) or "rc4"
+    algorithm="aes128",   # "aes128" (default), "aes256", or "rc4"
 )
 
 print(f"Algorithm:  {result.algorithm}")
@@ -169,8 +169,8 @@ encrypted_bytes, _ = doc.encrypt(
 
 | Attribute | Type | Description |
 |-----------|------|-------------|
-| `algorithm` | `str` | `"aes128"` or `"rc4"` |
-| `key_length` | `int` | Key length in bits (128) |
+| `algorithm` | `str` | `"AES-128"`, `"AES-256"`, or `"RC4-128"` |
+| `key_length` | `int` | Key length in bits (128 or 256) |
 
 ## PDF/A Validation
 
@@ -208,3 +208,86 @@ for issue in report.issues:
 | `rule` | `str` | PDF/A rule identifier |
 | `message` | `str` | Human-readable description |
 | `page` | `int \| None` | Page number, if applicable |
+
+## PDF/A Conversion
+
+Convert a document to PDF/A conformance. This writes XMP metadata, embeds an sRGB ICC profile, removes JavaScript/actions, and strips transparency (PDF/A-1):
+
+```python
+new_doc, result = doc.convert_to_pdf_a(level="1b")
+
+print(f"Success:  {result.success}")
+print(f"Level:    {result.level}")
+print(f"Actions taken: {len(result.actions_taken)}")
+for action in result.actions_taken:
+    print(f"  [{action.category}] {action.description}")
+
+if result.remaining_issues:
+    print("Remaining issues:")
+    for issue in result.remaining_issues:
+        print(f"  [{issue.severity}] {issue.message}")
+
+new_doc.save("archival.pdf")
+```
+
+Font embedding is not performed automatically. Documents with unembedded fonts will fail unless `force=True` is passed:
+
+```python
+new_doc, result = doc.convert_to_pdf_a(level="1b", force=True)
+```
+
+`ConversionResult` attributes:
+
+| Attribute | Type | Description |
+|-----------|------|-------------|
+| `level` | `str` | Target conformance level |
+| `success` | `bool` | Whether all issues were resolved |
+| `actions_taken` | `tuple[ConversionAction, ...]` | What was fixed |
+| `remaining_issues` | `tuple[ValidationIssue, ...]` | Unresolved problems |
+
+`ConversionAction` attributes:
+
+| Attribute | Type | Description |
+|-----------|------|-------------|
+| `category` | `str` | Category: `"metadata"`, `"color"`, `"encryption"`, `"transparency"`, `"actions"` |
+| `description` | `str` | Human-readable description |
+| `page` | `int \| None` | Page number, if applicable |
+
+## PDF/UA Validation
+
+Validate accessibility compliance against PDF/UA (ISO 14289-1):
+
+```python
+report = doc.validate_pdf_ua()
+
+print(f"PDF/UA level: {report.level}")
+print(f"Compliant:    {report.is_compliant}")
+print(f"Pages checked:     {report.pages_checked}")
+print(f"Structure elements: {report.structure_elements_checked}")
+
+for issue in report.issues:
+    page_info = f" (page {issue.page})" if issue.page else ""
+    print(f"  [{issue.severity}] {issue.rule}: {issue.message}{page_info}")
+```
+
+Checks performed:
+
+- `/MarkInfo` dictionary with `/Marked true`
+- Document language (`/Lang` in catalog)
+- `/ViewerPreferences/DisplayDocTitle`
+- `/StructTreeRoot` existence and structure
+- Alt text on `/Figure` structure elements
+- Heading hierarchy (H1-H6, no skipped levels)
+- Tab order (`/Tabs /S` on pages)
+- Annotation accessibility (`/Contents` or `/Alt`)
+- Tagged content operators (BDC/BMC) in content streams
+
+`PdfUaReport` attributes:
+
+| Attribute | Type | Description |
+|-----------|------|-------------|
+| `level` | `str` | Validation level (`"1"`) |
+| `is_compliant` | `bool` | Whether the document passed |
+| `issues` | `tuple[ValidationIssue, ...]` | Problems found |
+| `pages_checked` | `int` | Number of pages inspected |
+| `structure_elements_checked` | `int` | Number of structure elements inspected |

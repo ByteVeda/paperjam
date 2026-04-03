@@ -59,6 +59,9 @@ pub enum PdfError {
     #[error("Signature error: {0}")]
     Signature(String),
 
+    #[error("Conversion error: {0}")]
+    Conversion(String),
+
     #[error("Object ({0}, {1}) not found")]
     ObjectNotFound(u32, u16),
 

@@ -26,13 +26,15 @@ pub fn sign_document(
         ));
     }
 
-    let signing_cert = &cert_der_list[0];
-
     // Clone the document for modification
     let mut inner = doc.inner().clone();
 
-    // Placeholder size for the PKCS#7 signature (8192 bytes should be enough)
-    let placeholder_size = 8192usize;
+    // Larger placeholder for LTV signatures (timestamp tokens, OCSP, certs add size)
+    let placeholder_size = if options.ltv.is_some() {
+        32768usize
+    } else {
+        8192usize
+    };
     let placeholder = vec![0u8; placeholder_size];
 
     // Create the signature dictionary
@@ -165,8 +167,37 @@ pub fn sign_document(
     // Hash the signed data
     let hash = sha2::Sha256::digest(&signed_data);
 
-    // Create PKCS#7 signature
-    let pkcs7 = create_pkcs7_signature(&hash, private_key_der, signing_cert)?;
+    // Create PKCS#7 signature with full cert chain and signed attributes
+    let mut pkcs7 = create_pkcs7_signature(&hash, private_key_der, cert_der_list, None)?;
+
+    // Handle LTV: add timestamp token if requested
+    if let Some(ref ltv) = options.ltv {
+        // Get the timestamp token
+        let ts_token = if let Some(ref pre_fetched) = ltv.timestamp_token {
+            Some(pre_fetched.clone())
+        } else if let Some(ref tsa_url) = ltv.tsa_url {
+            // Extract the signature value from the CMS for timestamping
+            #[cfg(feature = "ltv")]
+            {
+                Some(crate::signature::tsa::fetch_timestamp_token(
+                    tsa_url, &pkcs7,
+                )?)
+            }
+            #[cfg(not(feature = "ltv"))]
+            {
+                let _ = tsa_url;
+                return Err(PdfError::Signature(
+                    "LTV feature not enabled; cannot fetch timestamp from TSA".to_string(),
+                ));
+            }
+        } else {
+            None
+        };
+
+        if let Some(token) = ts_token {
+            pkcs7 = crate::signature::pkcs7::add_timestamp_to_cms(&pkcs7, &token)?;
+        }
+    }
 
     if pkcs7.len() > placeholder_size {
         return Err(PdfError::Signature(format!(

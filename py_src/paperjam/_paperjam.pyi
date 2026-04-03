@@ -326,6 +326,10 @@ def sign_document(
     location: str | None = None,
     contact_info: str | None = None,
     field_name: str = "Signature1",
+    tsa_url: str | None = None,
+    timestamp_token: bytes | None = None,
+    ocsp_responses: list[bytes] | None = None,
+    crls: list[bytes] | None = None,
 ) -> bytes: ...
 def extract_signatures(
     document: RustDocument,
@@ -335,6 +339,17 @@ def verify_signatures(
     document: RustDocument,
     raw_bytes: bytes,
 ) -> list[dict[str, Any]]: ...
+def convert_to_pdf_a(
+    document: RustDocument,
+    *,
+    level: str = "1b",
+    force: bool = False,
+) -> tuple[RustDocument, dict[str, Any]]: ...
+def validate_pdf_ua(
+    document: RustDocument,
+    *,
+    level: str = "1",
+) -> dict[str, Any]: ...
 
 # --- Async functions ---
 

@@ -411,7 +411,7 @@ doc.encrypt(
 ) -> tuple[bytes, EncryptResult]
 ```
 
-Encrypt the document. Returns `(encrypted_bytes, result)` — note the first element is `bytes`, not a `Document`.
+Encrypt the document. Returns `(encrypted_bytes, result)` — note the first element is `bytes`, not a `Document`. `algorithm` can be `"aes128"` (default), `"aes256"`, or `"rc4"`.
 
 ### `validate_pdf_a`
 
@@ -420,6 +420,26 @@ doc.validate_pdf_a(level: str = "1b") -> ValidationReport
 ```
 
 Validate PDF/A compliance. `level` is `"1b"`, `"1a"`, or `"2b"`.
+
+### `convert_to_pdf_a`
+
+```python
+doc.convert_to_pdf_a(
+    *,
+    level: str = "1b",
+    force: bool = False,
+) -> tuple[Document, ConversionResult]
+```
+
+Convert the document to PDF/A conformance. Returns `(converted_document, result)`. Set `force=True` to proceed even when some issues (like unembedded fonts) cannot be fixed automatically.
+
+### `validate_pdf_ua`
+
+```python
+doc.validate_pdf_ua(level: str = "1") -> PdfUaReport
+```
+
+Validate PDF/UA accessibility compliance. Checks structure tree, alt text, language, tagged content, and more.
 
 ---
 
@@ -554,10 +574,14 @@ doc.sign(
     location: str | None = None,
     contact_info: str | None = None,
     field_name: str = "Signature1",
+    tsa_url: str | None = None,
+    timestamp_token: bytes | None = None,
+    ocsp_responses: list[bytes] | None = None,
+    crls: list[bytes] | None = None,
 ) -> bytes
 ```
 
-Sign the document. Returns the signed PDF as bytes.
+Sign the document. Returns the signed PDF as bytes. Pass `tsa_url` to add an RFC 3161 timestamp for long-term validation (LTV).
 
 ---
 

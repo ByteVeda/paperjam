@@ -3,10 +3,11 @@
 from __future__ import annotations
 
 import re
-from typing import TYPE_CHECKING
 
 from paperjam import _paperjam  # noqa: TC001
+from paperjam._async import PageAsyncMixin
 from paperjam._enums import TableStrategy
+from paperjam._render import PageRenderMixin
 from paperjam._types import (
     Annotation,
     Cell,
@@ -23,11 +24,8 @@ from paperjam._types import (
     TextSpan,
 )
 
-if TYPE_CHECKING:
-    from paperjam._types import RenderedImage
 
-
-class Page:
+class Page(PageRenderMixin, PageAsyncMixin):
     """A single page in a PDF document.
 
     Pages are lazily parsed -- content is only decoded when you call
@@ -338,51 +336,6 @@ class Page:
                 )
             )
         return tables
-
-    if TYPE_CHECKING:
-        # -- Rendering (attached by _render.py) --
-
-        def render(
-            self,
-            *,
-            dpi: float = ...,
-            format: str = ...,
-            quality: int = ...,
-            background_color: tuple[int, int, int] | None = ...,
-            scale_to_width: int | None = ...,
-            scale_to_height: int | None = ...,
-        ) -> RenderedImage:
-            """Render this page to an image.
-
-            Args:
-                dpi: Resolution in dots per inch (default 150).
-                format: Image format - "png", "jpeg", or "bmp" (default "png").
-                quality: JPEG quality 1-100 (default 85, only used for JPEG).
-                background_color: RGB tuple (0-255) for background color.
-                scale_to_width: Target pixel width (overrides DPI).
-                scale_to_height: Target pixel height (overrides DPI).
-
-            Returns:
-                A RenderedImage with the image data and dimensions.
-            """
-            ...
-
-        # -- Async wrappers (attached by _async.py) --
-
-        async def aextract_text(self) -> str: ...
-
-        async def aextract_tables(
-            self,
-            *,
-            strategy: TableStrategy | str = ...,
-            min_rows: int = ...,
-            min_cols: int = ...,
-            snap_tolerance: float = ...,
-            row_tolerance: float = ...,
-            min_col_gap: float = ...,
-        ) -> list[Table]: ...
-
-        async def ato_markdown(self, **kwargs) -> str: ...
 
 
 def _raw_block_to_content_block(raw: dict) -> ContentBlock:

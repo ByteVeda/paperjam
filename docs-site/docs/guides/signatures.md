@@ -41,6 +41,10 @@ for sig in doc.signatures:
 | `byte_range` | `tuple \| None` | `(offset_a, len_a, offset_b, len_b)` of signed bytes |
 | `certificate` | `CertificateInfo \| None` | Embedded certificate details |
 | `covers_whole_document` | `bool` | Whether the signature covers the entire document |
+| `has_timestamp` | `bool` | Whether an RFC 3161 timestamp token is present |
+| `timestamp_date` | `str \| None` | Timestamp date from the TSA |
+| `has_ocsp` | `bool` | Whether OCSP responses are embedded |
+| `has_crls` | `bool` | Whether CRLs are embedded |
 
 `CertificateInfo` attributes:
 
@@ -76,6 +80,9 @@ for v in validity_list:
 | `certificate_valid` | `bool` | Whether the certificate date range is valid |
 | `message` | `str` | Human-readable status message |
 | `signer` | `str \| None` | Signer name, if available |
+| `timestamp_valid` | `bool \| None` | Whether the timestamp token is valid (None if no timestamp) |
+| `revocation_ok` | `bool \| None` | Whether revocation info is valid (None if not present) |
+| `is_ltv` | `bool` | Whether this signature has long-term validation info |
 
 ### What is checked
 
@@ -143,3 +150,32 @@ signed_bytes = doc.sign(private_key=private_key, certificates=[cert])
 | `location` | `str \| None` | Geographic location |
 | `contact_info` | `str \| None` | Contact information |
 | `field_name` | `str` | Signature field name (default: `"Signature1"`) |
+| `tsa_url` | `str \| None` | TSA server URL for RFC 3161 timestamps |
+| `timestamp_token` | `bytes \| None` | Pre-fetched timestamp token (for custom HTTP) |
+| `ocsp_responses` | `list[bytes] \| None` | DER-encoded OCSP responses to embed |
+| `crls` | `list[bytes] \| None` | DER-encoded CRLs to embed |
+
+### LTV (Long-Term Validation) signatures
+
+To create a signature that can be validated after the signing certificate expires, add a timestamp from a TSA server:
+
+```python
+signed_bytes = doc.sign(
+    private_key=private_key,
+    certificates=[signing_cert, intermediate_cert, root_cert],
+    reason="Approved",
+    tsa_url="http://timestamp.digicert.com",
+)
+```
+
+The timestamp token is fetched automatically and embedded as an unsigned CMS attribute. You can also provide a pre-fetched token:
+
+```python
+signed_bytes = doc.sign(
+    private_key=private_key,
+    certificates=[signing_cert],
+    timestamp_token=my_token_bytes,
+)
+```
+
+After signing, `doc.signatures` will show `has_timestamp=True` and `verify_signatures()` will report `is_ltv=True` when both timestamp and revocation info are present.

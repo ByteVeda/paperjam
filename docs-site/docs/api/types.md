@@ -458,6 +458,10 @@ An option in a combo or list box.
 | `byte_range` | `tuple \| None` | Signed byte ranges |
 | `certificate` | `CertificateInfo \| None` | Embedded certificate |
 | `covers_whole_document` | `bool` | Whether it covers the full file |
+| `has_timestamp` | `bool` | Whether an RFC 3161 timestamp is present |
+| `timestamp_date` | `str \| None` | Timestamp date from the TSA |
+| `has_ocsp` | `bool` | Whether OCSP responses are embedded |
+| `has_crls` | `bool` | Whether CRLs are embedded |
 
 ### `CertificateInfo`
 
@@ -479,6 +483,9 @@ An option in a combo or list box.
 | `certificate_valid` | `bool` | Certificate date range valid |
 | `message` | `str` | Status message |
 | `signer` | `str \| None` | Signer name |
+| `timestamp_valid` | `bool \| None` | Timestamp token validity |
+| `revocation_ok` | `bool \| None` | Revocation info validity |
+| `is_ltv` | `bool` | Has long-term validation info |
 
 ---
 
@@ -499,6 +506,33 @@ An option in a combo or list box.
 | Attribute | Type | Description |
 |-----------|------|-------------|
 | `severity` | `str` | `"error"`, `"warning"`, `"info"` |
-| `rule` | `str` | PDF/A rule identifier |
+| `rule` | `str` | Rule identifier |
 | `message` | `str` | Description |
 | `page` | `int \| None` | Page number if applicable |
+
+### `ConversionResult`
+
+| Attribute | Type | Description |
+|-----------|------|-------------|
+| `level` | `str` | Target conformance level |
+| `success` | `bool` | Whether all issues were resolved |
+| `actions_taken` | `tuple[ConversionAction, ...]` | Actions performed |
+| `remaining_issues` | `tuple[ValidationIssue, ...]` | Unresolved problems |
+
+### `ConversionAction`
+
+| Attribute | Type | Description |
+|-----------|------|-------------|
+| `category` | `str` | Action category |
+| `description` | `str` | Human-readable description |
+| `page` | `int \| None` | Page number if applicable |
+
+### `PdfUaReport`
+
+| Attribute | Type | Description |
+|-----------|------|-------------|
+| `level` | `str` | Validation level (`"1"`) |
+| `is_compliant` | `bool` | Whether the document passed |
+| `issues` | `tuple[ValidationIssue, ...]` | Problems found |
+| `pages_checked` | `int` | Number of pages inspected |
+| `structure_elements_checked` | `int` | Structure elements inspected |
