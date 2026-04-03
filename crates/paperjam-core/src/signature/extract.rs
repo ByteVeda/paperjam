@@ -151,6 +151,35 @@ fn collect_sig_fields(
             _ => None,
         });
 
+        // Check for LTV information in the PKCS#7 signature
+        let (has_timestamp, timestamp_date, has_ocsp, has_crls) = sig_dict
+            .get(b"Contents")
+            .ok()
+            .and_then(|o| match o {
+                Object::String(bytes, _) => {
+                    let trimmed: Vec<u8> = bytes
+                        .iter()
+                        .copied()
+                        .rev()
+                        .skip_while(|&b| b == 0)
+                        .collect::<Vec<_>>()
+                        .into_iter()
+                        .rev()
+                        .collect();
+                    let has_ts = crate::signature::tsa::has_timestamp_token(&trimmed);
+                    let ts_date = if has_ts {
+                        crate::signature::tsa::extract_timestamp_date(&trimmed)
+                    } else {
+                        None
+                    };
+                    let (has_crls_info, has_ocsp_info) =
+                        crate::signature::tsa::has_revocation_info(&trimmed);
+                    Some((has_ts, ts_date, has_ocsp_info, has_crls_info))
+                }
+                _ => None,
+            })
+            .unwrap_or((false, None, false, false));
+
         results.push(SignatureInfo {
             name,
             signer,
@@ -161,6 +190,10 @@ fn collect_sig_fields(
             byte_range,
             certificate,
             covers_whole_document: covers_whole,
+            has_timestamp,
+            timestamp_date,
+            has_ocsp,
+            has_crls,
         });
     }
 

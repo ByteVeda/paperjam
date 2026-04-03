@@ -5,7 +5,7 @@ use crate::document::PyDocument;
 use crate::errors::to_py_err;
 
 #[pyfunction]
-#[pyo3(name = "sign_document", signature = (document, private_key, certificates, reason=None, location=None, contact_info=None, field_name="Signature1"))]
+#[pyo3(name = "sign_document", signature = (document, private_key, certificates, reason=None, location=None, contact_info=None, field_name="Signature1", tsa_url=None, timestamp_token=None, ocsp_responses=None, crls=None))]
 #[allow(clippy::too_many_arguments)]
 pub fn py_sign_document<'py>(
     py: Python<'py>,
@@ -16,15 +16,36 @@ pub fn py_sign_document<'py>(
     location: Option<String>,
     contact_info: Option<String>,
     field_name: &str,
+    tsa_url: Option<String>,
+    timestamp_token: Option<Vec<u8>>,
+    ocsp_responses: Option<Vec<Vec<u8>>>,
+    crls: Option<Vec<Vec<u8>>>,
 ) -> PyResult<Bound<'py, PyBytes>> {
     let inner = std::sync::Arc::clone(&document.inner);
     let pk = private_key.to_vec();
     let certs = certificates;
+
+    let ltv = if tsa_url.is_some()
+        || timestamp_token.is_some()
+        || ocsp_responses.is_some()
+        || crls.is_some()
+    {
+        Some(paperjam_core::signature::LtvOptions {
+            tsa_url,
+            timestamp_token,
+            ocsp_responses: ocsp_responses.unwrap_or_default(),
+            crls: crls.unwrap_or_default(),
+        })
+    } else {
+        None
+    };
+
     let options = paperjam_core::signature::SignOptions {
         reason,
         location,
         contact_info,
         field_name: field_name.to_string(),
+        ltv,
     };
 
     let signed_bytes = py

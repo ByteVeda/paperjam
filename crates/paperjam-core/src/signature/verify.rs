@@ -131,6 +131,9 @@ fn verify_sig_fields(
                     certificate_valid: false,
                     message: "No /Contents in signature".to_string(),
                     signer,
+                    timestamp_valid: None,
+                    revocation_ok: None,
+                    is_ltv: false,
                 });
                 continue;
             }
@@ -146,6 +149,9 @@ fn verify_sig_fields(
                     certificate_valid: false,
                     message: "No valid ByteRange".to_string(),
                     signer,
+                    timestamp_valid: None,
+                    revocation_ok: None,
+                    is_ltv: false,
                 });
                 continue;
             }
@@ -161,6 +167,9 @@ fn verify_sig_fields(
                     certificate_valid: false,
                     message: format!("Failed to extract signed bytes: {}", e),
                     signer,
+                    timestamp_valid: None,
+                    revocation_ok: None,
+                    is_ltv: false,
                 });
                 continue;
             }
@@ -176,6 +185,9 @@ fn verify_sig_fields(
                     certificate_valid: false,
                     message: format!("Integrity check failed: {}", e),
                     signer,
+                    timestamp_valid: None,
+                    revocation_ok: None,
+                    is_ltv: false,
                 });
                 continue;
             }
@@ -184,8 +196,17 @@ fn verify_sig_fields(
         // Check certificate validity (basic date check)
         let cert_valid = check_certificate_dates(&pkcs7_bytes).unwrap_or(false);
 
+        // Check for LTV information
+        let has_ts = crate::signature::tsa::has_timestamp_token(&pkcs7_bytes);
+        let (has_crls_info, _has_ocsp) = crate::signature::tsa::has_revocation_info(&pkcs7_bytes);
+        let is_ltv = has_ts && (has_crls_info || _has_ocsp);
+
         let message = if integrity_ok && cert_valid {
-            "Signature is valid".to_string()
+            if is_ltv {
+                "Signature is valid (LTV enabled)".to_string()
+            } else {
+                "Signature is valid".to_string()
+            }
         } else if integrity_ok && !cert_valid {
             "Signature integrity OK but certificate expired or not yet valid".to_string()
         } else {
@@ -198,6 +219,9 @@ fn verify_sig_fields(
             certificate_valid: cert_valid,
             message,
             signer,
+            timestamp_valid: if has_ts { Some(true) } else { None },
+            revocation_ok: if has_crls_info { Some(true) } else { None },
+            is_ltv,
         });
     }
 

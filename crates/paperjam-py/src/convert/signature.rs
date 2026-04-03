@@ -19,6 +19,10 @@ pub fn signature_info_to_py<'py>(
         sig.byte_range.map(|br| (br[0], br[1], br[2], br[3])),
     )?;
     dict.set_item("covers_whole_document", sig.covers_whole_document)?;
+    dict.set_item("has_timestamp", sig.has_timestamp)?;
+    dict.set_item("timestamp_date", sig.timestamp_date.as_deref())?;
+    dict.set_item("has_ocsp", sig.has_ocsp)?;
+    dict.set_item("has_crls", sig.has_crls)?;
 
     if let Some(ref cert) = sig.certificate {
         let cert_dict = PyDict::new(py);
@@ -47,5 +51,8 @@ pub fn signature_validity_to_py<'py>(
     dict.set_item("certificate_valid", result.certificate_valid)?;
     dict.set_item("message", &result.message)?;
     dict.set_item("signer", result.signer.as_deref())?;
+    dict.set_item("timestamp_valid", result.timestamp_valid)?;
+    dict.set_item("revocation_ok", result.revocation_ok)?;
+    dict.set_item("is_ltv", result.is_ltv)?;
     Ok(dict)
 }

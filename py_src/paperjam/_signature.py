@@ -41,6 +41,10 @@ def _signatures_getter(self: Document) -> list[SignatureInfo]:
                 byte_range=tuple(sig["byte_range"]) if sig["byte_range"] else None,
                 certificate=cert,
                 covers_whole_document=sig["covers_whole_document"],
+                has_timestamp=sig.get("has_timestamp", False),
+                timestamp_date=sig.get("timestamp_date"),
+                has_ocsp=sig.get("has_ocsp", False),
+                has_crls=sig.get("has_crls", False),
             )
         )
     return result
@@ -67,6 +71,9 @@ def _verify_signatures(self: Document) -> list[SignatureValidity]:
             certificate_valid=r["certificate_valid"],
             message=r["message"],
             signer=r["signer"],
+            timestamp_valid=r.get("timestamp_valid"),
+            revocation_ok=r.get("revocation_ok"),
+            is_ltv=r.get("is_ltv", False),
         )
         for r in raw
     ]
@@ -81,6 +88,10 @@ def _sign(
     location: str | None = None,
     contact_info: str | None = None,
     field_name: str = "Signature1",
+    tsa_url: str | None = None,
+    timestamp_token: bytes | None = None,
+    ocsp_responses: list[bytes] | None = None,
+    crls: list[bytes] | None = None,
 ) -> bytes:
     """Sign the document with a digital signature.
 
@@ -92,6 +103,10 @@ def _sign(
         location: Location of signing.
         contact_info: Contact information.
         field_name: Signature field name (default: "Signature1").
+        tsa_url: TSA server URL for RFC 3161 timestamps (LTV).
+        timestamp_token: Pre-fetched timestamp token bytes (LTV).
+        ocsp_responses: OCSP responses to embed (LTV).
+        crls: CRLs to embed (LTV).
 
     Returns:
         The finalized signed PDF as bytes.
@@ -106,6 +121,10 @@ def _sign(
             location=location,
             contact_info=contact_info,
             field_name=field_name,
+            tsa_url=tsa_url,
+            timestamp_token=timestamp_token,
+            ocsp_responses=ocsp_responses,
+            crls=crls,
         )
     )
 

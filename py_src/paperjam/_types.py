@@ -448,6 +448,10 @@ class SignatureInfo:
     byte_range: tuple[int, int, int, int] | None = None
     certificate: CertificateInfo | None = None
     covers_whole_document: bool = False
+    has_timestamp: bool = False
+    timestamp_date: str | None = None
+    has_ocsp: bool = False
+    has_crls: bool = False
 
 
 @dataclasses.dataclass(frozen=True, slots=True)
@@ -459,6 +463,9 @@ class SignatureValidity:
     certificate_valid: bool
     message: str
     signer: str | None = None
+    timestamp_valid: bool | None = None
+    revocation_ok: bool | None = None
+    is_ltv: bool = False
 
 
 # --- Layout types ---
@@ -568,6 +575,25 @@ class VisualDiffResult:
 
 
 @dataclasses.dataclass(frozen=True, slots=True)
+class ConversionAction:
+    """A single action taken during PDF/A conversion."""
+
+    category: str
+    description: str
+    page: int | None = None
+
+
+@dataclasses.dataclass(frozen=True, slots=True)
+class ConversionResult:
+    """Result of a PDF/A conversion."""
+
+    level: str
+    success: bool
+    actions_taken: tuple[ConversionAction, ...]
+    remaining_issues: tuple[ValidationIssue, ...]
+
+
+@dataclasses.dataclass(frozen=True, slots=True)
 class ValidationIssue:
     """A single PDF/A validation issue."""
 
@@ -586,3 +612,14 @@ class ValidationReport:
     issues: tuple[ValidationIssue, ...]
     fonts_checked: int
     pages_checked: int
+
+
+@dataclasses.dataclass(frozen=True, slots=True)
+class PdfUaReport:
+    """PDF/UA validation report."""
+
+    level: str
+    is_compliant: bool
+    issues: tuple[ValidationIssue, ...]
+    pages_checked: int
+    structure_elements_checked: int
