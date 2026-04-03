@@ -4,20 +4,6 @@ from __future__ import annotations
 
 __version__ = "0.1.0"
 
-import paperjam._async
-import paperjam._comparison
-import paperjam._conversion
-
-# Import feature modules to attach methods to Document
-import paperjam._extraction
-import paperjam._forms
-import paperjam._manipulation
-import paperjam._render
-import paperjam._security
-import paperjam._signature
-import paperjam._stamp
-import paperjam._toc
-import paperjam._validation  # noqa: F401
 from paperjam._async import (
     amerge,
     aopen,
