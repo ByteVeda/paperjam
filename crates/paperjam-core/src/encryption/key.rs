@@ -1,6 +1,11 @@
-//! PDF encryption key derivation algorithms (PDF spec 1.7, section 3.5).
+//! PDF encryption key derivation algorithms.
+//!
+//! - PDF 1.7 (section 3.5): MD5-based for RC4/AES-128 (V=2..4, R=3..4).
+//! - PDF 2.0 (ISO 32000-2, section 7.6.4.3): SHA-based for AES-256 (V=5, R=6).
 
-use md5::{Digest, Md5};
+use md5::{Digest as Md5Digest, Md5};
+use sha2::digest::Digest as Sha2Digest;
+use sha2::{Sha256, Sha384, Sha512};
 
 use super::rc4::Rc4;
 
@@ -143,4 +148,216 @@ pub fn encrypt_object_aes128(key: &[u8], obj_num: u32, gen_num: u16, data: &[u8]
     let iv: [u8; 16] = rand::thread_rng().gen();
 
     super::aes128::encrypt_aes128(&iv, obj_key, data)
+}
+
+// ---------------------------------------------------------------------------
+// PDF 2.0 (V=5, R=6) — SHA-based key derivation for AES-256
+// ---------------------------------------------------------------------------
+
+/// Generate a random 32-byte file encryption key for AES-256.
+pub fn generate_file_encryption_key() -> [u8; 32] {
+    use rand::Rng;
+    rand::thread_rng().gen()
+}
+
+/// ISO 32000-2 Algorithm 2.B — revision 6 iterative hash.
+///
+/// Used by both U/UE and O/OE computation. The `u_value` parameter is empty
+/// for user-password operations and the 48-byte U value for owner-password
+/// operations.
+pub fn compute_hash_r6(password: &[u8], salt: &[u8], u_value: &[u8]) -> [u8; 32] {
+    use aes::cipher::{block_padding::NoPadding, BlockEncryptMut, KeyIvInit};
+
+    type Aes128CbcRaw = cbc::Encryptor<aes::Aes128>;
+
+    // Step a: SHA-256 of password + salt + u_value
+    let mut k = {
+        let mut h = Sha256::new();
+        h.update(password);
+        h.update(salt);
+        h.update(u_value);
+        h.finalize()
+    };
+
+    let mut round = 0u32;
+    loop {
+        // Step b: build K1 = password + K + u_value, repeated 64 times
+        let k1_single_len = password.len() + k.len() + u_value.len();
+        let k1_len = k1_single_len * 64;
+        let mut k1 = Vec::with_capacity(k1_len);
+        for _ in 0..64 {
+            k1.extend_from_slice(password);
+            k1.extend_from_slice(&k);
+            k1.extend_from_slice(u_value);
+        }
+
+        // Step c: AES-128-CBC encrypt K1 using first 16 bytes of K as key
+        // and second 16 bytes of K as IV (no padding)
+        let aes_key: [u8; 16] = k[..16].try_into().unwrap();
+        let aes_iv: [u8; 16] = k[16..32].try_into().unwrap();
+
+        // Pad K1 to a multiple of 16 for AES-CBC
+        let pad_len = (16 - (k1.len() % 16)) % 16;
+        let data_len = k1.len();
+        k1.resize(data_len + pad_len, 0);
+        let buf_len = k1.len();
+
+        let cipher = Aes128CbcRaw::new(&aes_key.into(), &aes_iv.into());
+        let encrypted = cipher
+            .encrypt_padded_mut::<NoPadding>(&mut k1, buf_len)
+            .expect("buffer is block-aligned");
+
+        // Step d: take the first 16 bytes of E, interpret as big-endian u128,
+        // mod 3 to select hash algorithm
+        let remainder = {
+            let mut sum: u32 = 0;
+            for &b in encrypted.iter().take(16) {
+                sum = sum.wrapping_add(b as u32);
+            }
+            sum % 3
+        };
+
+        // Step e: hash E with the selected algorithm
+        k = match remainder {
+            0 => Sha256::digest(encrypted),
+            1 => {
+                let result = Sha384::digest(encrypted);
+                let mut out = sha2::digest::Output::<Sha256>::default();
+                out.copy_from_slice(&result[..32]);
+                out
+            }
+            _ => {
+                let result = Sha512::digest(encrypted);
+                let mut out = sha2::digest::Output::<Sha256>::default();
+                out.copy_from_slice(&result[..32]);
+                out
+            }
+        };
+
+        // Step f: check termination: round >= 64 and last byte of E <= round - 32
+        let last_byte = *encrypted.last().unwrap_or(&0);
+        round += 1;
+        if round >= 64 && (last_byte as u32) <= round - 32 {
+            break;
+        }
+    }
+
+    let mut out = [0u8; 32];
+    out.copy_from_slice(&k[..32]);
+    out
+}
+
+/// Compute /U (48 bytes) and /UE (32 bytes) for R=6.
+///
+/// - U = SHA-256(password + validation_salt) [32 bytes] + validation_salt [8] + key_salt [8]
+/// - UE = AES-256-CBC(intermediate_key, iv=0, file_key) [32 bytes]
+pub fn compute_u_value_r6(password: &[u8], file_key: &[u8; 32]) -> ([u8; 48], [u8; 32]) {
+    use rand::Rng;
+
+    let mut rng = rand::thread_rng();
+    let validation_salt: [u8; 8] = rng.gen();
+    let key_salt: [u8; 8] = rng.gen();
+
+    // U hash = SHA-256(password + validation_salt)
+    let u_hash = {
+        let mut h = Sha256::new();
+        h.update(password);
+        h.update(validation_salt);
+        h.finalize()
+    };
+
+    let mut u_value = [0u8; 48];
+    u_value[..32].copy_from_slice(&u_hash);
+    u_value[32..40].copy_from_slice(&validation_salt);
+    u_value[40..48].copy_from_slice(&key_salt);
+
+    // UE: intermediate key from Algorithm 2.B with key_salt, then AES-256-CBC encrypt file_key
+    let intermediate_key = compute_hash_r6(password, &key_salt, &[]);
+    let ue_value = aes256_cbc_no_pad_encrypt(&intermediate_key, &[0u8; 16], file_key);
+
+    let mut ue = [0u8; 32];
+    ue.copy_from_slice(&ue_value[..32]);
+
+    (u_value, ue)
+}
+
+/// Compute /O (48 bytes) and /OE (32 bytes) for R=6.
+///
+/// Same structure as U/UE, but hash computations include the 48-byte U value.
+pub fn compute_o_value_r6(
+    password: &[u8],
+    file_key: &[u8; 32],
+    u_value: &[u8; 48],
+) -> ([u8; 48], [u8; 32]) {
+    use rand::Rng;
+
+    let mut rng = rand::thread_rng();
+    let validation_salt: [u8; 8] = rng.gen();
+    let key_salt: [u8; 8] = rng.gen();
+
+    // O hash = SHA-256(password + validation_salt + U)
+    let o_hash = {
+        let mut h = Sha256::new();
+        h.update(password);
+        h.update(validation_salt);
+        h.update(u_value);
+        h.finalize()
+    };
+
+    let mut o_value = [0u8; 48];
+    o_value[..32].copy_from_slice(&o_hash);
+    o_value[32..40].copy_from_slice(&validation_salt);
+    o_value[40..48].copy_from_slice(&key_salt);
+
+    // OE: intermediate key from Algorithm 2.B with key_salt and U, then encrypt file_key
+    let intermediate_key = compute_hash_r6(password, &key_salt, u_value);
+    let oe_value = aes256_cbc_no_pad_encrypt(&intermediate_key, &[0u8; 16], file_key);
+
+    let mut oe = [0u8; 32];
+    oe.copy_from_slice(&oe_value[..32]);
+
+    (o_value, oe)
+}
+
+/// Compute the /Perms entry for R=6 (16 bytes, AES-256-ECB encrypted).
+pub fn compute_perms_value_r6(
+    permissions: i32,
+    file_key: &[u8; 32],
+    encrypt_metadata: bool,
+) -> [u8; 16] {
+    use rand::Rng;
+
+    let mut block = [0u8; 16];
+    // Bytes 0-3: permissions as little-endian u32
+    block[..4].copy_from_slice(&(permissions as u32).to_le_bytes());
+    // Bytes 4-7: 0xFFFFFFFF
+    block[4..8].copy_from_slice(&0xFFFF_FFFFu32.to_le_bytes());
+    // Byte 8: 'T' or 'F'
+    block[8] = if encrypt_metadata { b'T' } else { b'F' };
+    // Bytes 9-11: 'adb'
+    block[9] = b'a';
+    block[10] = b'd';
+    block[11] = b'b';
+    // Bytes 12-15: random
+    let random_bytes: [u8; 4] = rand::thread_rng().gen();
+    block[12..16].copy_from_slice(&random_bytes);
+
+    super::aes256::encrypt_aes256_ecb_block(file_key, &block)
+}
+
+/// AES-256-CBC encrypt exactly 32 bytes without padding (for UE/OE computation).
+fn aes256_cbc_no_pad_encrypt(key: &[u8; 32], iv: &[u8; 16], data: &[u8; 32]) -> Vec<u8> {
+    use aes::cipher::{block_padding::NoPadding, BlockEncryptMut, KeyIvInit};
+
+    type Aes256CbcRaw = cbc::Encryptor<aes::Aes256>;
+
+    let cipher = Aes256CbcRaw::new(key.into(), iv.into());
+    let mut buf = [0u8; 32];
+    buf.copy_from_slice(data);
+
+    let ciphertext = cipher
+        .encrypt_padded_mut::<NoPadding>(&mut buf, 32)
+        .expect("32 bytes is block-aligned");
+
+    ciphertext.to_vec()
 }

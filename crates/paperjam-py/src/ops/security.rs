@@ -194,12 +194,15 @@ pub fn py_encrypt<'py>(
         None | Some("aes128") | Some("aes") | Some("AES-128") => {
             paperjam_core::encryption::EncryptionAlgorithm::Aes128
         }
+        Some("aes256") | Some("AES-256") | Some("AES256") => {
+            paperjam_core::encryption::EncryptionAlgorithm::Aes256
+        }
         Some("rc4") | Some("RC4") | Some("RC4-128") => {
             paperjam_core::encryption::EncryptionAlgorithm::Rc4
         }
         Some(other) => {
             return Err(pyo3::exceptions::PyValueError::new_err(format!(
-                "Unknown encryption algorithm: '{}'. Use 'aes128' or 'rc4'.",
+                "Unknown encryption algorithm: '{}'. Use 'aes128', 'aes256', or 'rc4'.",
                 other
             )));
         }
@@ -230,6 +233,7 @@ pub fn py_encrypt<'py>(
     let (algo_name, key_len) = match algo {
         paperjam_core::encryption::EncryptionAlgorithm::Rc4 => ("RC4-128", 128),
         paperjam_core::encryption::EncryptionAlgorithm::Aes128 => ("AES-128", 128),
+        paperjam_core::encryption::EncryptionAlgorithm::Aes256 => ("AES-256", 256),
     };
 
     let encrypted_bytes = py

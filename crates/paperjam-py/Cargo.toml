@@ -10,7 +10,7 @@ name = "_paperjam"
 crate-type = ["cdylib"]
 
 [dependencies]
-paperjam-core = { path = "../paperjam-core", features = ["render", "signatures", "validation"] }
+paperjam-core = { path = "../paperjam-core", features = ["render", "signatures", "ltv", "validation"] }
 pyo3 = { version = "0.23", features = ["extension-module", "abi3-py312"] }
 
 # Async support (feature-gated, default on)

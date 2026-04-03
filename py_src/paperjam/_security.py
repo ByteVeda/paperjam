@@ -145,7 +145,7 @@ def _encrypt(
         user_password: Password required to open the document.
         owner_password: Password for full access. Defaults to user_password.
         permissions: Permission flags controlling what viewers can do.
-        algorithm: Encryption algorithm — "aes128" (default) or "rc4".
+        algorithm: Encryption algorithm — "aes128" (default), "aes256", or "rc4".
 
     Returns a tuple of (encrypted_bytes, encrypt_result).
     """
