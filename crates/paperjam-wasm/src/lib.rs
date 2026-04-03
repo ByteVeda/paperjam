@@ -121,6 +121,49 @@ struct LayoutRegionJs {
     text: String,
 }
 
+#[derive(Serialize)]
+struct ValidationIssueJs {
+    severity: String,
+    rule: String,
+    message: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    page: Option<u32>,
+}
+
+#[derive(Serialize)]
+struct ValidationReportJs {
+    level: String,
+    is_compliant: bool,
+    fonts_checked: usize,
+    pages_checked: usize,
+    issues: Vec<ValidationIssueJs>,
+}
+
+#[derive(Serialize)]
+struct PdfUaReportJs {
+    level: String,
+    is_compliant: bool,
+    pages_checked: usize,
+    structure_elements_checked: usize,
+    issues: Vec<ValidationIssueJs>,
+}
+
+#[derive(Serialize)]
+struct ConversionActionJs {
+    category: String,
+    description: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    page: Option<u32>,
+}
+
+#[derive(Serialize)]
+struct ConversionResultJs {
+    level: String,
+    success: bool,
+    actions_taken: Vec<ConversionActionJs>,
+    remaining_issues: Vec<ValidationIssueJs>,
+}
+
 #[wasm_bindgen]
 impl WasmDocument {
     /// Open a PDF from bytes.
@@ -457,20 +500,33 @@ impl WasmDocument {
     }
 
     /// Encrypt the document with user and owner passwords.
+    /// `algorithm` can be "aes128" (default), "aes256", or "rc4".
     #[wasm_bindgen]
     pub fn encrypt(
         &self,
         user_password: &str,
         owner_password: Option<String>,
+        algorithm: Option<String>,
     ) -> Result<Vec<u8>, JsValue> {
         use paperjam_core::encryption::{
             encrypt, EncryptionAlgorithm, EncryptionOptions, Permissions,
+        };
+        let algo = match algorithm.as_deref() {
+            None | Some("aes128") | Some("AES-128") => EncryptionAlgorithm::Aes128,
+            Some("aes256") | Some("AES-256") => EncryptionAlgorithm::Aes256,
+            Some("rc4") | Some("RC4") => EncryptionAlgorithm::Rc4,
+            Some(other) => {
+                return Err(JsValue::from_str(&format!(
+                    "Unknown algorithm: '{}'. Use 'aes128', 'aes256', or 'rc4'.",
+                    other
+                )))
+            }
         };
         let options = EncryptionOptions {
             user_password: user_password.to_string(),
             owner_password: owner_password.unwrap_or_default(),
             permissions: Permissions::default(),
-            algorithm: EncryptionAlgorithm::default(),
+            algorithm: algo,
         };
         encrypt(&self.inner, &options).map_err(to_js_err)
     }
@@ -520,6 +576,116 @@ impl WasmDocument {
             has_footer,
         };
         serde_wasm_bindgen::to_value(&result).map_err(|e| JsValue::from_str(&e.to_string()))
+    }
+
+    /// Validate PDF/A compliance. Returns JSON with level, is_compliant, issues, etc.
+    #[wasm_bindgen(js_name = "validatePdfA")]
+    pub fn validate_pdf_a(&self, level: Option<String>) -> Result<JsValue, JsValue> {
+        let pdf_a_level =
+            paperjam_core::validation::PdfALevel::from_str(level.as_deref().unwrap_or("1b"));
+        let report = paperjam_core::validation::validate_pdf_a(&self.inner, pdf_a_level)
+            .map_err(to_js_err)?;
+        let result = ValidationReportJs {
+            level: report.level.as_str().to_string(),
+            is_compliant: report.is_compliant,
+            fonts_checked: report.fonts_checked,
+            pages_checked: report.pages_checked,
+            issues: report
+                .issues
+                .iter()
+                .map(|i| ValidationIssueJs {
+                    severity: i.severity.as_str().to_string(),
+                    rule: i.rule.clone(),
+                    message: i.message.clone(),
+                    page: i.page,
+                })
+                .collect(),
+        };
+        serde_wasm_bindgen::to_value(&result).map_err(|e| JsValue::from_str(&e.to_string()))
+    }
+
+    /// Validate PDF/UA (accessibility) compliance. Returns JSON report.
+    #[wasm_bindgen(js_name = "validatePdfUa")]
+    pub fn validate_pdf_ua(&self, level: Option<String>) -> Result<JsValue, JsValue> {
+        let pdf_ua_level =
+            paperjam_core::validation::PdfUaLevel::from_str(level.as_deref().unwrap_or("1"));
+        let report = paperjam_core::validation::validate_pdf_ua(&self.inner, pdf_ua_level)
+            .map_err(to_js_err)?;
+        let result = PdfUaReportJs {
+            level: report.level.as_str().to_string(),
+            is_compliant: report.is_compliant,
+            pages_checked: report.pages_checked,
+            structure_elements_checked: report.structure_elements_checked,
+            issues: report
+                .issues
+                .iter()
+                .map(|i| ValidationIssueJs {
+                    severity: i.severity.as_str().to_string(),
+                    rule: i.rule.clone(),
+                    message: i.message.clone(),
+                    page: i.page,
+                })
+                .collect(),
+        };
+        serde_wasm_bindgen::to_value(&result).map_err(|e| JsValue::from_str(&e.to_string()))
+    }
+
+    /// Convert the document to PDF/A conformance. Returns { doc_bytes, result }.
+    #[wasm_bindgen(js_name = "convertToPdfA")]
+    pub fn convert_to_pdf_a(
+        &self,
+        level: Option<String>,
+        force: Option<bool>,
+    ) -> Result<JsValue, JsValue> {
+        let pdf_a_level =
+            paperjam_core::validation::PdfALevel::from_str(level.as_deref().unwrap_or("1b"));
+        let options = paperjam_core::conversion::ConversionOptions {
+            level: pdf_a_level,
+            force: force.unwrap_or(false),
+        };
+        let (doc, result) = paperjam_core::conversion::convert_to_pdf_a(&self.inner, &options)
+            .map_err(to_js_err)?;
+        let mut inner = doc.into_inner();
+        let mut buf = Vec::new();
+        inner
+            .save_to(&mut buf)
+            .map_err(|e| JsValue::from_str(&e.to_string()))?;
+
+        let js_result = ConversionResultJs {
+            level: result.level.as_str().to_string(),
+            success: result.success,
+            actions_taken: result
+                .actions_taken
+                .iter()
+                .map(|a| ConversionActionJs {
+                    category: a.category.clone(),
+                    description: a.description.clone(),
+                    page: a.page,
+                })
+                .collect(),
+            remaining_issues: result
+                .remaining_issues
+                .iter()
+                .map(|i| ValidationIssueJs {
+                    severity: i.severity.as_str().to_string(),
+                    rule: i.rule.clone(),
+                    message: i.message.clone(),
+                    page: i.page,
+                })
+                .collect(),
+        };
+
+        #[derive(Serialize)]
+        struct ConvertResponse {
+            #[serde(with = "serde_bytes")]
+            doc_bytes: Vec<u8>,
+            result: ConversionResultJs,
+        }
+        serde_wasm_bindgen::to_value(&ConvertResponse {
+            doc_bytes: buf,
+            result: js_result,
+        })
+        .map_err(|e| JsValue::from_str(&e.to_string()))
     }
 }
 
