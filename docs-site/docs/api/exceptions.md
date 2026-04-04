@@ -26,7 +26,9 @@ PdfError (base)
 ├── RedactError
 ├── FormError
 ├── RenderError
-└── SignatureError
+├── SignatureError
+├── FormatError
+└── PipelineError
 ```
 
 ---
@@ -227,6 +229,44 @@ class paperjam.SignatureError(PdfError)
 ```
 
 Raised when signing fails (e.g. malformed private key or certificate) or when signature verification encounters an internal error.
+
+---
+
+## Format errors
+
+### `FormatError`
+
+```python
+class paperjam.FormatError(PdfError)
+```
+
+Raised when a document format is unsupported or cannot be processed.
+
+```python
+try:
+    doc = paperjam.open("archive.7z")
+except paperjam.FormatError as e:
+    print(f"Unsupported format: {e}")
+```
+
+---
+
+## Pipeline errors
+
+### `PipelineError`
+
+```python
+class paperjam.PipelineError(PdfError)
+```
+
+Raised when a pipeline definition is invalid or execution fails.
+
+```python
+try:
+    paperjam.validate_pipeline(yaml_string)
+except paperjam.PipelineError as e:
+    print(f"Invalid pipeline: {e}")
+```
 
 ---
 

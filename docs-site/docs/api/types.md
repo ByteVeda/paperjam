@@ -536,3 +536,46 @@ An option in a combo or list box.
 | `issues` | `tuple[ValidationIssue, ...]` | Problems found |
 | `pages_checked` | `int` | Number of pages inspected |
 | `structure_elements_checked` | `int` | Structure elements inspected |
+
+---
+
+## Conversion types
+
+### `ConvertReport`
+
+Statistics from a format conversion operation.
+
+| Attribute | Type | Description |
+|-----------|------|-------------|
+| `from_format` | `str` | Source format name |
+| `to_format` | `str` | Target format name |
+| `content_blocks` | `int` | Number of content blocks processed |
+| `tables` | `int` | Number of tables found |
+| `images` | `int` | Number of images found |
+
+---
+
+## Pipeline types
+
+### `PipelineResult`
+
+Result of pipeline execution.
+
+| Attribute | Type | Description |
+|-----------|------|-------------|
+| `total_files` | `int` | Total input files |
+| `succeeded` | `int` | Files processed successfully |
+| `failed` | `int` | Files that failed |
+| `skipped` | `int` | Files skipped due to errors |
+| `file_results` | `list[FileResult]` | Per-file details |
+
+### `FileResult`
+
+Result for a single file in a pipeline.
+
+| Attribute | Type | Description |
+|-----------|------|-------------|
+| `path` | `str` | File path |
+| `status` | `str` | `"Success"`, `"Failed"`, or `"Skipped"` |
+| `error` | `str \| None` | Error message if failed |
+| `duration_ms` | `float` | Processing time in milliseconds |

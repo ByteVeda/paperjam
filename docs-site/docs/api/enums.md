@@ -3,7 +3,7 @@
 All enums are importable directly from `paperjam`:
 
 ```python
-from paperjam import TableStrategy, Rotation, AnnotationType, WatermarkPosition, WatermarkLayer, ImageFormat, FormFieldType
+from paperjam import TableStrategy, Rotation, AnnotationType, WatermarkPosition, WatermarkLayer, ImageFormat, FormFieldType, DocumentFormat
 ```
 
 ---
@@ -160,4 +160,29 @@ Type of interactive form field.
 ```python
 doc, result = doc.add_form_field("email", "text", page=1, rect=(72, 680, 300, 700))
 doc, result = doc.add_form_field("agree", "checkbox", page=1, rect=(72, 650, 90, 668))
+```
+
+---
+
+## `DocumentFormat`
+
+Recognized document formats.
+
+| Member | Value | Description |
+|--------|-------|-------------|
+| `PDF` | `"pdf"` | PDF documents |
+| `DOCX` | `"docx"` | Word documents |
+| `XLSX` | `"xlsx"` | Excel spreadsheets |
+| `PPTX` | `"pptx"` | PowerPoint presentations |
+| `HTML` | `"html"` | HTML documents |
+| `EPUB` | `"epub"` | EPUB e-books |
+| `MARKDOWN` | `"markdown"` | Markdown files |
+| `UNKNOWN` | `"unknown"` | Unrecognized format |
+
+```python
+from paperjam import DocumentFormat
+
+fmt = paperjam.detect_format("report.docx")
+if fmt == DocumentFormat.DOCX:
+    print("Word document detected")
 ```

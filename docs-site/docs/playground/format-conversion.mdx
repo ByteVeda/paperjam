@@ -1,0 +1,115 @@
+---
+sidebar_position: 5
+title: Format Conversion
+---
+
+# Format Conversion
+
+Convert documents between formats directly in your browser using WebAssembly.
+
+:::info
+This playground uses the paperjam WASM module to convert documents client-side. No files are uploaded to any server.
+:::
+
+import WasmLoader from '@site/src/components/playground/WasmLoader';
+import PdfUploader from '@site/src/components/playground/PdfUploader';
+
+<WasmLoader>
+{(wasm) => {
+  const [result, setResult] = React.useState(null);
+  const [format, setFormat] = React.useState('markdown');
+  const [doc, setDoc] = React.useState(null);
+  const [error, setError] = React.useState('');
+
+  const handleFile = (data) => {
+    try {
+      setError('');
+      setResult(null);
+      const d = new wasm.WasmDocument(data);
+      setDoc(d);
+    } catch (e) {
+      setError(String(e));
+    }
+  };
+
+  const handleConvert = () => {
+    if (!doc) return;
+    try {
+      setError('');
+      const output = doc.convertTo(format);
+      if (format === 'markdown' || format === 'html') {
+        setResult(new TextDecoder().decode(output));
+      } else {
+        setResult(`Converted successfully (${output.length} bytes). Download available.`);
+      }
+    } catch (e) {
+      setError(String(e));
+    }
+  };
+
+  return (
+    <div>
+      <PdfUploader onData={handleFile} />
+      {doc && (
+        <div style={{marginTop: '1rem'}}>
+          <label>Target format: </label>
+          <select value={format} onChange={e => setFormat(e.target.value)} style={{marginRight: '0.5rem'}}>
+            <option value="markdown">Markdown</option>
+            <option value="html">HTML</option>
+            <option value="pdf">PDF</option>
+            <option value="docx">DOCX</option>
+          </select>
+          <button className="button button--primary button--sm" onClick={handleConvert}>
+            Convert
+          </button>
+        </div>
+      )}
+      {error && <div className="alert alert--danger" style={{marginTop: '1rem'}}>{error}</div>}
+      {result && (
+        <pre style={{marginTop: '1rem', maxHeight: '400px', overflow: 'auto'}}>
+          {result}
+        </pre>
+      )}
+    </div>
+  );
+}}
+</WasmLoader>
+
+## Supported Conversions
+
+| Source → Target | PDF | DOCX | XLSX | PPTX | HTML | EPUB | Markdown |
+|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
+| **PDF** | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| **DOCX** | ✓ | — | ✓ | ✓ | ✓ | ✓ | ✓ |
+| **XLSX** | ✓ | ✓ | — | ✓ | ✓ | ✓ | ✓ |
+| **PPTX** | ✓ | ✓ | ✓ | — | ✓ | ✓ | ✓ |
+| **HTML** | ✓ | ✓ | ✓ | ✓ | — | ✓ | ✓ |
+| **EPUB** | ✓ | ✓ | ✓ | ✓ | ✓ | — | ✓ |
+
+## Python API
+
+```python
+import paperjam
+
+# File-to-file conversion
+paperjam.convert("input.docx", "output.pdf")
+
+# In-memory conversion
+with open("report.docx", "rb") as f:
+    pdf_bytes = paperjam.convert_bytes(f.read(), from_format="docx", to_format="pdf")
+
+# Convert from an open document
+doc = paperjam.open("report.docx")
+html_bytes = doc.convert_to("html")
+```
+
+## CLI
+
+```bash
+# Auto-detect formats from extensions
+pj convert auto input.docx -o output.pdf
+
+# Explicit target format
+pj convert to-html input.pdf -o output.html
+pj convert to-epub input.docx -o output.epub
+```

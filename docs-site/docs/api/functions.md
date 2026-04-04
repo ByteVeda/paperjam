@@ -14,16 +14,16 @@ paperjam.open(
 ) -> Document
 ```
 
-Open a PDF document.
+Open a document. The format is auto-detected from the file extension or content. For PDF files, returns a `Document` object. For other formats (DOCX, XLSX, PPTX, HTML, EPUB), returns an `AnyDocument` with the same extraction interface.
 
 **Parameters**
 
 | Name | Type | Description |
 |------|------|-------------|
-| `path_or_bytes` | `str`, `PathLike`, or `bytes` | File path or raw PDF bytes |
+| `path_or_bytes` | `str`, `PathLike`, or `bytes` | File path or raw document bytes |
 | `password` | `str \| None` | Password for encrypted PDFs |
 
-**Returns** a `Document` object.
+**Returns** a `Document` (for PDFs) or `AnyDocument` (for other formats).
 
 **Raises** `PasswordRequired` if the PDF is encrypted and no password is given. `InvalidPassword` if the password is wrong. `ParseError` if the file is not a valid PDF.
 
@@ -146,6 +146,86 @@ Open a PDF and render a single page to an image. Requires the `render` feature.
 img = paperjam.render("slides.pdf", page=3, dpi=300)
 img.save("slide3.png")
 ```
+
+---
+
+---
+
+## `detect_format`
+
+```python
+paperjam.detect_format(path: str) -> str
+```
+
+Detect the document format from a file path. Returns a format string: `"pdf"`, `"docx"`, `"xlsx"`, `"pptx"`, `"html"`, `"epub"`, or `"unknown"`.
+
+---
+
+## `convert`
+
+```python
+paperjam.convert(input_path: str, output_path: str) -> dict
+```
+
+Convert a file from one format to another. Formats are auto-detected from extensions. Returns a dict with conversion statistics.
+
+**Example**
+
+```python
+paperjam.convert("report.docx", "report.pdf")
+paperjam.convert("data.xlsx", "data.html")
+```
+
+---
+
+## `convert_bytes`
+
+```python
+paperjam.convert_bytes(data: bytes, *, from_format: str, to_format: str) -> bytes
+```
+
+Convert in-memory bytes between formats. Returns the converted document bytes.
+
+**Example**
+
+```python
+with open("report.docx", "rb") as f:
+    pdf_bytes = paperjam.convert_bytes(f.read(), from_format="docx", to_format="pdf")
+```
+
+---
+
+## `run_pipeline`
+
+```python
+paperjam.run_pipeline(yaml_or_json: str) -> dict
+```
+
+Run a document processing pipeline from a YAML or JSON definition string. Returns a dict with `total_files`, `succeeded`, `failed`, `skipped`, and `file_results`.
+
+**Example**
+
+```python
+result = paperjam.run_pipeline("""
+name: Extract tables to Excel
+input: "invoices/*.pdf"
+steps:
+  - type: extract_tables
+  - type: convert
+    format: xlsx
+""")
+print(f"Processed {result['total_files']} files")
+```
+
+---
+
+## `validate_pipeline`
+
+```python
+paperjam.validate_pipeline(yaml_or_json: str) -> None
+```
+
+Validate a pipeline definition without running it. Raises `PipelineError` if invalid.
 
 ---
 

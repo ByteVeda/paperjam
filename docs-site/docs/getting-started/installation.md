@@ -60,6 +60,49 @@ When building from source you can control features with the `--features` flag:
 maturin develop --release --features render,signatures
 ```
 
+## CLI Installation
+
+Install the paperjam command-line tool:
+
+```bash
+# From crates.io
+cargo install paperjam-cli
+
+# From source
+git clone https://github.com/ByteVeda/paperjam
+cd paperjam
+cargo build --release -p paperjam-cli
+```
+
+The CLI binary is called `pj`:
+
+```bash
+pj --help
+pj info document.pdf
+```
+
+## MCP Server Setup
+
+To use paperjam as an MCP server for AI assistants (Claude Code, Cursor):
+
+```bash
+# Build the MCP server
+cargo build --release -p paperjam-mcp
+```
+
+Add to your Claude Code or Cursor MCP configuration:
+
+```json
+{
+  "mcpServers": {
+    "paperjam": {
+      "command": "paperjam-mcp",
+      "args": ["--working-dir", "/path/to/documents"]
+    }
+  }
+}
+```
+
 ## Verifying the installation
 
 ```python

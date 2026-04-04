@@ -129,6 +129,75 @@ async def process():
     await doc.asave("out.pdf")
 ```
 
+## Opening any document format
+
+paperjam auto-detects the format and returns the right document type:
+
+```python
+import paperjam
+
+# Works with any format
+doc = paperjam.open("report.docx")
+text = doc.extract_text()
+tables = doc.extract_tables()
+md = doc.to_markdown()
+
+# All formats supported
+for path in ["data.xlsx", "slides.pptx", "page.html", "book.epub"]:
+    with paperjam.open(path) as doc:
+        print(f"{doc.format}: {doc.page_count} pages")
+        print(doc.extract_text()[:200])
+```
+
+## Converting between formats
+
+```python
+# File-to-file conversion
+paperjam.convert("report.docx", "report.pdf")
+paperjam.convert("data.xlsx", "data.html")
+
+# In-memory conversion
+with open("report.docx", "rb") as f:
+    pdf_bytes = paperjam.convert_bytes(
+        f.read(),
+        from_format="docx",
+        to_format="pdf",
+    )
+```
+
+## Running a pipeline
+
+```python
+result = paperjam.run_pipeline("""
+name: Extract tables to Excel
+input: "invoices/*.pdf"
+parallel: true
+steps:
+  - type: extract_tables
+  - type: convert
+    format: xlsx
+  - type: save
+    path: "output/{stem}.xlsx"
+""")
+print(f"Processed {result['total_files']} files")
+```
+
+## Using the CLI
+
+```bash
+# Document info
+pj info report.docx
+
+# Extract text
+pj extract text slides.pptx
+
+# Convert formats
+pj convert auto report.docx -o report.pdf
+
+# Run a pipeline
+pj pipeline run workflow.yaml --parallel
+```
+
 ## What's next
 
 - Read the [guides](../guides/extraction) for in-depth coverage of every feature
