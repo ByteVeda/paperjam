@@ -123,7 +123,7 @@ impl Document {
         if let Some(ref meta) = *cache {
             return Ok(Arc::clone(meta));
         }
-        let meta = Metadata::extract(&self.inner)?;
+        let meta = crate::metadata::extract_metadata(&self.inner)?;
         let meta = Arc::new(meta);
         *cache = Some(Arc::clone(&meta));
         Ok(meta)

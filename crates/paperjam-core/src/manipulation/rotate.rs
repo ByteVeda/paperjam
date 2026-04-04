@@ -1,24 +1,7 @@
 use crate::document::Document;
 use crate::error::{PdfError, Result};
 
-#[derive(Debug, Clone, Copy)]
-pub enum Rotation {
-    Degrees0,
-    Degrees90,
-    Degrees180,
-    Degrees270,
-}
-
-impl Rotation {
-    pub fn as_degrees(&self) -> i32 {
-        match self {
-            Self::Degrees0 => 0,
-            Self::Degrees90 => 90,
-            Self::Degrees180 => 180,
-            Self::Degrees270 => 270,
-        }
-    }
-}
+pub use paperjam_model::manipulation::Rotation;
 
 /// Rotate specific pages in a document.
 pub fn rotate_pages(doc: &mut Document, page_rotations: &[(u32, Rotation)]) -> Result<()> {

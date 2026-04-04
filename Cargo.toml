@@ -1,10 +1,21 @@
 [workspace]
 resolver = "2"
 members = [
+    "crates/paperjam-model",
     "crates/paperjam-core",
+    "crates/paperjam-cli",
     "crates/paperjam-async",
     "crates/paperjam-py",
     "crates/paperjam-wasm",
+    "crates/paperjam-docx",
+    "crates/paperjam-xlsx",
+    "crates/paperjam-pptx",
+    "crates/paperjam-convert",
+    "crates/paperjam-html",
+    "crates/paperjam-epub",
+    "crates/paperjam-pipeline",
+    "crates/paperjam-mcp",
+    "crates/paperjam-studio",
 ]
 
 [workspace.package]

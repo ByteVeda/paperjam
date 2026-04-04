@@ -4,10 +4,7 @@ use std::path::Path;
 
 use lopdf::{dictionary, Object};
 
-#[derive(Debug, Clone, Default)]
-pub struct MergeOptions {
-    pub deduplicate_resources: bool,
-}
+pub use paperjam_model::manipulation::MergeOptions;
 
 /// Recursively remap all Object::Reference IDs by adding an offset.
 fn remap_refs(object: &mut Object, offset: u32) {
