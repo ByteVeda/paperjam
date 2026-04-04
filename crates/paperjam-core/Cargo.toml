@@ -35,6 +35,7 @@ p256 = { workspace = true, optional = true }
 pkcs8 = { workspace = true, optional = true }
 roxmltree = { workspace = true, optional = true }
 ureq = { workspace = true, optional = true }
+rustls = { workspace = true, optional = true }
 
 [features]
 default = ["parallel"]
@@ -42,5 +43,5 @@ parallel = ["dep:rayon"]
 mmap = ["dep:memmap2"]
 render = ["dep:pdfium-render", "dep:image"]
 signatures = ["dep:x509-parser", "dep:cms", "dep:der", "dep:sha1", "dep:rsa", "dep:p256", "dep:pkcs8", "dep:spki"]
-ltv = ["signatures", "dep:ureq"]
+ltv = ["signatures", "dep:ureq", "dep:rustls"]
 validation = ["dep:roxmltree"]

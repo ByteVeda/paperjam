@@ -104,19 +104,31 @@ pub fn parse_timestamp_response(resp_bytes: &[u8]) -> Result<Vec<u8>> {
 /// Fetch a timestamp token from a TSA server.
 #[cfg(feature = "ltv")]
 pub fn fetch_timestamp_token(tsa_url: &str, signature_value: &[u8]) -> Result<Vec<u8>> {
-    use std::io::Read;
+    use std::sync::Arc;
+    use ureq::tls::{TlsConfig, TlsProvider};
 
     let request_bytes = build_timestamp_request(signature_value)?;
 
-    let response = ureq::post(tsa_url)
-        .set("Content-Type", "application/timestamp-query")
-        .send_bytes(&request_bytes)
+    let crypto = Arc::new(rustls::crypto::aws_lc_rs::default_provider());
+    let agent = ureq::Agent::config_builder()
+        .tls_config(
+            TlsConfig::builder()
+                .provider(TlsProvider::Rustls)
+                .unversioned_rustls_crypto_provider(crypto)
+                .build(),
+        )
+        .build()
+        .new_agent();
+
+    let response = agent
+        .post(tsa_url)
+        .header("Content-Type", "application/timestamp-query")
+        .send(&request_bytes)
         .map_err(|e| PdfError::Signature(format!("TSA HTTP request failed: {}", e)))?;
 
-    let mut resp_bytes = Vec::new();
-    response
-        .into_reader()
-        .read_to_end(&mut resp_bytes)
+    let resp_bytes = response
+        .into_body()
+        .read_to_vec()
         .map_err(|e| PdfError::Signature(format!("TSA response read error: {}", e)))?;
 
     parse_timestamp_response(&resp_bytes)
