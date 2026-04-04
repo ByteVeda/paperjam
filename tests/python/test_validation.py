@@ -8,7 +8,7 @@ def test_validate_simple_pdf(simple_text_pdf):
     doc = paperjam.Document(simple_text_pdf)
     report = doc.validate_pdf_a()
     assert isinstance(report, paperjam.ValidationReport)
-    assert report.level == "1b"
+    assert report.level == "PDF/A-1b"
     assert report.pages_checked >= 1
     # Simple text PDF is unlikely to be PDF/A compliant
     assert not report.is_compliant
@@ -30,7 +30,7 @@ def test_validate_level_2b(simple_text_pdf):
     """Validation with level 2b should work."""
     doc = paperjam.Document(simple_text_pdf)
     report = doc.validate_pdf_a(level="2b")
-    assert report.level == "2b"
+    assert report.level == "PDF/A-2b"
     assert isinstance(report.is_compliant, bool)
 
 
@@ -38,7 +38,7 @@ def test_validate_level_1a(simple_text_pdf):
     """Validation with level 1a should work."""
     doc = paperjam.Document(simple_text_pdf)
     report = doc.validate_pdf_a(level="1a")
-    assert report.level == "1a"
+    assert report.level == "PDF/A-1a"
 
 
 def test_validate_multi_page(multi_page_pdf):
