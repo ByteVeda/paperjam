@@ -33,7 +33,7 @@ rayon = "1"
 memmap2 = "0.9"
 pdfium-render = "0.8"
 image = "0.25"
-x509-parser = "0.16"
+x509-parser = "0.18"
 cms = "0.2"
 der = "0.7"
 sha2 = { version = "0.10", features = ["oid"] }
