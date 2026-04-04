@@ -1,0 +1,14 @@
+[package]
+name = "paperjam-epub"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+description = "EPUB e-book processing for the paperjam ecosystem"
+
+[dependencies]
+paperjam-model = { path = "../paperjam-model" }
+paperjam-html = { path = "../paperjam-html" }
+zip = { version = "2", default-features = false, features = ["deflate"] }
+quick-xml = "0.37"
+thiserror = { workspace = true }

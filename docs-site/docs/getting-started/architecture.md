@@ -2,14 +2,36 @@
 
 paperjam is a mixed Rust/Python library. Python provides the public API and ergonomics; Rust provides the PDF engine, performance, and safety.
 
+```
+paperjam-model (shared types, traits)
+    ↑
+    ├── paperjam-core (PDF)
+    ├── paperjam-docx (Word)
+    ├── paperjam-xlsx (Excel)
+    ├── paperjam-pptx (PowerPoint)
+    ├── paperjam-html (HTML)
+    └── paperjam-epub (EPUB)
+         ↑
+    paperjam-convert (universal converter)
+         ↑
+    paperjam-pipeline (workflow engine)
+         ↑
+    ├── paperjam-cli (command line)
+    ├── paperjam-mcp (AI agents via MCP)
+    ├── paperjam-py (Python bindings)
+    ├── paperjam-wasm (WebAssembly)
+    ├── paperjam-async (async wrappers)
+    └── paperjam-studio (web UI)
+```
+
 ```mermaid
 flowchart LR
     User(["User Code"])
 
     subgraph PY["Python  —  py_src/paperjam/"]
         direction TB
-        TopFns["open · merge · diff · render · to_markdown · aopen · amerge"]
-        DocPage["Document  ·  Page"]
+        TopFns["open · merge · diff · render · to_markdown · convert · run_pipeline"]
+        DocPage["Document  ·  Page  ·  AnyDocument"]
         Mods["feature modules — monkey-patched onto Document and Page at import time"]
         Types["_types.py  ·  _enums.py"]
     end
@@ -18,7 +40,21 @@ flowchart LR
         direction TB
         Bindings["PyO3 Bindings  —  crates/paperjam-py"]
         Async["Async Wrappers  —  crates/paperjam-async"]
-        Core["Rust Core  —  crates/paperjam-core"]
+        Convert["Universal Converter  —  crates/paperjam-convert"]
+        Pipeline["Pipeline Engine  —  crates/paperjam-pipeline"]
+        Model["Shared Model  —  crates/paperjam-model"]
+        Core["PDF Core  —  crates/paperjam-core"]
+        Docx["Word  —  crates/paperjam-docx"]
+        Xlsx["Excel  —  crates/paperjam-xlsx"]
+        Pptx["PowerPoint  —  crates/paperjam-pptx"]
+    end
+
+    subgraph IFACE["Interfaces"]
+        direction TB
+        CLI["CLI  —  crates/paperjam-cli"]
+        MCP["MCP Server  —  crates/paperjam-mcp"]
+        WASM["WebAssembly  —  crates/paperjam-wasm"]
+        Studio["Web UI  —  crates/paperjam-studio"]
     end
 
     subgraph OPT["Optional  —  Cargo feature flags"]
@@ -35,21 +71,37 @@ flowchart LR
     Mods -.->|"monkey-patches"| DocPage
     Types -.- DocPage
     DocPage -->|"FFI via PyO3"| Bindings
-    Bindings -->|"sync"| Core
+    Bindings -->|"sync"| Core & Docx & Xlsx & Pptx
     Bindings -->|"async"| Async
+    Bindings -->|"convert"| Convert
+    Bindings -->|"pipeline"| Pipeline
     Async -->|"spawn_blocking"| Core
+    Convert --> Core & Docx & Xlsx & Pptx
+    Pipeline --> Convert
+    Core & Docx & Xlsx & Pptx --> Model
     Core --> F1 & F2 & F3 & F4 & F5
+    CLI & MCP & WASM & Studio --> Convert & Pipeline
 ```
 
 ## Layers
 
-**Python layer** — The public API. `Document` and `Page` are pure-Python classes. Feature modules (`_extraction.py`, `_manipulation.py`, etc.) attach methods onto those classes at import time via simple assignment (`Document.method = _method`), keeping each feature self-contained without subclassing.
+**Python layer** — The public API. `Document` and `Page` are pure-Python classes for PDFs. `AnyDocument` is the format-agnostic wrapper returned by `open()` for non-PDF formats. Feature modules (`_extraction.py`, `_manipulation.py`, etc.) attach methods onto those classes at import time via simple assignment (`Document.method = _method`), keeping each feature self-contained without subclassing.
 
-**PyO3 boundary** — The compiled extension (`_paperjam.abi3.so`) exposes `RustDocument` and `RustPage` as opaque Python objects. All PDF heavy lifting crosses this boundary via PyO3 FFI. The GIL is released for long-running operations.
+**PyO3 boundary** — The compiled extension (`_paperjam.abi3.so`) exposes `RustDocument` and `RustPage` as opaque Python objects. All document heavy lifting crosses this boundary via PyO3 FFI. The GIL is released for long-running operations.
 
-**Rust core** — `crates/paperjam-core` owns the PDF object model, parser, text engine, table extractor, manipulation primitives, security operations, and diff algorithm. No Python dependencies; usable as a standalone Rust crate.
+**Shared model** — `crates/paperjam-model` defines the common traits and types shared across all format crates: `DocumentLike`, `PageLike`, `ContentBlock`, `Table`, etc. Each format crate implements these traits.
 
-**Async layer** — `crates/paperjam-async` wraps `paperjam-core` operations with `tokio::task::spawn_blocking`. The PyO3 bindings expose these as native Python coroutines via `pyo3-async-runtimes::tokio::future_into_py()`. The Python `_async.py` module is a thin shim that imports the Rust async functions and attaches them to `Document` and `Page`.
+**Format crates** — Each document format has its own crate: `paperjam-core` (PDF), `paperjam-docx` (Word), `paperjam-xlsx` (Excel), `paperjam-pptx` (PowerPoint). They all implement the shared model traits, providing a uniform API regardless of format.
+
+**Universal converter** — `crates/paperjam-convert` bridges between formats. It uses the format crates to read one format and write another, supporting conversions like DOCX to PDF, XLSX to HTML, etc.
+
+**Pipeline engine** — `crates/paperjam-pipeline` provides a YAML/JSON-driven workflow system for batch processing. It orchestrates multi-step operations across files with parallel execution support.
+
+**Async layer** — `crates/paperjam-async` wraps core operations with `tokio::task::spawn_blocking`. The PyO3 bindings expose these as native Python coroutines via `pyo3-async-runtimes::tokio::future_into_py()`. The Python `_async.py` module is a thin shim that imports the Rust async functions and attaches them to `Document` and `Page`.
+
+**CLI** — `crates/paperjam-cli` provides the `pj` command-line tool for document operations: info, extract, convert, pipeline, and more.
+
+**MCP server** — `crates/paperjam-mcp` exposes paperjam capabilities as an MCP server, allowing AI assistants like Claude Code and Cursor to process documents directly.
 
 **Feature flags** — Optional capabilities gated behind Cargo features. `parallel` (rayon) is on by default. `render`, `signatures`, `validation`, and `mmap` must be enabled at compile time.
 

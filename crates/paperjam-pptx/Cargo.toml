@@ -1,0 +1,13 @@
+[package]
+name = "paperjam-pptx"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+description = "PPTX presentation processing for the paperjam ecosystem"
+
+[dependencies]
+paperjam-model = { path = "../paperjam-model" }
+zip = { version = "2", default-features = false, features = ["deflate"] }
+quick-xml = "0.37"
+thiserror = { workspace = true }

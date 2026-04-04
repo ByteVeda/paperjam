@@ -4,7 +4,7 @@ import type * as Preset from '@docusaurus/preset-classic';
 
 const config: Config = {
   title: 'paperjam',
-  tagline: 'Fast PDF processing powered by Rust',
+  tagline: 'Fast document processing powered by Rust',
   favicon: 'img/favicon.ico',
 
   future: {
@@ -172,7 +172,7 @@ const config: Config = {
     prism: {
       theme: prismThemes.github,
       darkTheme: prismThemes.dracula,
-      additionalLanguages: ['python', 'rust', 'toml', 'bash'],
+      additionalLanguages: ['python', 'rust', 'toml', 'bash', 'yaml'],
     },
   } satisfies Preset.ThemeConfig,
 };

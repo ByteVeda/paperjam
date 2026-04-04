@@ -23,8 +23,8 @@ def main() -> None:
     output = Path(args.output)
     output.mkdir(parents=True, exist_ok=True)
 
-    doc_a = paperjam.open(args.file_a)
-    doc_b = paperjam.open(args.file_b)
+    doc_a = paperjam.open_pdf(args.file_a)
+    doc_b = paperjam.open_pdf(args.file_b)
     print("Comparing:")
     print(f"  A: {args.file_a} ({doc_a.page_count} pages)")
     print(f"  B: {args.file_b} ({doc_b.page_count} pages)")

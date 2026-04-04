@@ -57,7 +57,7 @@ def main() -> None:
 
     os.makedirs(args.output, exist_ok=True)
 
-    doc = paperjam.open(args.input)
+    doc = paperjam.open_pdf(args.input)
     print(f"Opened: {args.input} ({doc.page_count} pages)")
 
     if args.list or (not args.verify and not args.sign):

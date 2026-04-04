@@ -43,7 +43,7 @@ def main() -> None:
     output = Path(args.output)
     output.mkdir(parents=True, exist_ok=True)
 
-    doc = paperjam.open(args.input)
+    doc = paperjam.open_pdf(args.input)
     print(f"Opened: {args.input} ({doc.page_count} pages)")
 
     ranges = [(i, i) for i in range(1, doc.page_count + 1)] if args.each else [parse_range(r) for r in args.ranges]

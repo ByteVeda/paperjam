@@ -17,7 +17,7 @@ def main() -> None:
     )
     args = parser.parse_args()
 
-    doc = paperjam.open(args.input)
+    doc = paperjam.open_pdf(args.input)
     meta = doc.metadata
 
     print(f"File: {args.input}\n")

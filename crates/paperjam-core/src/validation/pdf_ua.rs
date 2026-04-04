@@ -6,37 +6,7 @@ use std::collections::HashSet;
 use crate::document::Document;
 use crate::error::Result;
 
-use super::{Severity, ValidationIssue};
-
-/// PDF/UA conformance level.
-#[derive(Debug, Clone, Copy, PartialEq)]
-pub enum PdfUaLevel {
-    /// ISO 14289-1
-    Ua1,
-}
-
-impl PdfUaLevel {
-    pub fn as_str(&self) -> &str {
-        match self {
-            Self::Ua1 => "1",
-        }
-    }
-
-    #[allow(clippy::should_implement_trait)]
-    pub fn from_str(_s: &str) -> Self {
-        Self::Ua1
-    }
-}
-
-/// PDF/UA validation report.
-#[derive(Debug, Clone)]
-pub struct PdfUaReport {
-    pub level: PdfUaLevel,
-    pub is_compliant: bool,
-    pub issues: Vec<ValidationIssue>,
-    pub pages_checked: usize,
-    pub structure_elements_checked: usize,
-}
+use super::{PdfUaLevel, PdfUaReport, Severity, ValidationIssue};
 
 /// Validate a PDF against PDF/UA accessibility requirements.
 pub fn validate_pdf_ua(doc: &Document, level: PdfUaLevel) -> Result<PdfUaReport> {

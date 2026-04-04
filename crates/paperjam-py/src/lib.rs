@@ -1,23 +1,35 @@
 use pyo3::prelude::*;
 
+#[cfg(feature = "formats")]
+mod any_document;
 #[cfg(feature = "async")]
 mod async_ops;
 mod convert;
+#[cfg(feature = "formats")]
+mod convert_ops;
 mod document;
 mod errors;
 mod ops;
 mod page;
+#[cfg(feature = "pipeline")]
+mod pipeline_ops;
 
 /// The native Rust extension module for paperjam.
 ///
 /// Imported as `paperjam._paperjam` and wrapped by the pure Python layer.
 #[pymodule]
 fn _paperjam(m: &Bound<'_, PyModule>) -> PyResult<()> {
+    // PDF classes (always available).
     m.add_class::<document::PyDocument>()?;
     m.add_class::<page::PyPage>()?;
 
+    // Format-agnostic document class.
+    #[cfg(feature = "formats")]
+    m.add_class::<any_document::PyAnyDocument>()?;
+
     errors::register_exceptions(m)?;
 
+    // PDF operation functions.
     m.add_function(wrap_pyfunction!(ops::py_merge, m)?)?;
     m.add_function(wrap_pyfunction!(ops::py_split, m)?)?;
     m.add_function(wrap_pyfunction!(ops::py_rotate_pages, m)?)?;
@@ -52,6 +64,22 @@ fn _paperjam(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(ops::py_convert_to_pdf_a, m)?)?;
     m.add_function(wrap_pyfunction!(ops::py_validate_pdf_ua, m)?)?;
 
+    // Format conversion functions.
+    #[cfg(feature = "formats")]
+    {
+        m.add_function(wrap_pyfunction!(convert_ops::py_convert_file, m)?)?;
+        m.add_function(wrap_pyfunction!(convert_ops::py_convert_bytes, m)?)?;
+        m.add_function(wrap_pyfunction!(convert_ops::py_detect_format, m)?)?;
+    }
+
+    // Pipeline functions.
+    #[cfg(feature = "pipeline")]
+    {
+        m.add_function(wrap_pyfunction!(pipeline_ops::py_run_pipeline, m)?)?;
+        m.add_function(wrap_pyfunction!(pipeline_ops::py_validate_pipeline, m)?)?;
+    }
+
+    // Async functions.
     #[cfg(feature = "async")]
     {
         m.add_function(wrap_pyfunction!(async_ops::py_aopen, m)?)?;

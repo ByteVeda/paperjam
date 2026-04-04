@@ -1,18 +1,21 @@
-"""paperjam -- Fast PDF processing powered by Rust."""
+"""paperjam -- Fast document processing powered by Rust."""
 
 from __future__ import annotations
 
 __version__ = "0.1.0"
 
+from paperjam._any_document import AnyDocument
 from paperjam._async import (
     amerge,
     aopen,
     arender,
     ato_markdown,
 )
+from paperjam._convert import convert, convert_bytes, detect_format
 from paperjam._document import Document
 from paperjam._enums import (
     AnnotationType,
+    DocumentFormat,
     FormFieldType,
     ImageFormat,
     Rotation,
@@ -20,17 +23,19 @@ from paperjam._enums import (
     WatermarkLayer,
     WatermarkPosition,
 )
-from paperjam._functions import diff, merge, merge_files, open, to_markdown
+from paperjam._functions import diff, merge, merge_files, open, open_pdf, to_markdown
 from paperjam._page import Page
 from paperjam._paperjam import (
     AnnotationError,
     EncryptionError,
+    FormatError,
     FormError,
     InvalidPassword,
     OptimizationError,
     PageOutOfRange,
     ParseError,
     PasswordRequired,
+    PipelineError,
     RedactError,
     RenderError,
     SanitizeError,
@@ -42,6 +47,7 @@ from paperjam._paperjam import (
 from paperjam._paperjam import (
     PaperJamError as PdfError,
 )
+from paperjam._pipeline import run_pipeline, validate_pipeline
 from paperjam._render import render
 from paperjam._types import (
     Annotation,
@@ -93,6 +99,7 @@ __all__ = [
     "Annotation",
     "AnnotationError",
     "AnnotationType",
+    "AnyDocument",
     "Bookmark",
     "Cell",
     "CertificateInfo",
@@ -105,12 +112,14 @@ __all__ = [
     "DiffResult",
     "DiffSummary",
     "Document",
+    "DocumentFormat",
     "EncryptResult",
     "EncryptionError",
     "FillFormResult",
     "FormError",
     "FormField",
     "FormFieldType",
+    "FormatError",
     "Image",
     "ImageFormat",
     "InvalidPassword",
@@ -130,6 +139,7 @@ __all__ = [
     "PdfError",
     "PdfUaReport",
     "Permissions",
+    "PipelineError",
     "RedactError",
     "RedactRegion",
     "RedactResult",
@@ -162,10 +172,16 @@ __all__ = [
     "aopen",
     "arender",
     "ato_markdown",
+    "convert",
+    "convert_bytes",
+    "detect_format",
     "diff",
     "merge",
     "merge_files",
     "open",
+    "open_pdf",
     "render",
+    "run_pipeline",
     "to_markdown",
+    "validate_pipeline",
 ]

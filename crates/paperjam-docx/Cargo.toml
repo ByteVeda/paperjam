@@ -1,0 +1,13 @@
+[package]
+name = "paperjam-docx"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+description = "DOCX document processing for the paperjam ecosystem"
+
+[dependencies]
+paperjam-model = { path = "../paperjam-model" }
+docx-rs = "0.4"
+thiserror = { workspace = true }
+zip = { version = "0.6", default-features = false, features = ["deflate"] }

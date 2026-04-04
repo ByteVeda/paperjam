@@ -7,32 +7,9 @@ mod xmp;
 
 use crate::document::Document;
 use crate::error::{PdfError, Result};
-use crate::validation::{PdfALevel, Severity, ValidationIssue};
+use crate::validation::{PdfALevel, Severity};
 
-/// Options for PDF/A conversion.
-pub struct ConversionOptions {
-    /// Target PDF/A conformance level.
-    pub level: PdfALevel,
-    /// If true, proceed even if some issues (like unembedded fonts) cannot be fixed.
-    pub force: bool,
-}
-
-/// A single action taken during conversion.
-#[derive(Debug, Clone)]
-pub struct ConversionAction {
-    pub category: String,
-    pub description: String,
-    pub page: Option<u32>,
-}
-
-/// Result of a PDF/A conversion.
-#[derive(Debug, Clone)]
-pub struct ConversionResult {
-    pub level: PdfALevel,
-    pub success: bool,
-    pub actions_taken: Vec<ConversionAction>,
-    pub remaining_issues: Vec<ValidationIssue>,
-}
+pub use paperjam_model::conversion::*;
 
 /// Convert a PDF document to PDF/A conformance.
 ///

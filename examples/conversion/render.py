@@ -27,7 +27,7 @@ def render_fast(args: argparse.Namespace) -> None:
         data = f.read()
 
     # Determine which pages to render
-    doc = paperjam.open(args.input)
+    doc = paperjam.open_pdf(args.input)
     total = doc.page_count
     print(f"Opened: {args.input} ({total} pages)")
 
@@ -64,7 +64,7 @@ def render_batch(args: argparse.Namespace) -> None:
     os.makedirs(args.output, exist_ok=True)
     basename = os.path.splitext(os.path.basename(args.input))[0]
 
-    doc = paperjam.open(args.input)
+    doc = paperjam.open_pdf(args.input)
     print(f"Opened: {args.input} ({doc.page_count} pages)")
 
     if args.pages:  # noqa: SIM108

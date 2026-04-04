@@ -1,76 +1,9 @@
-use crate::diff::{self, DiffResult};
+use crate::diff;
 use crate::error::{PdfError, Result};
 use crate::render::engine::render_page;
 use crate::render::types::{ImageFormat, RenderOptions, RenderedImage};
 
-/// Visual diff comparison mode.
-#[derive(Debug, Clone, Copy, PartialEq)]
-pub enum VisualDiffMode {
-    PixelDiff,
-    BboxOverlay,
-    Both,
-}
-
-impl VisualDiffMode {
-    #[allow(clippy::should_implement_trait)]
-    pub fn from_str(s: &str) -> Self {
-        match s.to_lowercase().as_str() {
-            "pixel_diff" | "pixeldiff" => Self::PixelDiff,
-            "bbox_overlay" | "bboxoverlay" => Self::BboxOverlay,
-            _ => Self::Both,
-        }
-    }
-
-    pub fn as_str(&self) -> &str {
-        match self {
-            Self::PixelDiff => "pixel_diff",
-            Self::BboxOverlay => "bbox_overlay",
-            Self::Both => "both",
-        }
-    }
-}
-
-/// Options for visual diff.
-pub struct VisualDiffOptions {
-    /// DPI for rendering pages.
-    pub dpi: f32,
-    /// RGBA highlight color for changed pixels.
-    pub highlight_color: [u8; 4],
-    /// Comparison mode.
-    pub mode: VisualDiffMode,
-    /// Per-channel pixel difference threshold (0-255).
-    pub threshold: u8,
-}
-
-impl Default for VisualDiffOptions {
-    fn default() -> Self {
-        Self {
-            dpi: 150.0,
-            highlight_color: [255, 0, 0, 128],
-            mode: VisualDiffMode::Both,
-            threshold: 10,
-        }
-    }
-}
-
-/// Visual diff result for a single page.
-#[derive(Debug, Clone)]
-pub struct VisualDiffPage {
-    pub page: u32,
-    pub image_a: RenderedImage,
-    pub image_b: RenderedImage,
-    pub diff_image: RenderedImage,
-    pub similarity: f64,
-    pub changed_pixel_count: u64,
-}
-
-/// Complete visual diff result.
-#[derive(Debug, Clone)]
-pub struct VisualDiffResult {
-    pub pages: Vec<VisualDiffPage>,
-    pub overall_similarity: f64,
-    pub text_diff: DiffResult,
-}
+pub use paperjam_model::visual_diff::*;
 
 /// Perform a visual diff between two PDF documents.
 pub fn visual_diff(

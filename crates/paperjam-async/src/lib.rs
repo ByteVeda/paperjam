@@ -1,5 +1,9 @@
 pub mod document;
+pub mod generic;
 pub mod page;
+
+#[cfg(feature = "convert")]
+pub mod convert;
 
 use paperjam_core::error::PdfError;
 

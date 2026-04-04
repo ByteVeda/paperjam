@@ -2,6 +2,18 @@
 
 paperjam provides several levels of text extraction: raw strings, line-level objects with bounding boxes, and individual positioned spans. It also supports structured extraction that identifies headings, paragraphs, list items, and tables.
 
+:::tip Multi-Format Support
+All extraction methods work across formats. Use `paperjam.open()` with any supported file:
+
+```python
+# Works with PDF, DOCX, XLSX, PPTX, HTML, EPUB
+doc = paperjam.open("report.docx")
+text = doc.extract_text()
+tables = doc.extract_tables()
+structure = doc.extract_structure()
+```
+:::
+
 ## Plain text
 
 The simplest way to get text out of a page is `extract_text()`. It returns a plain string with newlines preserved:

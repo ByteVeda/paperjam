@@ -5,21 +5,7 @@ use lopdf::{dictionary, Object, ObjectId};
 use crate::document::Document;
 use crate::error::{PdfError, Result};
 
-/// A single bookmark entry from the document's outline/TOC.
-#[derive(Debug, Clone)]
-pub struct BookmarkItem {
-    pub title: String,
-    pub page: usize,
-    pub level: usize,
-}
-
-/// A bookmark specification for creating outlines.
-#[derive(Debug, Clone)]
-pub struct BookmarkSpec {
-    pub title: String,
-    pub page: u32,
-    pub children: Vec<BookmarkSpec>,
-}
+pub use paperjam_model::bookmarks::*;
 
 /// Extract the document's bookmark/outline tree as a flat list with levels.
 pub fn extract_bookmarks(doc: &lopdf::Document) -> Result<Vec<BookmarkItem>> {
