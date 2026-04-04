@@ -12,7 +12,7 @@ crate-type = ["cdylib"]
 [dependencies]
 paperjam-core = { path = "../paperjam-core", features = ["render", "signatures", "ltv", "validation"] }
 paperjam-model = { path = "../paperjam-model" }
-pyo3 = { version = "0.23", features = ["extension-module", "abi3-py312"] }
+pyo3 = { version = "0.28", features = ["extension-module", "abi3-py312"] }
 
 # Format crates (feature-gated)
 paperjam-convert = { path = "../paperjam-convert", optional = true }
