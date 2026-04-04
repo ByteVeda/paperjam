@@ -1,0 +1,60 @@
+[project]
+name = "paperjam-mcp"
+version = "0.1.0"
+description = "MCP server for paperjam document processing"
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.12"
+keywords = ["mcp", "pdf", "document-processing", "paperjam", "ai-agent"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Text Processing",
+]
+dependencies = [
+    "paperjam>=0.1.3",
+    "mcp>=1.0",
+]
+
+[project.scripts]
+paperjam-mcp = "paperjam_mcp.__main__:main"
+
+[project.urls]
+Homepage = "https://github.com/ByteVeda/paperjam"
+Repository = "https://github.com/ByteVeda/paperjam/tree/main/mcp-server"
+Documentation = "https://byteveda.github.io/paperjam/guides/mcp/"
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = ["paperjam_mcp", "paperjam_mcp.tools"]
+
+[tool.setuptools.package-dir]
+"paperjam_mcp" = "src"
+
+[tool.uv.sources]
+paperjam = { path = ".." }
+
+[tool.ruff]
+target-version = "py312"
+line-length = 150
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "UP", "B", "SIM", "TCH", "RUF"]
+
+[tool.mypy]
+python_version = "3.12"
+warn_return_any = true
+warn_unused_configs = true
+ignore_missing_imports = true
+
+[dependency-groups]
+dev = [
+    "mypy>=1.20.0",
+    "ruff>=0.15.9",
+]
