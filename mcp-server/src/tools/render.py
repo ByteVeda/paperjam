@@ -7,6 +7,9 @@ import json
 
 from paperjam_mcp.server import handle_errors, mcp, resolve_path, session_manager
 
+MAX_RENDER_DPI = 600.0
+MAX_RENDER_PAGES = 50
+
 
 @mcp.tool()
 @handle_errors
@@ -20,9 +23,10 @@ def render_page(
 ) -> str:
     """Render a single PDF page to an image. Returns base64-encoded image data.
 
-    format: png, jpeg, or bmp. quality: JPEG quality 1-100.
+    format: png, jpeg, or bmp. quality: JPEG quality 1-100. Max DPI: 600.
     Optionally save to save_path.
     """
+    dpi = min(dpi, MAX_RENDER_DPI)
     _session, doc = session_manager.get_pdf(session_id)
     result = doc.render_page(page_number, dpi=dpi, format=format, quality=quality)
 
@@ -57,10 +61,15 @@ def render_pages(
 ) -> str:
     """Render multiple PDF pages to images. Returns metadata and base64 data for each page.
 
-    pages: list of 1-based page numbers. None renders all pages.
+    pages: list of 1-based page numbers. None renders first 50 pages. Max DPI: 600.
     save_dir: if provided, saves each image as page_N.{format} in that directory.
     """
+    dpi = min(dpi, MAX_RENDER_DPI)
     _session, doc = session_manager.get_pdf(session_id)
+    if pages is None:
+        pages = list(range(1, min(doc.page_count, MAX_RENDER_PAGES) + 1))
+    elif len(pages) > MAX_RENDER_PAGES:
+        pages = pages[:MAX_RENDER_PAGES]
     results = doc.render_pages(pages=pages, dpi=dpi, format=format, quality=quality)
 
     output = []

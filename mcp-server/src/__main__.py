@@ -33,8 +33,11 @@ def main() -> None:
     for module in ("paperjam_mcp.prompts", "paperjam_mcp.resources", "paperjam_mcp.tools"):
         importlib.import_module(module)
 
+    import atexit
+
     srv.working_dir = Path(args.working_dir).resolve()
     srv.session_manager.configure(max_sessions=args.max_sessions, ttl_seconds=args.session_ttl)
+    atexit.register(srv.session_manager.close_all)
 
     if args.transport == "stdio":
         srv.mcp.run(transport="stdio")

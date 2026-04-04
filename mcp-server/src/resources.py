@@ -6,10 +6,11 @@ import json
 
 import paperjam
 from paperjam_mcp.serializers import serialize
-from paperjam_mcp.server import mcp, session_manager
+from paperjam_mcp.server import handle_errors, mcp, session_manager
 
 
 @mcp.resource("document://{session_id}")
+@handle_errors
 def document_overview(session_id: str) -> str:
     """Overview of an open document: format, page count, metadata summary."""
     session = session_manager.get(session_id)
@@ -27,6 +28,7 @@ def document_overview(session_id: str) -> str:
 
 
 @mcp.resource("document://{session_id}/metadata")
+@handle_errors
 def document_metadata(session_id: str) -> str:
     """Full document metadata."""
     session = session_manager.get(session_id)
@@ -34,6 +36,7 @@ def document_metadata(session_id: str) -> str:
 
 
 @mcp.resource("document://{session_id}/text")
+@handle_errors
 def document_text(session_id: str) -> str:
     """Full text content of the document."""
     session = session_manager.get(session_id)
@@ -45,6 +48,7 @@ def document_text(session_id: str) -> str:
 
 
 @mcp.resource("document://{session_id}/pages/{page_number}")
+@handle_errors
 def document_page(session_id: str, page_number: str) -> str:
     """Page info and text content for a specific page (PDF only)."""
     _session, doc = session_manager.get_pdf(session_id)
@@ -58,6 +62,7 @@ def document_page(session_id: str, page_number: str) -> str:
 
 
 @mcp.resource("document://{session_id}/bookmarks")
+@handle_errors
 def document_bookmarks(session_id: str) -> str:
     """Bookmark/TOC tree of the document."""
     session = session_manager.get(session_id)
@@ -66,6 +71,7 @@ def document_bookmarks(session_id: str) -> str:
 
 
 @mcp.resource("document://{session_id}/form-fields")
+@handle_errors
 def document_form_fields(session_id: str) -> str:
     """Form fields in the document (PDF only)."""
     _session, doc = session_manager.get_pdf(session_id)
@@ -74,6 +80,7 @@ def document_form_fields(session_id: str) -> str:
 
 
 @mcp.resource("document://{session_id}/signatures")
+@handle_errors
 def document_signatures(session_id: str) -> str:
     """Digital signatures in the document (PDF only)."""
     _session, doc = session_manager.get_pdf(session_id)

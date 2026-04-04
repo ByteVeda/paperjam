@@ -33,9 +33,10 @@ def visual_diff(
 ) -> str:
     """Compare two PDF documents visually (pixel-level).
 
-    Returns similarity scores and diff images as base64-encoded PNGs.
+    Returns similarity scores and diff images as base64-encoded PNGs. Max DPI: 300.
     mode: 'both' (side-by-side + diff), 'diff_only', or 'overlay'.
     """
+    dpi = min(dpi, 300.0)
     _sa, doc_a = session_manager.get_pdf(session_id_a)
     _sb, doc_b = session_manager.get_pdf(session_id_b)
     result = doc_a.visual_diff(doc_b, dpi=dpi, threshold=threshold, mode=mode)

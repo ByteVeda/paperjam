@@ -2,12 +2,15 @@
 
 from __future__ import annotations
 
+import logging
 import time
 import uuid
 from dataclasses import dataclass, field
 from pathlib import Path
 
 import paperjam
+
+log = logging.getLogger("paperjam_mcp")
 
 
 class McpError(Exception):
@@ -28,7 +31,7 @@ class DocumentSession:
     format: str
     path: str | None
     is_pdf: bool
-    created_at: float = field(default_factory=time.monotonic)
+    last_accessed: float = field(default_factory=time.monotonic)
 
 
 class SessionManager:
@@ -48,10 +51,13 @@ class SessionManager:
 
     def _cleanup_expired(self) -> None:
         now = time.monotonic()
-        expired = [sid for sid, s in self._sessions.items() if (now - s.created_at) > self._ttl_seconds]
+        expired = [sid for sid, s in self._sessions.items() if (now - s.last_accessed) > self._ttl_seconds]
         for sid in expired:
             session = self._sessions.pop(sid)
-            session.document.close()
+            try:
+                session.document.close()
+            except Exception:
+                log.warning("Failed to close expired session %s", sid, exc_info=True)
 
     def open_from_path(self, path: str, *, password: str | None = None, fmt: str | None = None) -> str:
         """Open a document from a file path. Returns session ID."""
@@ -74,10 +80,11 @@ class SessionManager:
         return session_id
 
     def get(self, session_id: str) -> DocumentSession:
-        """Get a session by ID. Raises McpError if not found."""
+        """Get a session by ID. Updates last-accessed time. Raises McpError if not found."""
         session = self._sessions.get(session_id)
         if session is None:
             raise McpError("session_not_found", f"No session with ID '{session_id}'")
+        session.last_accessed = time.monotonic()
         return session
 
     def get_pdf(self, session_id: str) -> tuple[DocumentSession, paperjam.Document]:
@@ -88,9 +95,14 @@ class SessionManager:
         return session, session.document  # type: ignore[return-value]
 
     def update_document(self, session_id: str, new_doc: paperjam.Document | paperjam.AnyDocument) -> None:
-        """Replace the document in a session (for mutation operations)."""
+        """Replace the document in a session (for mutation operations). Closes the old document."""
         session = self.get(session_id)
+        old_doc = session.document
         session.document = new_doc
+        try:
+            old_doc.close()
+        except Exception:
+            log.warning("Failed to close old document in session %s", session_id, exc_info=True)
 
     def register(self, doc: paperjam.Document | paperjam.AnyDocument, *, fmt: str, path: str | None = None) -> str:
         """Register an already-open document as a new session. Returns session ID."""
@@ -116,6 +128,15 @@ class SessionManager:
             return False
         session.document.close()
         return True
+
+    def close_all(self) -> None:
+        """Close all sessions. Used during shutdown."""
+        for sid, session in self._sessions.items():
+            try:
+                session.document.close()
+            except Exception:
+                log.warning("Failed to close session %s during shutdown", sid, exc_info=True)
+        self._sessions.clear()
 
     def list_sessions(self) -> list[dict]:
         """List all open sessions."""

@@ -26,9 +26,12 @@ working_dir: Path = Path.cwd()
 
 
 def resolve_path(path: str) -> Path:
-    """Resolve a path relative to the working directory."""
+    """Resolve a path relative to the working directory. Rejects paths outside it."""
     p = Path(path)
-    return p if p.is_absolute() else working_dir / p
+    resolved = (p if p.is_absolute() else working_dir / p).resolve()
+    if not resolved.is_relative_to(working_dir):
+        raise ValueError(f"Path '{path}' escapes the working directory")
+    return resolved
 
 
 def handle_errors(func):

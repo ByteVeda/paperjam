@@ -1,36 +1,40 @@
-"""Pipeline tools: run and validate document processing pipelines."""
+"""Pipeline tools: disabled — pipelines bypass server-side path validation."""
 
 from __future__ import annotations
 
 import json
 
-import paperjam
 from paperjam_mcp.server import handle_errors, mcp
 
 
 @mcp.tool()
 @handle_errors
 def run_pipeline(definition: str) -> str:
-    """Execute a document processing pipeline from a YAML or JSON definition.
+    """Execute a document processing pipeline.
 
-    Example YAML:
-        pipeline:
-          input: "docs/*.pdf"
-          steps:
-            - extract_tables: {}
-            - convert: { format: xlsx }
-            - save: { path: "output/{filename}.xlsx" }
+    Pipelines are disabled in the MCP server because they perform file I/O
+    with their own path resolution, bypassing the server's working directory
+    sandbox. Use individual tools (open_document, extract_tables, convert_file,
+    etc.) instead.
     """
-    result = paperjam.run_pipeline(definition)
-    return json.dumps(result)
+    return json.dumps(
+        {
+            "error": "pipeline_disabled",
+            "message": "Pipelines are disabled in the MCP server because they bypass path sandboxing. Use individual tools instead.",
+        }
+    )
 
 
 @mcp.tool()
 @handle_errors
 def validate_pipeline(definition: str) -> str:
-    """Validate a pipeline definition without executing it.
+    """Validate a pipeline definition.
 
-    Returns success or raises an error describing what is invalid.
+    Pipelines are disabled in the MCP server. See run_pipeline for details.
     """
-    paperjam.validate_pipeline(definition)
-    return json.dumps({"valid": True})
+    return json.dumps(
+        {
+            "error": "pipeline_disabled",
+            "message": "Pipelines are disabled in the MCP server because they bypass path sandboxing. Use individual tools instead.",
+        }
+    )
