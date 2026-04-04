@@ -25,7 +25,7 @@ def main() -> None:
     )
     args = parser.parse_args()
 
-    doc = paperjam.open(args.input)
+    doc = paperjam.open_pdf(args.input)
     print(f"Opened: {args.input} ({doc.page_count} pages)")
 
     page = doc.pages[args.page - 1]

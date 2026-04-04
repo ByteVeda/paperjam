@@ -34,7 +34,7 @@ def main() -> None:
     output = Path(args.output)
     output.mkdir(parents=True, exist_ok=True)
 
-    doc = paperjam.open(args.input)
+    doc = paperjam.open_pdf(args.input)
     print(f"Opened: {args.input} ({doc.page_count} pages)")
 
     mode = " (case-insensitive)" if args.ignore_case else ""

@@ -2,14 +2,15 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+import os
+from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
-    import os
     from collections.abc import Sequence
 
     from paperjam._types import DiffResult
 
+from paperjam._any_document import AnyDocument
 from paperjam._document import Document
 
 
@@ -17,21 +18,50 @@ def open(
     path_or_bytes: str | os.PathLike[str] | bytes,
     *,
     password: str | None = None,
+    format: str | None = None,
+) -> Document | AnyDocument:
+    """Open a document file. Auto-detects format.
+
+    Returns a Document for PDFs (with full PDF-specific methods),
+    or an AnyDocument for other formats (DOCX, XLSX, PPTX, HTML, EPUB).
+
+    Args:
+        path_or_bytes: File path, path-like object, or raw document bytes.
+        password: Password for encrypted PDFs.
+        format: Explicit format hint (e.g., 'pdf', 'docx', 'html').
+            If None, format is detected automatically.
+
+    Returns:
+        Document for PDFs, AnyDocument for other formats.
+    """
+    from paperjam._convert import detect_format
+
+    detected = (detect_format(str(path_or_bytes)) if isinstance(path_or_bytes, (str, os.PathLike)) else "pdf") if format is None else format
+
+    if detected in ("pdf", "unknown"):
+        return Document(path_or_bytes, password=password)
+
+    if password is not None:
+        raise ValueError("password is only supported for PDF documents")
+    return AnyDocument(path_or_bytes, format=detected)
+
+
+def open_pdf(
+    path_or_bytes: str | os.PathLike[str] | bytes,
+    *,
+    password: str | None = None,
 ) -> Document:
-    """Open a PDF document.
+    """Open a PDF document specifically.
+
+    Use this when you need the full PDF-specific API (signatures, forms,
+    rendering, encryption, etc.) and want strict type checking.
 
     Args:
         path_or_bytes: File path, path-like object, or raw PDF bytes.
         password: Password for encrypted PDFs.
 
     Returns:
-        A Document instance. Can be used as a context manager.
-
-    Raises:
-        FileNotFoundError: If the file does not exist.
-        paperjam.PasswordRequired: If the PDF is encrypted and no password given.
-        paperjam.InvalidPassword: If the password is incorrect.
-        paperjam.ParseError: If the file is not a valid PDF.
+        A Document instance with full PDF capabilities.
     """
     return Document(path_or_bytes, password=password)
 
@@ -41,15 +71,7 @@ def merge(
     *,
     deduplicate_resources: bool = False,
 ) -> Document:
-    """Merge multiple open documents into one.
-
-    Args:
-        documents: Sequence of Document objects to merge.
-        deduplicate_resources: If True, attempt to deduplicate shared fonts/images.
-
-    Returns:
-        A new Document containing all pages from all input documents.
-    """
+    """Merge multiple open PDF documents into one."""
     from paperjam import _paperjam
 
     inners = [doc._ensure_open() for doc in documents]
@@ -65,24 +87,13 @@ def merge_files(
     *,
     deduplicate_resources: bool = False,
 ) -> Document:
-    """Merge PDF files from paths into one document.
-
-    Args:
-        paths: Sequence of file paths to merge.
-        deduplicate_resources: If True, deduplicate shared resources.
-
-    Returns:
-        A new Document containing all pages from all files.
-    """
+    """Merge PDF files from paths into one document."""
     docs = [Document(p) for p in paths]
     return merge(docs, deduplicate_resources=deduplicate_resources)
 
 
 def diff(doc_a: Document, doc_b: Document) -> DiffResult:
-    """Compare two PDF documents at the text level.
-
-    Returns a DiffResult with per-page changes and summary statistics.
-    """
+    """Compare two PDF documents at the text level."""
     return doc_a.diff(doc_b)
 
 
@@ -90,11 +101,10 @@ def to_markdown(
     path_or_bytes: str | os.PathLike[str] | bytes,
     *,
     password: str | None = None,
-    **kwargs,
+    **kwargs: Any,
 ) -> str:
-    """Open a PDF and convert it to Markdown in one call.
-
-    All keyword arguments are forwarded to Document.to_markdown().
-    """
-    doc = Document(path_or_bytes, password=password)
-    return doc.to_markdown(**kwargs)
+    """Open any document and convert it to Markdown in one call."""
+    doc = open(path_or_bytes, password=password)
+    if isinstance(doc, Document):
+        return str(doc.to_markdown(**kwargs))
+    return str(doc.to_markdown())

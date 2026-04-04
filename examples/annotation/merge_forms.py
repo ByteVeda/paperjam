@@ -25,7 +25,7 @@ def main() -> None:
 
     # --- Prepare doc A: text field + checkbox ---
     print("--- Preparing document A ---")
-    doc_a = paperjam.open(args.input)
+    doc_a = paperjam.open_pdf(args.input)
     doc_a, _ = doc_a.add_form_field(
         "username",
         "text",
@@ -47,7 +47,7 @@ def main() -> None:
 
     # --- Prepare doc B: different fields ---
     print("\n--- Preparing document B ---")
-    doc_b = paperjam.open(args.input)
+    doc_b = paperjam.open_pdf(args.input)
     doc_b, _ = doc_b.add_form_field(
         "email",
         "text",

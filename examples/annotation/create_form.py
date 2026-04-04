@@ -21,7 +21,7 @@ def main() -> None:
 
     os.makedirs(args.output, exist_ok=True)
 
-    doc = paperjam.open(args.input)
+    doc = paperjam.open_pdf(args.input)
     basename = os.path.splitext(os.path.basename(args.input))[0]
     print(f"Opened: {args.input} ({doc.page_count} pages)")
 

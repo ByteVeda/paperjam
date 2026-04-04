@@ -81,7 +81,7 @@ def main() -> None:
 
     os.makedirs(args.output, exist_ok=True)
 
-    doc = paperjam.open(args.input)
+    doc = paperjam.open_pdf(args.input)
     print(f"Opened: {args.input} ({doc.page_count} pages)")
 
     # Build permissions
@@ -130,7 +130,7 @@ def main() -> None:
     # Verify round-trip: re-open with user password
     print("\nVerifying round-trip...")
     try:
-        verified = paperjam.open(output_path, password=args.user_password)
+        verified = paperjam.open_pdf(output_path, password=args.user_password)
         print(f"  Opened encrypted PDF: {verified.page_count} pages")
         print(f"  Page 1 text length:   {len(verified.pages[0].extract_text())} chars")
     except paperjam.InvalidPassword:

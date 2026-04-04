@@ -37,7 +37,7 @@ def main() -> None:
     docs = []
     total_pages = 0
     for path in args.inputs:
-        doc = paperjam.open(path)
+        doc = paperjam.open_pdf(path)
         docs.append(doc)
         total_pages += doc.page_count
         print(f"  {path}: {doc.page_count} pages")

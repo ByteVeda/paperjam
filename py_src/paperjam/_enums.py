@@ -5,6 +5,19 @@ from __future__ import annotations
 import enum
 
 
+class DocumentFormat(enum.Enum):
+    """Recognized document formats."""
+
+    PDF = "pdf"
+    DOCX = "docx"
+    XLSX = "xlsx"
+    PPTX = "pptx"
+    HTML = "html"
+    EPUB = "epub"
+    MARKDOWN = "md"
+    UNKNOWN = "unknown"
+
+
 class TableStrategy(enum.Enum):
     """Strategy for table extraction."""
 
