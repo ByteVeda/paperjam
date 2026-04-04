@@ -88,14 +88,11 @@ def encrypt_document(
     algorithm: aes128 (default), aes256, or rc4.
     permissions: optional dict of {print, modify, copy, annotate, fill_forms, accessibility, assemble, print_high_quality} booleans.
     """
-    from paperjam import Permissions
+    from paperjam import Document, Permissions
 
     _session, doc = session_manager.get_pdf(session_id)
     perms = Permissions(**permissions) if permissions else None
     encrypted_bytes, result = doc.encrypt(user_password=user_password, owner_password=owner_password, permissions=perms, algorithm=algorithm)
-    # Re-open the encrypted document as a new session (needs password to read)
-    import paperjam as pj
-
-    new_doc = pj.Document(encrypted_bytes, password=user_password)
+    new_doc = Document(encrypted_bytes, password=user_password)
     session_manager.update_document(session_id, new_doc)
     return json.dumps(serialize(result))

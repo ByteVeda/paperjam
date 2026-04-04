@@ -25,7 +25,13 @@ def main() -> None:
         format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
     )
 
+    import importlib
+
     from paperjam_mcp import server as srv
+
+    # Register tools, resources, and prompts with the FastMCP instance.
+    for module in ("paperjam_mcp.prompts", "paperjam_mcp.resources", "paperjam_mcp.tools"):
+        importlib.import_module(module)
 
     srv.working_dir = Path(args.working_dir).resolve()
     srv.session_manager.configure(max_sessions=args.max_sessions, ttl_seconds=args.session_ttl)

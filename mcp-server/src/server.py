@@ -57,9 +57,3 @@ def handle_errors(func):
             return json.dumps({"error": "internal_error", "message": "An unexpected error occurred. Check server logs for details."})
 
     return wrapper
-
-
-# Import all tool modules, resources, and prompts so they register with the mcp instance.
-import paperjam_mcp.prompts  # noqa: E402
-import paperjam_mcp.resources  # noqa: E402
-import paperjam_mcp.tools  # noqa: E402, F401
