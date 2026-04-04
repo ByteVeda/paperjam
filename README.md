@@ -2,11 +2,11 @@
   <img src="docs-site/static/img/logo.jpeg" alt="paperjam logo" width="250">
 </p>
 
-# paperjam
-
-[![PyPI](https://img.shields.io/pypi/v/paperjam)](https://pypi.org/project/paperjam/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Python 3.12+](https://img.shields.io/badge/python-3.12+-blue.svg)](https://www.python.org/downloads/)
+<p align="center">
+  <a href="https://pypi.org/project/paperjam/"><img src="https://img.shields.io/pypi/v/paperjam" alt="PyPI"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="License: MIT"></a>
+  <a href="https://www.python.org/downloads/"><img src="https://img.shields.io/badge/python-3.12+-blue.svg" alt="Python 3.12+"></a>
+</p>
 
 Fast document processing powered by Rust. One API. Every document format.
 
@@ -93,14 +93,18 @@ paperjam info document.pdf
 
 ### MCP server
 
-Add to your MCP client configuration:
+```bash
+pip install paperjam-mcp
+```
+
+Add to your MCP client configuration (Claude Code, Claude Desktop, Cursor):
 
 ```json
 {
   "mcpServers": {
     "paperjam": {
-      "command": "paperjam",
-      "args": ["mcp", "serve"]
+      "command": "uvx",
+      "args": ["paperjam-mcp", "--working-dir", "."]
     }
   }
 }
