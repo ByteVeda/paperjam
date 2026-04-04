@@ -44,7 +44,7 @@ def document_text(session_id: str) -> str:
     if isinstance(doc, paperjam.Document):
         parts = [page.extract_text() for page in doc.pages]
         return "\n\n".join(parts)
-    return doc.extract_text()
+    return str(doc.extract_text())
 
 
 @mcp.resource("document://{session_id}/pages/{page_number}")

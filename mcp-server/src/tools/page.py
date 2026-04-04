@@ -23,7 +23,7 @@ def page_extract_text(session_id: str, page_number: int) -> str:
     """Extract all text from a specific page."""
     _session, doc = session_manager.get_pdf(session_id)
     page = doc.pages[page_number - 1]
-    return page.extract_text()
+    return str(page.extract_text())
 
 
 @mcp.tool()
@@ -109,8 +109,10 @@ def page_to_markdown(
     """Convert a specific page to Markdown text."""
     _session, doc = session_manager.get_pdf(session_id)
     page = doc.pages[page_number - 1]
-    return page.to_markdown(
-        heading_offset=heading_offset,
-        html_tables=html_tables,
-        layout_aware=layout_aware,
+    return str(
+        page.to_markdown(
+            heading_offset=heading_offset,
+            html_tables=html_tables,
+            layout_aware=layout_aware,
+        )
     )

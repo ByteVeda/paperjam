@@ -21,7 +21,7 @@ def extract_text(session_id: str) -> str:
     if isinstance(doc, paperjam.Document):
         parts = [page.extract_text() for page in doc.pages]
         return "\n\n".join(parts)
-    return doc.extract_text()
+    return str(doc.extract_text())
 
 
 @mcp.tool()
@@ -104,7 +104,7 @@ def to_markdown(
             html_tables=html_tables,
             layout_aware=layout_aware,
         )
-    return doc.to_markdown()
+    return str(doc.to_markdown())
 
 
 @mcp.tool()
