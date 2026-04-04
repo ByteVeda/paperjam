@@ -8,6 +8,6 @@ description = "PPTX presentation processing for the paperjam ecosystem"
 
 [dependencies]
 paperjam-model = { path = "../paperjam-model" }
-zip = "2"
+zip = { version = "2", default-features = false, features = ["deflate"] }
 quick-xml = "0.37"
 thiserror = { workspace = true }

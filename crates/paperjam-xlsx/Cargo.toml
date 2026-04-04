@@ -9,5 +9,5 @@ description = "XLSX spreadsheet processing for the paperjam ecosystem"
 [dependencies]
 paperjam-model = { path = "../paperjam-model" }
 calamine = { version = "0.26", default-features = false }
-rust_xlsxwriter = { version = "0.82", default-features = false, features = ["zlib"] }
+rust_xlsxwriter = { version = "0.82", default-features = false }
 thiserror = { workspace = true }
