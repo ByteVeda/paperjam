@@ -75,6 +75,18 @@ create_exception!(
     PaperJamError,
     "PDF/A conversion error."
 );
+create_exception!(
+    _paperjam,
+    FormatError,
+    PaperJamError,
+    "Document format error."
+);
+create_exception!(
+    _paperjam,
+    PipelineError,
+    PaperJamError,
+    "Pipeline execution error."
+);
 
 /// Convert a Rust PdfError into the appropriate Python exception.
 pub fn to_py_err(err: PdfError) -> PyErr {
@@ -135,5 +147,7 @@ pub fn register_exceptions(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add("SignatureError", m.py().get_type::<SignatureError>())?;
     m.add("EncryptionError", m.py().get_type::<EncryptionError>())?;
     m.add("ConversionError", m.py().get_type::<ConversionError>())?;
+    m.add("FormatError", m.py().get_type::<FormatError>())?;
+    m.add("PipelineError", m.py().get_type::<PipelineError>())?;
     Ok(())
 }

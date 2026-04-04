@@ -4,13 +4,25 @@ use paperjam_core::document::Document;
 use paperjam_core::markdown::MarkdownOptions;
 use paperjam_core::structure::StructureOptions;
 use paperjam_core::table::TableExtractionOptions;
+use paperjam_model::format::DocumentFormat;
 use serde::Serialize;
 use wasm_bindgen::prelude::*;
 
-/// A PDF document handle for use in JavaScript.
+/// Internal storage: PDF uses native paperjam-core, other formats use IntermediateDoc.
+#[allow(clippy::large_enum_variant)]
+enum DocumentInner {
+    Pdf(Arc<Document>),
+    Generic {
+        format: DocumentFormat,
+        intermediate: paperjam_convert::IntermediateDoc,
+        raw_bytes: Vec<u8>,
+    },
+}
+
+/// A document handle for use in JavaScript. Supports PDF and other formats.
 #[wasm_bindgen]
 pub struct WasmDocument {
-    inner: Arc<Document>,
+    inner: DocumentInner,
 }
 
 #[derive(Serialize)]
@@ -164,15 +176,77 @@ struct ConversionResultJs {
     remaining_issues: Vec<ValidationIssueJs>,
 }
 
+impl WasmDocument {
+    /// Get the PDF document reference, or error if not PDF.
+    fn pdf_inner(&self) -> Result<&Arc<Document>, JsValue> {
+        match &self.inner {
+            DocumentInner::Pdf(doc) => Ok(doc),
+            DocumentInner::Generic { format, .. } => Err(JsValue::from_str(&format!(
+                "Operation only supported for PDF documents (this is {})",
+                format.display_name()
+            ))),
+        }
+    }
+}
+
 #[wasm_bindgen]
 impl WasmDocument {
-    /// Open a PDF from bytes.
+    /// Open a document from bytes. Format is auto-detected.
+    /// For PDF, uses native paperjam-core. For other formats, extracts to intermediate.
     #[wasm_bindgen(constructor)]
     pub fn new(data: &[u8]) -> Result<WasmDocument, JsValue> {
-        let doc = Document::open_bytes(data).map_err(to_js_err)?;
-        Ok(WasmDocument {
-            inner: Arc::new(doc),
-        })
+        let format = paperjam_convert::detect_format_bytes(data);
+        match format {
+            DocumentFormat::Pdf => {
+                let doc = Document::open_bytes(data).map_err(to_js_err)?;
+                Ok(WasmDocument {
+                    inner: DocumentInner::Pdf(Arc::new(doc)),
+                })
+            }
+            DocumentFormat::Unknown => {
+                // Fall back to PDF for backward compatibility.
+                let doc = Document::open_bytes(data).map_err(to_js_err)?;
+                Ok(WasmDocument {
+                    inner: DocumentInner::Pdf(Arc::new(doc)),
+                })
+            }
+            _ => {
+                let intermediate = paperjam_convert::extract::extract(data, format)
+                    .map_err(|e| JsValue::from_str(&e.to_string()))?;
+                Ok(WasmDocument {
+                    inner: DocumentInner::Generic {
+                        format,
+                        intermediate,
+                        raw_bytes: data.to_vec(),
+                    },
+                })
+            }
+        }
+    }
+
+    /// Open a document with an explicit format hint.
+    #[wasm_bindgen(js_name = "openWithFormat")]
+    pub fn open_with_format(data: &[u8], format_str: &str) -> Result<WasmDocument, JsValue> {
+        let format = DocumentFormat::from_extension(format_str);
+        match format {
+            DocumentFormat::Pdf => {
+                let doc = Document::open_bytes(data).map_err(to_js_err)?;
+                Ok(WasmDocument {
+                    inner: DocumentInner::Pdf(Arc::new(doc)),
+                })
+            }
+            _ => {
+                let intermediate = paperjam_convert::extract::extract(data, format)
+                    .map_err(|e| JsValue::from_str(&e.to_string()))?;
+                Ok(WasmDocument {
+                    inner: DocumentInner::Generic {
+                        format,
+                        intermediate,
+                        raw_bytes: data.to_vec(),
+                    },
+                })
+            }
+        }
     }
 
     /// Open a password-protected PDF from bytes.
@@ -180,20 +254,42 @@ impl WasmDocument {
     pub fn open_with_password(data: &[u8], password: &str) -> Result<WasmDocument, JsValue> {
         let doc = Document::open_bytes_with_password(data, password).map_err(to_js_err)?;
         Ok(WasmDocument {
-            inner: Arc::new(doc),
+            inner: DocumentInner::Pdf(Arc::new(doc)),
         })
+    }
+
+    /// Get the document format as a string ("pdf", "docx", etc.).
+    #[wasm_bindgen(js_name = "documentFormat")]
+    pub fn document_format(&self) -> String {
+        match &self.inner {
+            DocumentInner::Pdf(_) => "pdf".to_string(),
+            DocumentInner::Generic { format, .. } => format.extension().to_string(),
+        }
     }
 
     /// Number of pages in the document.
     #[wasm_bindgen(js_name = "pageCount")]
     pub fn page_count(&self) -> usize {
-        self.inner.page_count()
+        match &self.inner {
+            DocumentInner::Pdf(doc) => doc.page_count(),
+            DocumentInner::Generic { intermediate, .. } => {
+                // Count distinct pages from content blocks.
+                let max_page = intermediate
+                    .blocks
+                    .iter()
+                    .map(|b| b.page())
+                    .max()
+                    .unwrap_or(1);
+                max_page as usize
+            }
+        }
     }
 
-    /// Get page info (dimensions, rotation) as JSON.
+    /// Get page info (dimensions, rotation) as JSON. PDF only.
     #[wasm_bindgen(js_name = "pageInfo")]
     pub fn page_info(&self, page_number: u32) -> Result<JsValue, JsValue> {
-        let page = self.inner.page(page_number).map_err(to_js_err)?;
+        let pdf = self.pdf_inner()?;
+        let page = pdf.page(page_number).map_err(to_js_err)?;
         let info = PageInfo {
             number: page.number,
             width: page.width,
@@ -203,32 +299,45 @@ impl WasmDocument {
         serde_wasm_bindgen::to_value(&info).map_err(|e| JsValue::from_str(&e.to_string()))
     }
 
-    /// Extract plain text from a page.
+    /// Extract plain text from a page. PDF only.
     #[wasm_bindgen(js_name = "extractText")]
     pub fn extract_text(&self, page_number: u32) -> Result<String, JsValue> {
-        let page = self.inner.page(page_number).map_err(to_js_err)?;
+        let pdf = self.pdf_inner()?;
+        let page = pdf.page(page_number).map_err(to_js_err)?;
         page.extract_text().map_err(to_js_err)
     }
 
-    /// Extract text from all pages.
+    /// Extract text from all pages / the entire document.
     #[wasm_bindgen(js_name = "extractAllText")]
     pub fn extract_all_text(&self) -> Result<String, JsValue> {
-        let mut result = String::new();
-        for i in 1..=self.inner.page_count() as u32 {
-            let page = self.inner.page(i).map_err(to_js_err)?;
-            let text = page.extract_text().map_err(to_js_err)?;
-            if !result.is_empty() {
-                result.push_str("\n\n---\n\n");
+        match &self.inner {
+            DocumentInner::Pdf(doc) => {
+                let mut result = String::new();
+                for i in 1..=doc.page_count() as u32 {
+                    let page = doc.page(i).map_err(to_js_err)?;
+                    let text = page.extract_text().map_err(to_js_err)?;
+                    if !result.is_empty() {
+                        result.push_str("\n\n---\n\n");
+                    }
+                    result.push_str(&text);
+                }
+                Ok(result)
             }
-            result.push_str(&text);
+            DocumentInner::Generic { intermediate, .. } => Ok(intermediate
+                .blocks
+                .iter()
+                .map(|b| b.text().to_string())
+                .filter(|t| !t.is_empty())
+                .collect::<Vec<_>>()
+                .join("\n\n")),
         }
-        Ok(result)
     }
 
-    /// Extract text lines with bounding boxes from a page (returns JSON).
+    /// Extract text lines with bounding boxes from a page (returns JSON). PDF only.
     #[wasm_bindgen(js_name = "extractTextLines")]
     pub fn extract_text_lines(&self, page_number: u32) -> Result<JsValue, JsValue> {
-        let page = self.inner.page(page_number).map_err(to_js_err)?;
+        let pdf = self.pdf_inner()?;
+        let page = pdf.page(page_number).map_err(to_js_err)?;
         let lines = page.text_lines().map_err(to_js_err)?;
         let results: Vec<TextLineResult> = lines
             .iter()
@@ -252,10 +361,11 @@ impl WasmDocument {
         serde_wasm_bindgen::to_value(&results).map_err(|e| JsValue::from_str(&e.to_string()))
     }
 
-    /// Extract tables from a page (returns JSON).
+    /// Extract tables from a page (returns JSON). PDF only for per-page; use extractAllTables for other formats.
     #[wasm_bindgen(js_name = "extractTables")]
     pub fn extract_tables(&self, page_number: u32) -> Result<JsValue, JsValue> {
-        let page = self.inner.page(page_number).map_err(to_js_err)?;
+        let pdf = self.pdf_inner()?;
+        let page = pdf.page(page_number).map_err(to_js_err)?;
         let opts = TableExtractionOptions::default();
         let tables = page.extract_tables(&opts).map_err(to_js_err)?;
         let results: Vec<TableResult> = tables
@@ -279,22 +389,39 @@ impl WasmDocument {
         include_page_numbers: Option<bool>,
         html_tables: Option<bool>,
     ) -> Result<String, JsValue> {
-        let options = MarkdownOptions {
-            include_page_numbers: include_page_numbers.unwrap_or(false),
-            html_tables: html_tables.unwrap_or(false),
-            structure_options: StructureOptions {
-                layout_aware: layout_aware.unwrap_or(false),
-                ..Default::default()
-            },
-            ..Default::default()
-        };
-        paperjam_core::markdown::document_to_markdown(&self.inner, &options).map_err(to_js_err)
+        match &self.inner {
+            DocumentInner::Pdf(doc) => {
+                let options = MarkdownOptions {
+                    include_page_numbers: include_page_numbers.unwrap_or(false),
+                    html_tables: html_tables.unwrap_or(false),
+                    structure_options: StructureOptions {
+                        layout_aware: layout_aware.unwrap_or(false),
+                        ..Default::default()
+                    },
+                    ..Default::default()
+                };
+                paperjam_core::markdown::document_to_markdown(doc, &options).map_err(to_js_err)
+            }
+            DocumentInner::Generic { intermediate, .. } => {
+                // Generate markdown from intermediate blocks.
+                let md_bytes =
+                    paperjam_convert::generate::generate(intermediate, DocumentFormat::Markdown)
+                        .map_err(|e| JsValue::from_str(&e.to_string()))?;
+                String::from_utf8(md_bytes).map_err(|e| JsValue::from_str(&e.to_string()))
+            }
+        }
     }
 
     /// Get document metadata as JSON.
     #[wasm_bindgen]
     pub fn metadata(&self) -> Result<JsValue, JsValue> {
-        let meta = self.inner.metadata().map_err(to_js_err)?;
+        let meta = match &self.inner {
+            DocumentInner::Pdf(doc) => {
+                let m = doc.metadata().map_err(to_js_err)?;
+                (*m).clone()
+            }
+            DocumentInner::Generic { intermediate, .. } => intermediate.metadata.clone(),
+        };
         let result = MetadataResult {
             title: meta.title.clone(),
             author: meta.author.clone(),
@@ -314,14 +441,19 @@ impl WasmDocument {
     /// Extract document structure (headings, paragraphs, lists) as JSON.
     #[wasm_bindgen(js_name = "extractStructure")]
     pub fn extract_structure(&self) -> Result<JsValue, JsValue> {
-        let opts = StructureOptions::default();
-        let blocks = paperjam_core::structure::extract_document_structure(&self.inner, &opts)
-            .map_err(to_js_err)?;
+        let blocks = match &self.inner {
+            DocumentInner::Pdf(doc) => {
+                let opts = StructureOptions::default();
+                paperjam_core::structure::extract_document_structure(doc, &opts)
+                    .map_err(to_js_err)?
+            }
+            DocumentInner::Generic { intermediate, .. } => intermediate.blocks.clone(),
+        };
         let results: Vec<StructureBlock> = blocks
             .iter()
             .map(|b| {
                 let level = match b {
-                    paperjam_core::structure::ContentBlock::Heading { level, .. } => Some(*level),
+                    paperjam_model::structure::ContentBlock::Heading { level, .. } => Some(*level),
                     _ => None,
                 };
                 StructureBlock {
@@ -336,18 +468,19 @@ impl WasmDocument {
         serde_wasm_bindgen::to_value(&results).map_err(|e| JsValue::from_str(&e.to_string()))
     }
 
-    /// Search for text across all pages (returns JSON array of matches).
+    /// Search for text across all pages (returns JSON array of matches). PDF only.
     #[wasm_bindgen(js_name = "searchText")]
     pub fn search_text(
         &self,
         query: &str,
         case_sensitive: Option<bool>,
     ) -> Result<JsValue, JsValue> {
+        let pdf = self.pdf_inner()?;
         let case_sensitive = case_sensitive.unwrap_or(true);
         let mut matches = Vec::new();
 
-        for i in 1..=self.inner.page_count() as u32 {
-            let page = self.inner.page(i).map_err(to_js_err)?;
+        for i in 1..=pdf.page_count() as u32 {
+            let page = pdf.page(i).map_err(to_js_err)?;
             let lines = page.text_lines().map_err(to_js_err)?;
 
             for (line_idx, line) in lines.iter().enumerate() {
@@ -371,10 +504,11 @@ impl WasmDocument {
         serde_wasm_bindgen::to_value(&matches).map_err(|e| JsValue::from_str(&e.to_string()))
     }
 
-    /// Convert a single page to Markdown.
+    /// Convert a single page to Markdown. PDF only.
     #[wasm_bindgen(js_name = "pageToMarkdown")]
     pub fn page_to_markdown(&self, page_number: u32) -> Result<String, JsValue> {
-        let page = self.inner.page(page_number).map_err(to_js_err)?;
+        let pdf = self.pdf_inner()?;
+        let page = pdf.page(page_number).map_err(to_js_err)?;
         let options = MarkdownOptions::default();
         paperjam_core::markdown::page_to_markdown(&page, &options).map_err(to_js_err)
     }
@@ -382,7 +516,12 @@ impl WasmDocument {
     /// Save the document to bytes.
     #[wasm_bindgen(js_name = "saveBytes")]
     pub fn save_bytes(&self) -> Result<Vec<u8>, JsValue> {
-        let mut inner = self.inner.inner().clone();
+        match &self.inner {
+            DocumentInner::Generic { raw_bytes, .. } => return Ok(raw_bytes.clone()),
+            DocumentInner::Pdf(_) => {}
+        }
+        let pdf = self.pdf_inner()?;
+        let mut inner = pdf.inner().clone();
         let mut buf = Vec::new();
         inner
             .save_to(&mut buf)
@@ -394,9 +533,10 @@ impl WasmDocument {
     /// `ranges` should be an array of [start, end] tuples (1-indexed, inclusive).
     #[wasm_bindgen]
     pub fn split(&self, ranges: JsValue) -> Result<JsValue, JsValue> {
+        let pdf = self.pdf_inner()?;
         let ranges: Vec<(u32, u32)> = serde_wasm_bindgen::from_value(ranges)
             .map_err(|e| JsValue::from_str(&e.to_string()))?;
-        let docs = paperjam_core::manipulation::split(&self.inner, &ranges).map_err(to_js_err)?;
+        let docs = paperjam_core::manipulation::split(pdf, &ranges).map_err(to_js_err)?;
         let result = js_sys::Array::new();
         for doc in docs {
             let mut inner = doc.into_inner();
@@ -425,7 +565,8 @@ impl WasmDocument {
             remove_actions,
             remove_links,
         };
-        let (doc, result) = sanitize(&self.inner, &options).map_err(to_js_err)?;
+        let pdf = self.pdf_inner()?;
+        let (doc, result) = sanitize(pdf, &options).map_err(to_js_err)?;
         let mut inner = doc.into_inner();
         let mut buf = Vec::new();
         inner
@@ -465,8 +606,9 @@ impl WasmDocument {
                 None
             }
         });
+        let pdf = self.pdf_inner()?;
         let (doc, result) =
-            paperjam_core::redact::redact_text(&self.inner, query, case_sensitive, false, color)
+            paperjam_core::redact::redact_text(pdf, query, case_sensitive, false, color)
                 .map_err(to_js_err)?;
         let mut inner = doc.into_inner();
         let mut buf = Vec::new();
@@ -528,14 +670,16 @@ impl WasmDocument {
             permissions: Permissions::default(),
             algorithm: algo,
         };
-        encrypt(&self.inner, &options).map_err(to_js_err)
+        let pdf = self.pdf_inner()?;
+        encrypt(pdf, &options).map_err(to_js_err)
     }
 
     /// Analyze the layout of a single page (columns, headers, footers, regions).
     #[wasm_bindgen(js_name = "analyzeLayout")]
     pub fn analyze_layout(&self, page_number: u32) -> Result<JsValue, JsValue> {
         use paperjam_core::layout::{analyze_layout, LayoutOptions, RegionKind};
-        let page = self.inner.page(page_number).map_err(to_js_err)?;
+        let pdf = self.pdf_inner()?;
+        let page = pdf.page(page_number).map_err(to_js_err)?;
         let options = LayoutOptions::default();
         let layout = analyze_layout(&page, &options).map_err(to_js_err)?;
         let mut has_header = false;
@@ -583,8 +727,9 @@ impl WasmDocument {
     pub fn validate_pdf_a(&self, level: Option<String>) -> Result<JsValue, JsValue> {
         let pdf_a_level =
             paperjam_core::validation::PdfALevel::from_str(level.as_deref().unwrap_or("1b"));
-        let report = paperjam_core::validation::validate_pdf_a(&self.inner, pdf_a_level)
-            .map_err(to_js_err)?;
+        let pdf = self.pdf_inner()?;
+        let report =
+            paperjam_core::validation::validate_pdf_a(pdf, pdf_a_level).map_err(to_js_err)?;
         let result = ValidationReportJs {
             level: report.level.as_str().to_string(),
             is_compliant: report.is_compliant,
@@ -609,8 +754,9 @@ impl WasmDocument {
     pub fn validate_pdf_ua(&self, level: Option<String>) -> Result<JsValue, JsValue> {
         let pdf_ua_level =
             paperjam_core::validation::PdfUaLevel::from_str(level.as_deref().unwrap_or("1"));
-        let report = paperjam_core::validation::validate_pdf_ua(&self.inner, pdf_ua_level)
-            .map_err(to_js_err)?;
+        let pdf = self.pdf_inner()?;
+        let report =
+            paperjam_core::validation::validate_pdf_ua(pdf, pdf_ua_level).map_err(to_js_err)?;
         let result = PdfUaReportJs {
             level: report.level.as_str().to_string(),
             is_compliant: report.is_compliant,
@@ -643,8 +789,9 @@ impl WasmDocument {
             level: pdf_a_level,
             force: force.unwrap_or(false),
         };
-        let (doc, result) = paperjam_core::conversion::convert_to_pdf_a(&self.inner, &options)
-            .map_err(to_js_err)?;
+        let pdf = self.pdf_inner()?;
+        let (doc, result) =
+            paperjam_core::conversion::convert_to_pdf_a(pdf, &options).map_err(to_js_err)?;
         let mut inner = doc.into_inner();
         let mut buf = Vec::new();
         inner
@@ -687,6 +834,46 @@ impl WasmDocument {
         })
         .map_err(|e| JsValue::from_str(&e.to_string()))
     }
+    /// Convert this document to another format. Returns the output bytes.
+    #[wasm_bindgen(js_name = "convertTo")]
+    pub fn convert_to(&self, target_format: &str) -> Result<Vec<u8>, JsValue> {
+        let target = DocumentFormat::from_extension(target_format);
+        if target == DocumentFormat::Unknown {
+            return Err(JsValue::from_str(&format!(
+                "Unknown target format: '{}'",
+                target_format
+            )));
+        }
+
+        match &self.inner {
+            DocumentInner::Pdf(doc) => {
+                // Extract to intermediate first.
+                let mut buf = Vec::new();
+                let mut inner = doc.inner().clone();
+                inner
+                    .save_to(&mut buf)
+                    .map_err(|e| JsValue::from_str(&e.to_string()))?;
+                paperjam_convert::convert_bytes(&buf, DocumentFormat::Pdf, target)
+                    .map_err(|e| JsValue::from_str(&e.to_string()))
+            }
+            DocumentInner::Generic { intermediate, .. } => {
+                paperjam_convert::generate::generate(intermediate, target)
+                    .map_err(|e| JsValue::from_str(&e.to_string()))
+            }
+        }
+    }
+}
+
+/// Convert bytes from one format to another.
+#[wasm_bindgen(js_name = "convertDocument")]
+pub fn convert_document(
+    data: &[u8],
+    from_format: &str,
+    to_format: &str,
+) -> Result<Vec<u8>, JsValue> {
+    let from = DocumentFormat::from_extension(from_format);
+    let to = DocumentFormat::from_extension(to_format);
+    paperjam_convert::convert_bytes(data, from, to).map_err(|e| JsValue::from_str(&e.to_string()))
 }
 
 /// Merge multiple PDFs (given as byte arrays) into one. Returns the merged PDF bytes.
