@@ -33,13 +33,7 @@ jobs:
 
       - uses: Swatinem/rust-cache@v2.9.1
 
-      - name: Build paperjam native extension
-        uses: PyO3/maturin-action@v1
-        with:
-          command: develop
-          args: --release
-
-      - name: Install MCP server dependencies
+      - name: Install dependencies (builds paperjam from source)
         run: uv sync
 
       - name: Ruff check
