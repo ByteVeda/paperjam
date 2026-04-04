@@ -1,0 +1,31 @@
+name: Publish paperjam-mcp to PyPI
+
+on:
+  push:
+    tags:
+      - "mcp-[0-9]+.[0-9]+.[0-9]+*"
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    environment: pypi
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: astral-sh/setup-uv@v6
+
+      - name: Build
+        run: uv build
+        working-directory: mcp-server
+
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: mcp-server/dist/
+          verbose: true
+          skip-existing: true
