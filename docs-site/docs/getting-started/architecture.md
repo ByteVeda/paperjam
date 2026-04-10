@@ -25,19 +25,20 @@ paperjam-model (shared types, traits)
 ```
 
 ```mermaid
-flowchart LR
-    User(["User Code"])
-
-    subgraph PY["Python  —  py_src/paperjam/"]
-        direction TB
+---
+config:
+  layout: elk
+---
+flowchart TB
+ subgraph PY["Python  —  py_src/paperjam/"]
+    direction TB
         TopFns["open · merge · diff · render · to_markdown · convert · run_pipeline"]
         DocPage["Document  ·  Page  ·  AnyDocument"]
         Mods["feature modules — monkey-patched onto Document and Page at import time"]
         Types["_types.py  ·  _enums.py"]
-    end
-
-    subgraph RS["Rust Extension  —  _paperjam.abi3.so"]
-        direction TB
+  end
+ subgraph RS["Rust Extension  —  _paperjam.abi3.so"]
+    direction TB
         Bindings["PyO3 Bindings  —  crates/paperjam-py"]
         Async["Async Wrappers  —  crates/paperjam-async"]
         Convert["Universal Converter  —  crates/paperjam-convert"]
@@ -47,40 +48,42 @@ flowchart LR
         Docx["Word  —  crates/paperjam-docx"]
         Xlsx["Excel  —  crates/paperjam-xlsx"]
         Pptx["PowerPoint  —  crates/paperjam-pptx"]
-    end
-
-    subgraph IFACE["Interfaces"]
-        direction TB
+  end
+ subgraph IFACE["Interfaces"]
+    direction TB
         CLI["CLI  —  crates/paperjam-cli"]
         MCP["MCP Server  —  crates/paperjam-mcp"]
         WASM["WebAssembly  —  crates/paperjam-wasm"]
         Studio["Web UI  —  crates/paperjam-studio"]
-    end
-
-    subgraph OPT["Optional  —  Cargo feature flags"]
-        direction TB
+  end
+ subgraph OPT["Optional  —  Cargo feature flags"]
+    direction TB
         F1["render  →  pdfium"]
         F2["parallel  →  rayon  (default on)"]
         F3["validation  →  roxmltree"]
         F4["signatures  →  rcgen + p12"]
         F5["mmap  →  memmap2"]
-    end
-
-    User --> TopFns
+  end
+    User(["User Code"]) --> TopFns
     TopFns --> DocPage
-    Mods -.->|"monkey-patches"| DocPage
+    Mods -. "monkey-patches" .-> DocPage
     Types -.- DocPage
-    DocPage -->|"FFI via PyO3"| Bindings
-    Bindings -->|"sync"| Core & Docx & Xlsx & Pptx
-    Bindings -->|"async"| Async
-    Bindings -->|"convert"| Convert
-    Bindings -->|"pipeline"| Pipeline
-    Async -->|"spawn_blocking"| Core
+    DocPage -- FFI via PyO3 --> Bindings
+    Bindings -- sync --> Core & Docx & Xlsx & Pptx
+    Bindings -- async --> Async
+    Bindings -- convert --> Convert
+    Bindings -- pipeline --> Pipeline
+    Async -- spawn_blocking --> Core
     Convert --> Core & Docx & Xlsx & Pptx
     Pipeline --> Convert
-    Core & Docx & Xlsx & Pptx --> Model
-    Core --> F1 & F2 & F3 & F4 & F5
-    CLI & MCP & WASM & Studio --> Convert & Pipeline
+    Core --> Model & F1 & F2 & F3 & F4 & F5
+    Docx --> Model
+    Xlsx --> Model
+    Pptx --> Model
+    CLI --> Convert & Pipeline
+    MCP --> Convert & Pipeline
+    WASM --> Convert & Pipeline
+    Studio --> Convert & Pipeline
 ```
 
 ## Layers
