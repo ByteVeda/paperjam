@@ -12,7 +12,7 @@ lopdf = "0.34"
 regex = "1"
 md-5 = "0.11"
 aes = "0.8"
-cbc = "0.1"
+cbc = "0.2"
 rand = "0.8"
 # Note: pinned to 0.34 for now; 0.39 changes API significantly.
 # We work around any missing features at the wrapper level.
