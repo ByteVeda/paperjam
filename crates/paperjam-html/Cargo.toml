@@ -8,6 +8,6 @@ description = "HTML document processing for the paperjam ecosystem"
 
 [dependencies]
 paperjam-model = { path = "../paperjam-model" }
-scraper = "0.22"
+scraper = "0.26"
 thiserror = { workspace = true }
 base64 = "0.22"
