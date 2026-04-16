@@ -467,5 +467,5 @@ impl PaperjamServer {
     }
 }
 
-#[tool_handler]
+#[tool_handler(router = self.tool_router)]
 impl ServerHandler for PaperjamServer {}
