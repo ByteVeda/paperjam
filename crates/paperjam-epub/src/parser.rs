@@ -218,22 +218,20 @@ fn parse_opf(xml: &str) -> Result<(OpfMetadata, HashMap<String, String>, Vec<Str
                     }
                 }
             }
-            Ok(Event::Text(ref e)) => {
-                if section == Section::Metadata {
-                    let text = e.unescape().unwrap_or_default().trim().to_string();
-                    if !text.is_empty() {
-                        match current_tag.as_str() {
-                            "title" => metadata.title = Some(text),
-                            "creator" => metadata.creator = Some(text),
-                            "subject" => metadata.subject = Some(text),
-                            "description" => metadata.description = Some(text),
-                            "publisher" => metadata.publisher = Some(text),
-                            "date" => metadata.date = Some(text),
-                            "language" => metadata.language = Some(text),
-                            "identifier" => metadata.identifier = Some(text),
-                            "rights" => metadata.rights = Some(text),
-                            _ => {}
-                        }
+            Ok(Event::Text(ref e)) if section == Section::Metadata => {
+                let text = e.unescape().unwrap_or_default().trim().to_string();
+                if !text.is_empty() {
+                    match current_tag.as_str() {
+                        "title" => metadata.title = Some(text),
+                        "creator" => metadata.creator = Some(text),
+                        "subject" => metadata.subject = Some(text),
+                        "description" => metadata.description = Some(text),
+                        "publisher" => metadata.publisher = Some(text),
+                        "date" => metadata.date = Some(text),
+                        "language" => metadata.language = Some(text),
+                        "identifier" => metadata.identifier = Some(text),
+                        "rights" => metadata.rights = Some(text),
+                        _ => {}
                     }
                 }
             }

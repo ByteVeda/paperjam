@@ -1,0 +1,356 @@
+{
+  "source": "synthetic",
+  "license": "generated",
+  "notes": "8x6 bordered with numeric data, tight spacing",
+  "tables": [
+    {
+      "page": 1,
+      "bbox": [
+        54.0,
+        544.0,
+        414.0,
+        720.0
+      ],
+      "col_count": 6,
+      "row_count": 8,
+      "cells": [
+        {
+          "row": 0,
+          "col": 0,
+          "row_span": 1,
+          "col_span": 1,
+          "text": "Year"
+        },
+        {
+          "row": 0,
+          "col": 1,
+          "row_span": 1,
+          "col_span": 1,
+          "text": "Q1"
+        },
+        {
+          "row": 0,
+          "col": 2,
+          "row_span": 1,
+          "col_span": 1,
+          "text": "Q2"
+        },
+        {
+          "row": 0,
+          "col": 3,
+          "row_span": 1,
+          "col_span": 1,
+          "text": "Q3"
+        },
+        {
+          "row": 0,
+          "col": 4,
+          "row_span": 1,
+          "col_span": 1,
+          "text": "Q4"
+        },
+        {
+          "row": 0,
+          "col": 5,
+          "row_span": 1,
+          "col_span": 1,
+          "text": "Total"
+        },
+        {
+          "row": 1,
+          "col": 0,
+          "row_span": 1,
+          "col_span": 1,
+          "text": "2016"
+        },
+        {
+          "row": 1,
+          "col": 1,
+          "row_span": 1,
+          "col_span": 1,
+          "text": "100"
+        },
+        {
+          "row": 1,
+          "col": 2,
+          "row_span": 1,
+          "col_span": 1,
+          "text": "110"
+        },
+        {
+          "row": 1,
+          "col": 3,
+          "row_span": 1,
+          "col_span": 1,
+          "text": "120"
+        },
+        {
+          "row": 1,
+          "col": 4,
+          "row_span": 1,
+          "col_span": 1,
+          "text": "130"
+        },
+        {
+          "row": 1,
+          "col": 5,
+          "row_span": 1,
+          "col_span": 1,
+          "text": "460"
+        },
+        {
+          "row": 2,
+          "col": 0,
+          "row_span": 1,
+          "col_span": 1,
+          "text": "2017"
+        },
+        {
+          "row": 2,
+          "col": 1,
+          "row_span": 1,
+          "col_span": 1,
+          "text": "105"
+        },
+        {
+          "row": 2,
+          "col": 2,
+          "row_span": 1,
+          "col_span": 1,
+          "text": "115"
+        },
+        {
+          "row": 2,
+          "col": 3,
+          "row_span": 1,
+          "col_span": 1,
+          "text": "125"
+        },
+        {
+          "row": 2,
+          "col": 4,
+          "row_span": 1,
+          "col_span": 1,
+          "text": "135"
+        },
+        {
+          "row": 2,
+          "col": 5,
+          "row_span": 1,
+          "col_span": 1,
+          "text": "480"
+        },
+        {
+          "row": 3,
+          "col": 0,
+          "row_span": 1,
+          "col_span": 1,
+          "text": "2018"
+        },
+        {
+          "row": 3,
+          "col": 1,
+          "row_span": 1,
+          "col_span": 1,
+          "text": "110"
+        },
+        {
+          "row": 3,
+          "col": 2,
+          "row_span": 1,
+          "col_span": 1,
+          "text": "120"
+        },
+        {
+          "row": 3,
+          "col": 3,
+          "row_span": 1,
+          "col_span": 1,
+          "text": "130"
+        },
+        {
+          "row": 3,
+          "col": 4,
+          "row_span": 1,
+          "col_span": 1,
+          "text": "140"
+        },
+        {
+          "row": 3,
+          "col": 5,
+          "row_span": 1,
+          "col_span": 1,
+          "text": "500"
+        },
+        {
+          "row": 4,
+          "col": 0,
+          "row_span": 1,
+          "col_span": 1,
+          "text": "2019"
+        },
+        {
+          "row": 4,
+          "col": 1,
+          "row_span": 1,
+          "col_span": 1,
+          "text": "115"
+        },
+        {
+          "row": 4,
+          "col": 2,
+          "row_span": 1,
+          "col_span": 1,
+          "text": "125"
+        },
+        {
+          "row": 4,
+          "col": 3,
+          "row_span": 1,
+          "col_span": 1,
+          "text": "135"
+        },
+        {
+          "row": 4,
+          "col": 4,
+          "row_span": 1,
+          "col_span": 1,
+          "text": "145"
+        },
+        {
+          "row": 4,
+          "col": 5,
+          "row_span": 1,
+          "col_span": 1,
+          "text": "520"
+        },
+        {
+          "row": 5,
+          "col": 0,
+          "row_span": 1,
+          "col_span": 1,
+          "text": "2020"
+        },
+        {
+          "row": 5,
+          "col": 1,
+          "row_span": 1,
+          "col_span": 1,
+          "text": "120"
+        },
+        {
+          "row": 5,
+          "col": 2,
+          "row_span": 1,
+          "col_span": 1,
+          "text": "130"
+        },
+        {
+          "row": 5,
+          "col": 3,
+          "row_span": 1,
+          "col_span": 1,
+          "text": "140"
+        },
+        {
+          "row": 5,
+          "col": 4,
+          "row_span": 1,
+          "col_span": 1,
+          "text": "150"
+        },
+        {
+          "row": 5,
+          "col": 5,
+          "row_span": 1,
+          "col_span": 1,
+          "text": "540"
+        },
+        {
+          "row": 6,
+          "col": 0,
+          "row_span": 1,
+          "col_span": 1,
+          "text": "2021"
+        },
+        {
+          "row": 6,
+          "col": 1,
+          "row_span": 1,
+          "col_span": 1,
+          "text": "125"
+        },
+        {
+          "row": 6,
+          "col": 2,
+          "row_span": 1,
+          "col_span": 1,
+          "text": "135"
+        },
+        {
+          "row": 6,
+          "col": 3,
+          "row_span": 1,
+          "col_span": 1,
+          "text": "145"
+        },
+        {
+          "row": 6,
+          "col": 4,
+          "row_span": 1,
+          "col_span": 1,
+          "text": "155"
+        },
+        {
+          "row": 6,
+          "col": 5,
+          "row_span": 1,
+          "col_span": 1,
+          "text": "560"
+        },
+        {
+          "row": 7,
+          "col": 0,
+          "row_span": 1,
+          "col_span": 1,
+          "text": "2022"
+        },
+        {
+          "row": 7,
+          "col": 1,
+          "row_span": 1,
+          "col_span": 1,
+          "text": "130"
+        },
+        {
+          "row": 7,
+          "col": 2,
+          "row_span": 1,
+          "col_span": 1,
+          "text": "140"
+        },
+        {
+          "row": 7,
+          "col": 3,
+          "row_span": 1,
+          "col_span": 1,
+          "text": "150"
+        },
+        {
+          "row": 7,
+          "col": 4,
+          "row_span": 1,
+          "col_span": 1,
+          "text": "160"
+        },
+        {
+          "row": 7,
+          "col": 5,
+          "row_span": 1,
+          "col_span": 1,
+          "text": "580"
+        }
+      ]
+    }
+  ]
+}

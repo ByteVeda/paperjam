@@ -137,15 +137,6 @@ export default function Home(): React.JSX.Element {
             borderRadius: '16px',
           }}
         />
-        <h1
-          style={{
-            fontSize: '2.5rem',
-            fontWeight: 800,
-            marginBottom: '0.5rem',
-          }}
-        >
-          paperjam
-        </h1>
         <p
           style={{
             fontSize: '1.25rem',
