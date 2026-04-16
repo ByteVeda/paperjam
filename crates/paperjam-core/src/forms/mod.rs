@@ -93,21 +93,13 @@ pub fn fill_form_fields(
 
     for (name, value) in values {
         match field_name_map.get(name) {
-            None => {
-                not_found.push(name.clone());
+            Some((false, field_type)) if set_field_value(&mut inner, name, value, field_type)? => {
+                filled += 1;
+                filled_fields.push((name.clone(), value.clone(), field_type.clone()));
             }
-            Some((true, _)) => {
-                // Read-only field, skip
+            // Not in the map, read-only, or set_field_value returned false: record as not-found.
+            _ => {
                 not_found.push(name.clone());
-            }
-            Some((false, field_type)) => {
-                // Find and update the field object
-                if set_field_value(&mut inner, name, value, field_type)? {
-                    filled += 1;
-                    filled_fields.push((name.clone(), value.clone(), field_type.clone()));
-                } else {
-                    not_found.push(name.clone());
-                }
             }
         }
     }

@@ -76,10 +76,8 @@ fn parse_nav_point(reader: &mut Reader<&[u8]>) -> Option<TocEntry> {
                     }
                 }
             }
-            Ok(Event::Text(ref e)) => {
-                if in_text {
-                    title = e.unescape().unwrap_or_default().trim().to_string();
-                }
+            Ok(Event::Text(ref e)) if in_text => {
+                title = e.unescape().unwrap_or_default().trim().to_string();
             }
             Ok(Event::End(ref e)) => {
                 let local = local_name(e.name().as_ref());

@@ -40,7 +40,7 @@ pub fn insert_blank_pages(doc: &Document, positions: &[(u32, f64, f64)]) -> Resu
 
     // Sort positions in reverse order so insertions don't shift indices
     let mut sorted_positions = positions.to_vec();
-    sorted_positions.sort_by(|a, b| b.0.cmp(&a.0));
+    sorted_positions.sort_by_key(|p| std::cmp::Reverse(p.0));
 
     for (after_page, width, height) in sorted_positions {
         // Create an empty content stream
