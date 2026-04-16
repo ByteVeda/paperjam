@@ -1,0 +1,139 @@
+{
+  "source": "synthetic",
+  "license": "generated",
+  "notes": "5x4 with row-span merges (Year, Notes) and col-span merge (Revenue)",
+  "tables": [
+    {
+      "page": 1,
+      "bbox": [
+        72.0,
+        580.0,
+        392.0,
+        700.0
+      ],
+      "col_count": 4,
+      "row_count": 5,
+      "cells": [
+        {
+          "row": 0,
+          "col": 0,
+          "row_span": 2,
+          "col_span": 1,
+          "text": "Year"
+        },
+        {
+          "row": 0,
+          "col": 1,
+          "row_span": 1,
+          "col_span": 2,
+          "text": "Revenue"
+        },
+        {
+          "row": 0,
+          "col": 3,
+          "row_span": 2,
+          "col_span": 1,
+          "text": "Notes"
+        },
+        {
+          "row": 1,
+          "col": 1,
+          "row_span": 1,
+          "col_span": 1,
+          "text": "Q1"
+        },
+        {
+          "row": 1,
+          "col": 2,
+          "row_span": 1,
+          "col_span": 1,
+          "text": "Q2"
+        },
+        {
+          "row": 2,
+          "col": 0,
+          "row_span": 1,
+          "col_span": 1,
+          "text": "2020"
+        },
+        {
+          "row": 2,
+          "col": 1,
+          "row_span": 1,
+          "col_span": 1,
+          "text": "100"
+        },
+        {
+          "row": 2,
+          "col": 2,
+          "row_span": 1,
+          "col_span": 1,
+          "text": "120"
+        },
+        {
+          "row": 2,
+          "col": 3,
+          "row_span": 1,
+          "col_span": 1,
+          "text": "stable"
+        },
+        {
+          "row": 3,
+          "col": 0,
+          "row_span": 1,
+          "col_span": 1,
+          "text": "2021"
+        },
+        {
+          "row": 3,
+          "col": 1,
+          "row_span": 1,
+          "col_span": 1,
+          "text": "110"
+        },
+        {
+          "row": 3,
+          "col": 2,
+          "row_span": 1,
+          "col_span": 1,
+          "text": "130"
+        },
+        {
+          "row": 3,
+          "col": 3,
+          "row_span": 1,
+          "col_span": 1,
+          "text": "up"
+        },
+        {
+          "row": 4,
+          "col": 0,
+          "row_span": 1,
+          "col_span": 1,
+          "text": "2022"
+        },
+        {
+          "row": 4,
+          "col": 1,
+          "row_span": 1,
+          "col_span": 1,
+          "text": "120"
+        },
+        {
+          "row": 4,
+          "col": 2,
+          "row_span": 1,
+          "col_span": 1,
+          "text": "140"
+        },
+        {
+          "row": 4,
+          "col": 3,
+          "row_span": 1,
+          "col_span": 1,
+          "text": "up"
+        }
+      ]
+    }
+  ]
+}

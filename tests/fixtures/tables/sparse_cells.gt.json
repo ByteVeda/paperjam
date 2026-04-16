@@ -1,0 +1,265 @@
+{
+  "source": "synthetic",
+  "license": "generated",
+  "notes": "7x5 borderless with blank cells on subtotal/total rows",
+  "tables": [
+    {
+      "page": 1,
+      "bbox": [
+        72.0,
+        532.0,
+        432.0,
+        700.0
+      ],
+      "col_count": 5,
+      "row_count": 7,
+      "cells": [
+        {
+          "row": 0,
+          "col": 0,
+          "row_span": 1,
+          "col_span": 1,
+          "text": "Item"
+        },
+        {
+          "row": 0,
+          "col": 1,
+          "row_span": 1,
+          "col_span": 1,
+          "text": "Qty"
+        },
+        {
+          "row": 0,
+          "col": 2,
+          "row_span": 1,
+          "col_span": 1,
+          "text": "Price"
+        },
+        {
+          "row": 0,
+          "col": 3,
+          "row_span": 1,
+          "col_span": 1,
+          "text": "Total"
+        },
+        {
+          "row": 0,
+          "col": 4,
+          "row_span": 1,
+          "col_span": 1,
+          "text": "Note"
+        },
+        {
+          "row": 1,
+          "col": 0,
+          "row_span": 1,
+          "col_span": 1,
+          "text": "Apple"
+        },
+        {
+          "row": 1,
+          "col": 1,
+          "row_span": 1,
+          "col_span": 1,
+          "text": "2"
+        },
+        {
+          "row": 1,
+          "col": 2,
+          "row_span": 1,
+          "col_span": 1,
+          "text": "1.00"
+        },
+        {
+          "row": 1,
+          "col": 3,
+          "row_span": 1,
+          "col_span": 1,
+          "text": "2.00"
+        },
+        {
+          "row": 1,
+          "col": 4,
+          "row_span": 1,
+          "col_span": 1,
+          "text": ""
+        },
+        {
+          "row": 2,
+          "col": 0,
+          "row_span": 1,
+          "col_span": 1,
+          "text": "Banana"
+        },
+        {
+          "row": 2,
+          "col": 1,
+          "row_span": 1,
+          "col_span": 1,
+          "text": "5"
+        },
+        {
+          "row": 2,
+          "col": 2,
+          "row_span": 1,
+          "col_span": 1,
+          "text": "0.50"
+        },
+        {
+          "row": 2,
+          "col": 3,
+          "row_span": 1,
+          "col_span": 1,
+          "text": "2.50"
+        },
+        {
+          "row": 2,
+          "col": 4,
+          "row_span": 1,
+          "col_span": 1,
+          "text": ""
+        },
+        {
+          "row": 3,
+          "col": 0,
+          "row_span": 1,
+          "col_span": 1,
+          "text": "Subtotal"
+        },
+        {
+          "row": 3,
+          "col": 1,
+          "row_span": 1,
+          "col_span": 1,
+          "text": ""
+        },
+        {
+          "row": 3,
+          "col": 2,
+          "row_span": 1,
+          "col_span": 1,
+          "text": ""
+        },
+        {
+          "row": 3,
+          "col": 3,
+          "row_span": 1,
+          "col_span": 1,
+          "text": "4.50"
+        },
+        {
+          "row": 3,
+          "col": 4,
+          "row_span": 1,
+          "col_span": 1,
+          "text": ""
+        },
+        {
+          "row": 4,
+          "col": 0,
+          "row_span": 1,
+          "col_span": 1,
+          "text": "Orange"
+        },
+        {
+          "row": 4,
+          "col": 1,
+          "row_span": 1,
+          "col_span": 1,
+          "text": "3"
+        },
+        {
+          "row": 4,
+          "col": 2,
+          "row_span": 1,
+          "col_span": 1,
+          "text": "1.50"
+        },
+        {
+          "row": 4,
+          "col": 3,
+          "row_span": 1,
+          "col_span": 1,
+          "text": "4.50"
+        },
+        {
+          "row": 4,
+          "col": 4,
+          "row_span": 1,
+          "col_span": 1,
+          "text": ""
+        },
+        {
+          "row": 5,
+          "col": 0,
+          "row_span": 1,
+          "col_span": 1,
+          "text": "Grape"
+        },
+        {
+          "row": 5,
+          "col": 1,
+          "row_span": 1,
+          "col_span": 1,
+          "text": "1"
+        },
+        {
+          "row": 5,
+          "col": 2,
+          "row_span": 1,
+          "col_span": 1,
+          "text": "3.00"
+        },
+        {
+          "row": 5,
+          "col": 3,
+          "row_span": 1,
+          "col_span": 1,
+          "text": "3.00"
+        },
+        {
+          "row": 5,
+          "col": 4,
+          "row_span": 1,
+          "col_span": 1,
+          "text": ""
+        },
+        {
+          "row": 6,
+          "col": 0,
+          "row_span": 1,
+          "col_span": 1,
+          "text": "Total"
+        },
+        {
+          "row": 6,
+          "col": 1,
+          "row_span": 1,
+          "col_span": 1,
+          "text": ""
+        },
+        {
+          "row": 6,
+          "col": 2,
+          "row_span": 1,
+          "col_span": 1,
+          "text": ""
+        },
+        {
+          "row": 6,
+          "col": 3,
+          "row_span": 1,
+          "col_span": 1,
+          "text": "12.00"
+        },
+        {
+          "row": 6,
+          "col": 4,
+          "row_span": 1,
+          "col_span": 1,
+          "text": ""
+        }
+      ]
+    }
+  ]
+}
