@@ -20,7 +20,7 @@ jobs:
           days-before-pr-close: 14
           days-before-issue-stale: 90
           days-before-issue-close: 30
-          exempt-pr-labels: 'dependencies,pinned,security,help wanted,good first issue'
+          exempt-pr-labels: 'pinned,security,help wanted,good first issue'
           exempt-issue-labels: 'dependencies,pinned,security,help wanted,good first issue'
           remove-stale-when-updated: true
           operations-per-run: 100
