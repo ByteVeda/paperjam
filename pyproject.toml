@@ -42,6 +42,8 @@ dev = [
     "pdfplumber>=0.10",
     "mypy>=1.8",
     "ruff>=0.3",
+    "reportlab>=4.0,<4.2",
+    "pandas>=2.0",
 ]
 
 [tool.maturin]
@@ -56,6 +58,9 @@ include = [
 
 [tool.pytest.ini_options]
 testpaths = ["tests/python"]
+markers = [
+    "accuracy: table extraction accuracy harness (run with -m accuracy)",
+]
 
 [tool.ruff]
 target-version = "py312"
