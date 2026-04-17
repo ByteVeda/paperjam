@@ -11,6 +11,7 @@ dist/
 build/
 *.so
 *.dylib
+CLAUDE.md
 *.dll
 .venv/
 venv/
@@ -35,6 +36,9 @@ python/paperjam/libpdfium.so
 
 # Test fixtures (generated)
 tests/fixtures/large_*.pdf
+
+# Per-session test artifacts (accuracy reports, etc.)
+tests/output/
 
 # Sphinx
 _build

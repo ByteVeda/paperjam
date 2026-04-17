@@ -1,0 +1,14 @@
+# Enforce byte-exact checkout for binary fixtures.
+# Without this, git's autodetection heuristic can misclassify uncompressed
+# PDFs (pageCompression=0) as text on Windows (core.autocrlf=true), which
+# rewrites LF to CRLF inside the PDF and corrupts xref/trailer offsets.
+*.pdf      binary
+*.wasm     binary
+*.ttf      binary
+*.otf      binary
+*.woff     binary
+*.woff2    binary
+*.ico      binary
+*.png      binary
+*.jpg      binary
+*.jpeg     binary

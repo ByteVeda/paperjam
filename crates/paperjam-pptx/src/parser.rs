@@ -254,11 +254,9 @@ fn parse_slide(xml: &str, index: usize, notes_xml: Option<&str>) -> Result<Slide
                     _ => {}
                 }
             }
-            Ok(Event::Empty(ref e)) => {
-                if parser.in_shape {
-                    let local = local_name_owned(e.name().as_ref());
-                    handle_shape_empty(&mut parser, e, &local)?;
-                }
+            Ok(Event::Empty(ref e)) if parser.in_shape => {
+                let local = local_name_owned(e.name().as_ref());
+                handle_shape_empty(&mut parser, e, &local)?;
             }
             Ok(Event::Text(ref e)) => {
                 if parser.in_table_cell {
@@ -436,10 +434,8 @@ fn parse_notes_text(xml: &str) -> Result<String> {
                     text.push('\n');
                 }
             }
-            Ok(Event::Text(ref e)) => {
-                if in_text_body {
-                    text.push_str(&e.unescape().unwrap_or_default());
-                }
+            Ok(Event::Text(ref e)) if in_text_body => {
+                text.push_str(&e.unescape().unwrap_or_default());
             }
             Ok(Event::Eof) => break,
             Err(e) => return Err(PptxError::Xml(format!("notes XML error: {e}"))),

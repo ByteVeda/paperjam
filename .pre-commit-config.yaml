@@ -47,3 +47,11 @@ repos:
         language: system
         files: ^docs-site/src/
         pass_filenames: false
+
+  - repo: local
+    hooks:
+      - id: strip-ai-attribution
+        name: strip AI attribution from commit messages
+        entry: .claude/hooks/strip-ai-attribution.sh
+        language: script
+        stages: [commit-msg]

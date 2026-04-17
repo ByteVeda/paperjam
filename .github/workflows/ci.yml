@@ -102,3 +102,51 @@ jobs:
         with:
           name: test-results-${{ matrix.os }}-py${{ matrix.python-version }}
           path: results.xml
+
+  accuracy:
+    name: Table Extraction Accuracy
+    needs: lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Set up Python 3.13
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - uses: Swatinem/rust-cache@v2.9.1
+        with:
+          save-if: false
+
+      - uses: astral-sh/setup-uv@v7
+        with:
+          cache-dependency-glob: pyproject.toml
+
+      - name: Install dependencies
+        run: uv sync --extra dev
+
+      - name: Build native extension
+        uses: PyO3/maturin-action@v1
+        with:
+          command: develop
+          args: --release
+
+      - name: Verify fixtures are up to date
+        run: |
+          cp -r tests/fixtures/tables /tmp/tables_snapshot
+          uv run python scripts/generate_table_fixtures.py
+          diff -r /tmp/tables_snapshot tests/fixtures/tables
+
+      - name: Run accuracy harness
+        run: uv run pytest tests/python/ -m accuracy -v --tb=short
+
+      - name: Upload accuracy report
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: accuracy-report
+          path: tests/output/table_accuracy.json
