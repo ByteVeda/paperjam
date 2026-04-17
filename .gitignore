@@ -11,15 +11,17 @@ dist/
 build/
 *.so
 *.dylib
-CLAUDE.md
 *.dll
 .venv/
 venv/
-.claude/
 junk/
 .mypy_cache/
 .pytest_cache/
 .ruff_cache/
+
+# Claude Code
+CLAUDE.md
+.claude/
 
 # IDE
 .idea/
