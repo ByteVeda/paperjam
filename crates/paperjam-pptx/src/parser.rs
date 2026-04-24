@@ -1,8 +1,8 @@
 use crate::document::{PptxDocument, SlideData, TextBlock};
 use crate::error::{PptxError, Result};
 use crate::metadata;
-use crate::safe_read::read_entry_string;
 use paperjam_model::table::{Cell, Row, Table, TableStrategy};
+use paperjam_model::zip_safety::{ArchiveLimits, SafeArchive};
 use quick_xml::events::Event;
 use quick_xml::Reader;
 use std::io::Read;
@@ -13,16 +13,20 @@ pub fn parse_pptx(bytes: &[u8]) -> Result<PptxDocument> {
     let cursor = std::io::Cursor::new(bytes);
     let mut archive = ZipArchive::new(cursor)?;
 
-    let meta = metadata::parse_metadata(&mut archive)?;
+    // `slide_names` is sourced from the archive listing, not a
+    // `SafeArchive` read, so it does not count against the byte/entry
+    // budget.
     let slide_names = find_slide_files(&archive);
 
-    // Cap the initial allocation — slide_names comes from the archive
-    // listing and is attacker-controlled.
+    let mut safe = SafeArchive::new(&mut archive, ArchiveLimits::DEFAULT);
+    let meta = metadata::parse_metadata(&mut safe)?;
+
+    // Cap the initial allocation — slide_names is attacker-controlled.
     let mut slides = Vec::with_capacity(slide_names.len().min(4096));
     for (idx, name) in slide_names.iter().enumerate() {
-        let slide_xml = read_entry_string(&mut archive, name)?;
+        let slide_xml = safe.read_entry_string(name)?;
         let notes_path = format!("ppt/notesSlides/notesSlide{}.xml", idx + 1);
-        let notes_xml = read_entry_string(&mut archive, &notes_path).ok();
+        let notes_xml = safe.read_entry_string(&notes_path).ok();
         let slide = parse_slide(&slide_xml, idx + 1, notes_xml.as_deref())?;
         slides.push(slide);
     }

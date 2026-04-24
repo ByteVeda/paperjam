@@ -7,7 +7,7 @@ license.workspace = true
 description = "EPUB e-book processing for the paperjam ecosystem"
 
 [dependencies]
-paperjam-model = { path = "../paperjam-model" }
+paperjam-model = { path = "../paperjam-model", features = ["zip_safety"] }
 paperjam-html = { path = "../paperjam-html" }
 zip = { version = "2", default-features = false, features = ["deflate"] }
 quick-xml = "0.37"
