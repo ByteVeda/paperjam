@@ -64,15 +64,16 @@ jobs:
     runs-on: ubuntu-latest
     env:
       # rust-toolchain.toml pins stable for contributors; override here
-      # so the MSRV job actually exercises the declared minimum.
-      RUSTUP_TOOLCHAIN: "1.75"
+      # so the MSRV job actually exercises the declared minimum. Keep
+      # this in sync with `rust-version` in the workspace Cargo.toml.
+      RUSTUP_TOOLCHAIN: "1.85"
     steps:
       - uses: actions/checkout@v6
 
       - name: Install MSRV toolchain
         uses: dtolnay/rust-toolchain@master
         with:
-          toolchain: "1.75"
+          toolchain: "1.85"
 
       - uses: Swatinem/rust-cache@v2.9.1
         with:

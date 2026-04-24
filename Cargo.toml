@@ -21,7 +21,9 @@ members = [
 [workspace.package]
 version = "0.2.0"
 edition = "2021"
-rust-version = "1.75"
+# Bounded by transitive deps (e.g. ravif 0.13 via the `image` crate
+# requires edition2024, stable from Rust 1.85).
+rust-version = "1.85"
 license = "MIT"
 
 [workspace.dependencies]
