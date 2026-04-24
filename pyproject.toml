@@ -4,8 +4,9 @@ build-backend = "maturin"
 
 [project]
 name = "paperjam"
-version = "0.1.3"
-description = "Fast PDF processing powered by Rust"
+version = "0.2.0"
+description = "Fast multi-format document processing (PDF, DOCX, XLSX, PPTX, HTML, EPUB) powered by Rust"
+readme = "README.md"
 license = { text = "MIT" }
 requires-python = ">=3.12"
 classifiers = [
@@ -17,22 +18,33 @@ classifiers = [
     "Programming Language :: Python :: 3.13",
     "Programming Language :: Python :: Implementation :: CPython",
     "Programming Language :: Rust",
+    "Topic :: Office/Business",
     "Topic :: Software Development :: Libraries :: Python Modules",
     "Topic :: Text Processing",
     "Typing :: Typed",
 ]
-keywords = ["pdf", "text-extraction", "table-extraction", "rust"]
+keywords = [
+    "pdf",
+    "docx",
+    "xlsx",
+    "pptx",
+    "html",
+    "epub",
+    "text-extraction",
+    "table-extraction",
+    "document-conversion",
+    "rust",
+]
+
+[project.urls]
+Homepage = "https://docs.byteveda.org/paperjam/"
+Documentation = "https://docs.byteveda.org/paperjam/"
+Repository = "https://github.com/ByteVeda/paperjam"
+Issues = "https://github.com/ByteVeda/paperjam/issues"
+Changelog = "https://github.com/ByteVeda/paperjam/blob/main/CHANGELOG.md"
 
 [project.optional-dependencies]
 pandas = ["pandas>=2.0"]
-docs = [
-    "sphinx>=7.0",
-    "furo>=2024.1.29",
-    "myst-parser>=2.0",
-    "sphinx-copybutton>=0.5",
-    "sphinxcontrib-mermaid>=2.0",
-    "sphinx-autobuild>=2024.0.0",
-]
 dev = [
     "pre-commit>=4.0",
     "pytest>=8.0",
