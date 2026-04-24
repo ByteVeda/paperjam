@@ -21,9 +21,11 @@ members = [
 [workspace.package]
 version = "0.2.0"
 edition = "2021"
-# Bounded by transitive deps (e.g. ravif 0.13 via the `image` crate
-# requires edition2024, stable from Rust 1.85).
-rust-version = "1.85"
+# Tracks the committed Cargo.lock: the highest MSRV among any
+# transitive crate in the lockfile determines the workspace floor.
+# Bump together with `RUSTUP_TOOLCHAIN` in .github/workflows/ci.yml
+# whenever a `cargo update` pulls in a crate with a higher MSRV.
+rust-version = "1.88"
 license = "MIT"
 
 [workspace.dependencies]

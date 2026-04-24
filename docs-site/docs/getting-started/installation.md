@@ -37,7 +37,7 @@ npm run build   # static site under docs-site/build/
 
 ## Installing from source
 
-Building from source requires a Rust toolchain (stable, 1.85+) and [maturin](https://maturin.rs/):
+Building from source requires a Rust toolchain (stable, 1.88+) and [maturin](https://maturin.rs/):
 
 ```bash
 pip install maturin
