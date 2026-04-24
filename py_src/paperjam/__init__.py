@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-__version__ = "0.1.0"
+__version__ = "0.2.1"
 
 from paperjam._any_document import AnyDocument
 from paperjam._async import (

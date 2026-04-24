@@ -7,20 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.2.1] — 2026-04-24
+
 ### Security
 
-- Bound ZIP entry reads in EPUB, PPTX, and DOCX parsers. A crafted archive
-  declaring a tiny compressed size could previously expand to multi-GB on
-  decompression; entries are now rejected when the declared or observed
-  decompressed size exceeds a per-entry cap.
+- Introduce a shared `SafeArchive` in `paperjam-model::zip_safety`
+  (behind the `zip_safety` feature) and route the EPUB and PPTX parsers
+  through it. Decompression is bounded on four axes — per-entry
+  decompressed size (100 MB), total decompressed bytes per archive
+  (500 MB), entry count (10 000), and compression ratio (100×) — so a
+  crafted archive can no longer expand to multi-GB or exhaust the entry
+  table. Replaces the per-crate `safe_read` copies from 0.2.0.
 - Cap `Vec::with_capacity` preallocations in XLSX sheet parsing and PPTX
   slide parsing at reasonable ceilings so attacker-controlled counts can
   no longer trigger large allocations up front.
 - `paperjam-mcp`: resolved paths are now sandboxed to the configured
   working directory by default. Absolute paths and `..` traversal that
-  escape the working dir are rejected with a structured error. Operators
-  can opt out with `--allow-absolute-paths` (or
-  `ServerConfig::allow_absolute_paths`).
+  escape the working dir are rejected with a structured error
+  (`McpError::PathEscapesSandbox`). Operators can opt out with
+  `--allow-absolute-paths` (or `ServerConfig::allow_absolute_paths`).
 
 ### Fixed
 
@@ -46,13 +51,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Changed
 
+- MSRV is now declared and enforced at **Rust 1.88**. `Cargo.lock` is
+  committed and the MSRV CI job runs `cargo check --workspace --locked`
+  so the declared minimum stays deterministic until a deliberate
+  `cargo update`. Keep `rust-version` in `Cargo.toml` and
+  `RUSTUP_TOOLCHAIN` in `.github/workflows/ci.yml` in sync.
 - `paperjam-async` no longer force-enables `signatures` and `validation`
   on `paperjam-core`. Consumers that need them (e.g. `paperjam-py`)
   continue to enable them explicitly; lightweight async users no longer
   drag in the full signing / validation stack.
+- Pin `md-5 = "0.10"` in `paperjam-core` to collapse a duplicate
+  RustCrypto `digest` chain pulled in via `md-5 = "0.11"`.
 - Docs site CI now builds on pull requests (without deploying) so docs
-  regressions are caught pre-merge. Binaryen's `wasm-opt` is installed
-  so release WASM bundles are size-optimized.
+  regressions are caught pre-merge. Binaryen's `wasm-opt` is pinned to
+  `version_119` (downloaded with SHA-256 verification and cached) and
+  invoked with the full set of rustc-emitted wasm features
+  (`bulk-memory`, `sign-ext`, `nontrapping-float-to-int`,
+  `mutable-globals`, `reference-types`, `multivalue`) so release WASM
+  bundles are size-optimized on modern toolchains.
+- CI rust-cache is scoped with `shared-key` across the Python matrix and
+  `save-if: github.ref == 'refs/heads/main'` on non-lint jobs, keeping
+  the cache quota stable.
 
 ### Docs
 
@@ -60,7 +79,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   flags; removed the nonexistent `extract tables --format csv` flag.
 - `docs-site/docs/getting-started/installation.md`: replace leftover
   Sphinx build instructions with the Docusaurus workflow, fix the
-  clone org, expand the feature-flag table.
+  clone org, expand the feature-flag table, and bump the
+  build-from-source Rust requirement to 1.88+.
 - `pyproject.toml`: fill in multi-format description, `readme`,
   `project.urls`, and extra classifiers/keywords so the PyPI page is
   populated. Drop the stale Sphinx `[docs]` extra.
