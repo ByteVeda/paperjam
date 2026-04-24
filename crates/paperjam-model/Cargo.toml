@@ -7,3 +7,15 @@ license.workspace = true
 description = "Pure data types and traits for the paperjam document processing ecosystem"
 
 [dependencies]
+thiserror = { workspace = true, optional = true }
+zip = { version = "2", default-features = false, features = ["deflate"], optional = true }
+
+[features]
+# Shared hardened ZIP reader used by the OOXML/EPUB format crates.
+# Off by default so the PDF engine and other non-zip consumers stay
+# dependency-free.
+zip_safety = ["dep:zip", "dep:thiserror"]
+
+[dev-dependencies]
+thiserror = { workspace = true }
+zip = { version = "2", default-features = false, features = ["deflate"] }

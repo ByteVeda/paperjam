@@ -11,6 +11,9 @@
 pub mod document;
 pub mod format;
 
+#[cfg(feature = "zip_safety")]
+pub mod zip_safety;
+
 pub mod annotations;
 pub mod bookmarks;
 pub mod conversion;
