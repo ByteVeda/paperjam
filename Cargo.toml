@@ -21,7 +21,11 @@ members = [
 [workspace.package]
 version = "0.2.0"
 edition = "2021"
-rust-version = "1.75"
+# Tracks the committed Cargo.lock: the highest MSRV among any
+# transitive crate in the lockfile determines the workspace floor.
+# Bump together with `RUSTUP_TOOLCHAIN` in .github/workflows/ci.yml
+# whenever a `cargo update` pulls in a crate with a higher MSRV.
+rust-version = "1.88"
 license = "MIT"
 
 [workspace.dependencies]

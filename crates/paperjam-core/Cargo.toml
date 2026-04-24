@@ -10,7 +10,11 @@ description = "Pure Rust PDF engine — parsing, text extraction, table detectio
 paperjam-model = { path = "../paperjam-model" }
 lopdf = "0.34"
 regex = "1"
-md-5 = "0.11"
+# Pinned to 0.10 so the whole RustCrypto stack (digest, block-buffer,
+# sha2, sha1, rsa, p256, hmac, ecdsa, elliptic-curve, pkcs8) resolves
+# to a single major version. Bumping to 0.11 drags a duplicate
+# `block-buffer`/`digest` tree that bloats build time and binary size.
+md-5 = "0.10"
 aes = "0.8"
 cbc = "0.1"
 rand = "0.8"

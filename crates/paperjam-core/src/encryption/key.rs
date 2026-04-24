@@ -4,7 +4,6 @@
 //! - PDF 2.0 (ISO 32000-2, section 7.6.4.3): SHA-based for AES-256 (V=5, R=6).
 
 use md5::{Digest as Md5Digest, Md5};
-use sha2::digest::Digest as Sha2Digest;
 use sha2::{Sha256, Sha384, Sha512};
 
 use super::rc4::Rc4;
