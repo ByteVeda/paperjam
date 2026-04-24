@@ -15,6 +15,9 @@ pub enum McpError {
     #[error("pipeline error: {0}")]
     Pipeline(#[from] paperjam_pipeline::PipelineError),
 
+    #[error("path `{0}` escapes the working directory; pass --allow-absolute-paths to the server to opt out of sandboxing")]
+    PathEscapesSandbox(String),
+
     #[error("{0}")]
     Other(String),
 }
