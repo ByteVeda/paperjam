@@ -1,7 +1,7 @@
 pub mod error;
 pub mod session;
 
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::sync::{Arc, Mutex};
 
 use rmcp::handler::server::router::tool::ToolRouter;
@@ -11,30 +11,115 @@ use rmcp::{tool, tool_handler, tool_router, ServerHandler};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
+use crate::error::McpError;
 use crate::session::SessionManager;
+
+/// Configuration for the MCP server.
+#[derive(Debug, Clone)]
+pub struct ServerConfig {
+    /// Root directory for relative paths. Also acts as the sandbox root unless
+    /// `allow_absolute_paths` is set.
+    pub working_dir: PathBuf,
+    /// If true, disable sandbox containment and allow paths that point outside
+    /// `working_dir`. Default: false.
+    pub allow_absolute_paths: bool,
+}
 
 /// The paperjam MCP server.
 pub struct PaperjamServer {
     sessions: Arc<Mutex<SessionManager>>,
     working_dir: PathBuf,
+    working_dir_canonical: Option<PathBuf>,
+    allow_absolute_paths: bool,
     tool_router: ToolRouter<Self>,
 }
 
 impl PaperjamServer {
+    /// Construct a server rooted at `working_dir` with sandboxing enabled.
     pub fn new(working_dir: PathBuf) -> Self {
+        Self::with_config(ServerConfig {
+            working_dir,
+            allow_absolute_paths: false,
+        })
+    }
+
+    pub fn with_config(config: ServerConfig) -> Self {
+        let working_dir_canonical = config.working_dir.canonicalize().ok();
         Self {
             sessions: Arc::new(Mutex::new(SessionManager::new())),
-            working_dir,
+            working_dir: config.working_dir,
+            working_dir_canonical,
+            allow_absolute_paths: config.allow_absolute_paths,
             tool_router: Self::tool_router(),
         }
     }
 
-    fn resolve_path(&self, path: &str) -> PathBuf {
-        let p = PathBuf::from(path);
-        if p.is_absolute() {
-            p
-        } else {
-            self.working_dir.join(p)
+    /// Resolve a user-supplied path against the server's working directory.
+    ///
+    /// Unless `allow_absolute_paths` is set, the result must be contained
+    /// within `working_dir`. A non-existent target (common for save
+    /// operations) is accepted if its nearest existing ancestor is within
+    /// the sandbox.
+    fn resolve_path(&self, path: &str) -> Result<PathBuf, McpError> {
+        let candidate = {
+            let p = PathBuf::from(path);
+            if p.is_absolute() {
+                p
+            } else {
+                self.working_dir.join(p)
+            }
+        };
+
+        if self.allow_absolute_paths {
+            return Ok(candidate);
+        }
+
+        let root = self
+            .working_dir_canonical
+            .as_deref()
+            .unwrap_or(self.working_dir.as_path());
+
+        // Canonicalize as much of the candidate as exists on disk, then
+        // append any non-existent tail so that `..` components are resolved
+        // before the containment check.
+        let checked = canonicalize_with_fallback(&candidate)
+            .ok_or_else(|| McpError::PathEscapesSandbox(path.to_string()))?;
+
+        if !checked.starts_with(root) {
+            return Err(McpError::PathEscapesSandbox(path.to_string()));
+        }
+
+        Ok(checked)
+    }
+}
+
+/// Walk up `path` until an existing ancestor is found, canonicalize it, then
+/// re-append the non-existent tail. Returns `None` if no ancestor exists.
+fn canonicalize_with_fallback(path: &Path) -> Option<PathBuf> {
+    if let Ok(c) = path.canonicalize() {
+        return Some(c);
+    }
+    let mut tail: Vec<&std::ffi::OsStr> = Vec::new();
+    let mut cur = path;
+    loop {
+        if let Some(name) = cur.file_name() {
+            tail.push(name);
+        }
+        match cur.parent() {
+            Some(parent) => {
+                if let Ok(canon) = parent.canonicalize() {
+                    let mut out = canon;
+                    for name in tail.iter().rev() {
+                        out.push(name);
+                    }
+                    return Some(out);
+                }
+                cur = parent;
+                if cur.as_os_str().is_empty() {
+                    return None;
+                }
+            }
+            None => return None,
         }
     }
 }
@@ -127,7 +212,10 @@ impl PaperjamServer {
         description = "Open a document from a file path. Supports PDF, DOCX, XLSX, PPTX, HTML, EPUB. Returns a session ID for subsequent operations."
     )]
     async fn open_document(&self, params: Parameters<OpenDocumentParams>) -> String {
-        let path = self.resolve_path(&params.0.path);
+        let path = match self.resolve_path(&params.0.path) {
+            Ok(p) => p,
+            Err(e) => return format!("Error: {}", e),
+        };
         match self.sessions.lock().unwrap().open_from_path(&path) {
             Ok(session_id) => {
                 let sessions = self.sessions.lock().unwrap();
@@ -428,7 +516,10 @@ impl PaperjamServer {
             }
         };
 
-        let path = self.resolve_path(&params.0.output_path);
+        let path = match self.resolve_path(&params.0.output_path) {
+            Ok(p) => p,
+            Err(e) => return format!("Error: {}", e),
+        };
         if let Some(parent) = path.parent() {
             if let Err(e) = std::fs::create_dir_all(parent) {
                 return format!("Error: {}", e);
@@ -469,3 +560,55 @@ impl PaperjamServer {
 
 #[tool_handler(router = self.tool_router)]
 impl ServerHandler for PaperjamServer {}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn server(tmp: &Path, allow_absolute: bool) -> PaperjamServer {
+        PaperjamServer::with_config(ServerConfig {
+            working_dir: tmp.to_path_buf(),
+            allow_absolute_paths: allow_absolute,
+        })
+    }
+
+    #[test]
+    fn relative_path_inside_sandbox_is_allowed() {
+        let tmp = std::env::temp_dir().canonicalize().unwrap();
+        let s = server(&tmp, false);
+        let resolved = s.resolve_path("some_file.pdf").unwrap();
+        assert!(resolved.starts_with(&tmp));
+    }
+
+    #[test]
+    fn absolute_path_outside_sandbox_is_rejected() {
+        let tmp = std::env::temp_dir().canonicalize().unwrap();
+        let s = server(&tmp, false);
+        let err = s.resolve_path("/etc/passwd").unwrap_err();
+        assert!(matches!(err, McpError::PathEscapesSandbox(_)));
+    }
+
+    #[test]
+    fn parent_traversal_is_rejected() {
+        let tmp = std::env::temp_dir().canonicalize().unwrap();
+        let s = server(&tmp, false);
+        let err = s.resolve_path("../../../etc/passwd").unwrap_err();
+        assert!(matches!(err, McpError::PathEscapesSandbox(_)));
+    }
+
+    #[test]
+    fn nonexistent_child_path_is_accepted() {
+        let tmp = std::env::temp_dir().canonicalize().unwrap();
+        let s = server(&tmp, false);
+        let resolved = s.resolve_path("does_not_exist_yet.pdf").unwrap();
+        assert!(resolved.starts_with(&tmp));
+    }
+
+    #[test]
+    fn allow_absolute_flag_bypasses_containment_check() {
+        let tmp = std::env::temp_dir().canonicalize().unwrap();
+        let s = server(&tmp, true);
+        let resolved = s.resolve_path("/etc/passwd").unwrap();
+        assert_eq!(resolved, PathBuf::from("/etc/passwd"));
+    }
+}

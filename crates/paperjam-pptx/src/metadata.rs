@@ -1,4 +1,5 @@
 use crate::error::{PptxError, Result};
+use crate::safe_read::read_entry_string;
 use quick_xml::events::Event;
 use quick_xml::Reader;
 use std::io::Read;
@@ -38,13 +39,10 @@ impl PptxMetadata {
 pub fn parse_metadata<R: Read + std::io::Seek>(
     archive: &mut ZipArchive<R>,
 ) -> Result<PptxMetadata> {
-    let xml = match archive.by_name("docProps/core.xml") {
-        Ok(mut entry) => {
-            let mut buf = String::new();
-            entry.read_to_string(&mut buf)?;
-            buf
-        }
-        Err(_) => return Ok(PptxMetadata::default()),
+    let xml = match read_entry_string(archive, "docProps/core.xml") {
+        Ok(buf) => buf,
+        Err(PptxError::MissingEntry(_)) => return Ok(PptxMetadata::default()),
+        Err(e) => return Err(e),
     };
 
     let mut reader = Reader::from_str(&xml);

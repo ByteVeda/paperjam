@@ -4,6 +4,7 @@ mod image;
 mod markdown;
 mod metadata;
 pub mod parser;
+mod safe_read;
 mod structure;
 mod table;
 mod text;
