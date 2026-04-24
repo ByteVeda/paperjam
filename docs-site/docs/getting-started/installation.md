@@ -25,21 +25,23 @@ pip install "paperjam[pandas]"
 
 ### Documentation
 
-To build these docs locally:
+The docs site uses [Docusaurus](https://docusaurus.io/). To build it locally:
 
 ```bash
-pip install "paperjam[docs]"
-cd docs
-make html
+git clone https://github.com/ByteVeda/paperjam
+cd paperjam/docs-site
+npm ci
+npm run start   # dev server with hot reload
+npm run build   # static site under docs-site/build/
 ```
 
 ## Installing from source
 
-Building from source requires a Rust toolchain (stable, 1.77+) and [maturin](https://maturin.rs/):
+Building from source requires a Rust toolchain (stable, 1.75+) and [maturin](https://maturin.rs/):
 
 ```bash
 pip install maturin
-git clone https://github.com/paperjam/paperjam
+git clone https://github.com/ByteVeda/paperjam
 cd paperjam
 maturin develop --release
 ```
@@ -52,7 +54,11 @@ Pre-built wheels on PyPI include all features.
 | Feature | Methods enabled |
 |---------|----------------|
 | `render` | `render_page`, `render_pages`, `page.render`, `visual_diff` |
-| `signatures` | `signatures`, `verify_signatures`, `sign` |
+| `signatures` | `sign_document`, `verify_signatures`, `extract_signatures` |
+| `ltv` | LTV timestamp embedding (TSA, OCSP, CRL) for signing |
+| `validation` | `validate_pdf_a`, `validate_pdf_ua`, `convert_to_pdf_a` |
+| `parallel` | Rayon-based parallel processing (default) |
+| `mmap` | Memory-mapped file access for large documents |
 
 When building from source you can control features with the `--features` flag:
 

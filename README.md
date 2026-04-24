@@ -79,16 +79,18 @@ steps:
 ```
 
 ```bash
-paperjam pipeline run pipeline.yaml
+pj pipeline run pipeline.yaml
 ```
 
 ### CLI usage
 
+The CLI binary installed by `cargo install paperjam-cli` is named `pj`:
+
 ```bash
-paperjam extract text report.pdf
-paperjam extract tables data.pdf --format csv
-paperjam convert report.pdf report.docx
-paperjam info document.pdf
+pj info document.pdf
+pj extract text report.pdf
+pj extract tables data.pdf --strategy lattice --format json
+pj convert auto report.pdf -o report.docx
 ```
 
 ### MCP server

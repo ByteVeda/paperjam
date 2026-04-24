@@ -234,6 +234,33 @@ def fill_form(
     document: RustDocument,
     values: dict[str, str],
     need_appearances: bool = True,
+    generate_appearances: bool = False,
+) -> tuple[RustDocument, dict[str, Any]]: ...
+def modify_form_field(
+    document: RustDocument,
+    field_name: str,
+    *,
+    value: str | None = None,
+    default_value: str | None = None,
+    read_only: bool | None = None,
+    required: bool | None = None,
+    max_length: int | None = None,
+    options: list[dict[str, str]] | None = None,
+) -> tuple[RustDocument, dict[str, Any]]: ...
+def add_form_field(
+    document: RustDocument,
+    name: str,
+    field_type: str,
+    page: int,
+    rect: tuple[float, float, float, float],
+    value: str | None = None,
+    default_value: str | None = None,
+    read_only: bool = False,
+    required: bool = False,
+    max_length: int | None = None,
+    options: list[dict[str, str]] | None = None,
+    font_size: float = 0.0,
+    generate_appearance: bool = True,
 ) -> tuple[RustDocument, dict[str, Any]]: ...
 def render_page(
     document: RustDocument,
