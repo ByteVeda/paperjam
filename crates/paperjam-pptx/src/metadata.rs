@@ -1,9 +1,8 @@
 use crate::error::{PptxError, Result};
-use crate::safe_read::read_entry_string;
+use paperjam_model::zip_safety::{SafeArchive, ZipSafetyError};
 use quick_xml::events::Event;
 use quick_xml::Reader;
-use std::io::Read;
-use zip::ZipArchive;
+use std::io::{Read, Seek};
 
 /// Internal representation of PPTX metadata extracted from `docProps/core.xml`.
 #[derive(Debug, Clone, Default)]
@@ -36,13 +35,14 @@ impl PptxMetadata {
 }
 
 /// Parse metadata from `docProps/core.xml` inside the PPTX ZIP archive.
-pub fn parse_metadata<R: Read + std::io::Seek>(
-    archive: &mut ZipArchive<R>,
-) -> Result<PptxMetadata> {
-    let xml = match read_entry_string(archive, "docProps/core.xml") {
+pub fn parse_metadata<R: Read + Seek>(safe: &mut SafeArchive<'_, R>) -> Result<PptxMetadata> {
+    // A DOCX/PPTX produced without core.xml is legal (the file is just
+    // missing metadata); only the `MissingEntry` flavour of the safety
+    // error counts as a graceful fallback here.
+    let xml = match safe.read_entry_string("docProps/core.xml") {
         Ok(buf) => buf,
-        Err(PptxError::MissingEntry(_)) => return Ok(PptxMetadata::default()),
-        Err(e) => return Err(e),
+        Err(ZipSafetyError::MissingEntry(_)) => return Ok(PptxMetadata::default()),
+        Err(e) => return Err(e.into()),
     };
 
     let mut reader = Reader::from_str(&xml);

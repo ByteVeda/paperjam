@@ -9,7 +9,6 @@ pub mod error;
 pub mod markdown;
 pub mod metadata;
 pub mod parser;
-mod safe_read;
 pub mod structure;
 pub mod table;
 pub mod text;

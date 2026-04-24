@@ -5,16 +5,17 @@ use quick_xml::Reader;
 
 use crate::document::{ChapterData, EpubDocument, OpfMetadata, TocEntry};
 use crate::error::{EpubError, Result};
-use crate::safe_read::{read_entry_bytes, read_entry_string};
 use crate::toc;
+use paperjam_model::zip_safety::{ArchiveLimits, SafeArchive};
 
 /// Parse an EPUB document from raw bytes.
 pub fn parse_epub(bytes: &[u8]) -> Result<EpubDocument> {
     let cursor = std::io::Cursor::new(bytes);
     let mut archive = zip::ZipArchive::new(cursor)?;
+    let mut safe = SafeArchive::new(&mut archive, ArchiveLimits::DEFAULT);
 
     // 1. Find the OPF path from container.xml.
-    let container_xml = read_entry_string(&mut archive, "META-INF/container.xml")?;
+    let container_xml = safe.read_entry_string("META-INF/container.xml")?;
     let opf_path = parse_container_xml(&container_xml)?;
     let opf_base_dir = opf_path
         .rsplit_once('/')
@@ -22,18 +23,18 @@ pub fn parse_epub(bytes: &[u8]) -> Result<EpubDocument> {
         .unwrap_or_default();
 
     // 2. Parse OPF: metadata, manifest, spine.
-    let opf_xml = read_entry_string(&mut archive, &opf_path)?;
+    let opf_xml = safe.read_entry_string(&opf_path)?;
     let (opf_metadata, manifest, spine) = parse_opf(&opf_xml)?;
 
     // 3. Parse TOC.
-    let toc_entries = parse_toc_from_manifest(&mut archive, &manifest, &opf_base_dir);
+    let toc_entries = parse_toc_from_manifest(&mut safe, &manifest, &opf_base_dir);
 
     // 4. Read chapters in spine order.
     let mut chapters = Vec::new();
     for (idx, spine_idref) in spine.iter().enumerate() {
         if let Some(href) = manifest.get(spine_idref) {
             let full_path = resolve_path(&opf_base_dir, href);
-            match read_entry_bytes(&mut archive, &full_path) {
+            match safe.read_entry_bytes(&full_path) {
                 Ok(html_bytes) => {
                     let html_doc = paperjam_html::HtmlDocument::from_bytes(&html_bytes)?;
                     let title = find_toc_title(&toc_entries, href);
@@ -52,7 +53,7 @@ pub fn parse_epub(bytes: &[u8]) -> Result<EpubDocument> {
     }
 
     // 5. Collect archive images.
-    let archive_images = collect_images(&mut archive, &manifest, &opf_base_dir);
+    let archive_images = collect_images(&mut safe, &manifest, &opf_base_dir);
 
     Ok(EpubDocument {
         chapters,
@@ -252,7 +253,7 @@ fn find_toc_title(entries: &[TocEntry], href: &str) -> Option<String> {
 
 /// Parse TOC from the manifest, trying NCX first then nav.xhtml.
 fn parse_toc_from_manifest(
-    archive: &mut zip::ZipArchive<std::io::Cursor<&[u8]>>,
+    safe: &mut SafeArchive<'_, std::io::Cursor<&[u8]>>,
     manifest: &HashMap<String, String>,
     opf_base_dir: &str,
 ) -> Vec<TocEntry> {
@@ -260,7 +261,7 @@ fn parse_toc_from_manifest(
     for (id, href) in manifest {
         if id == "ncx" || href.ends_with(".ncx") {
             let full_path = resolve_path(opf_base_dir, href);
-            if let Ok(xml) = read_entry_string(archive, &full_path) {
+            if let Ok(xml) = safe.read_entry_string(&full_path) {
                 let entries = toc::parse_ncx(&xml);
                 if !entries.is_empty() {
                     return entries;
@@ -273,7 +274,7 @@ fn parse_toc_from_manifest(
     for href in manifest.values() {
         if href.contains("nav") && (href.ends_with(".xhtml") || href.ends_with(".html")) {
             let full_path = resolve_path(opf_base_dir, href);
-            if let Ok(html_bytes) = read_entry_bytes(archive, &full_path) {
+            if let Ok(html_bytes) = safe.read_entry_bytes(&full_path) {
                 let entries = toc::parse_nav_xhtml(&html_bytes);
                 if !entries.is_empty() {
                     return entries;
@@ -287,7 +288,7 @@ fn parse_toc_from_manifest(
 
 /// Collect image files from the archive based on manifest media types.
 fn collect_images(
-    archive: &mut zip::ZipArchive<std::io::Cursor<&[u8]>>,
+    safe: &mut SafeArchive<'_, std::io::Cursor<&[u8]>>,
     manifest: &HashMap<String, String>,
     opf_base_dir: &str,
 ) -> Vec<(String, Vec<u8>)> {
@@ -298,7 +299,7 @@ fn collect_images(
         let lower = href.to_ascii_lowercase();
         if image_extensions.iter().any(|ext| lower.ends_with(ext)) {
             let full_path = resolve_path(opf_base_dir, href);
-            if let Ok(data) = read_entry_bytes(archive, &full_path) {
+            if let Ok(data) = safe.read_entry_bytes(&full_path) {
                 images.push((href.clone(), data));
             }
         }
