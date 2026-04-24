@@ -261,7 +261,7 @@ fn walk_struct_tree(
     let kids = match elem_dict.get(b"K") {
         Ok(Object::Array(arr)) => arr.clone(),
         Ok(Object::Reference(id)) => vec![Object::Reference(*id)],
-        Ok(Object::Dictionary(_)) => vec![elem_dict.get(b"K").unwrap().clone()],
+        Ok(obj @ Object::Dictionary(_)) => vec![obj.clone()],
         _ => return,
     };
 
