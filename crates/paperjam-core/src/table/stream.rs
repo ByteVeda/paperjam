@@ -104,7 +104,7 @@ fn detect_column_boundaries(lines: &[AnalyzedLine], expected_cols: usize) -> Vec
         return Vec::new();
     }
 
-    left_edges.sort_by(|a, b| a.partial_cmp(b).unwrap());
+    left_edges.sort_by(|a, b| a.total_cmp(b));
 
     // Simple gap-based clustering
     let mut boundaries = Vec::new();

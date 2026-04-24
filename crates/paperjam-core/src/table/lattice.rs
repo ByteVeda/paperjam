@@ -165,12 +165,9 @@ fn find_intersections(
         }
     }
 
-    // Deduplicate
-    points.sort_by(|a, b| {
-        a.0.partial_cmp(&b.0)
-            .unwrap()
-            .then(a.1.partial_cmp(&b.1).unwrap())
-    });
+    // Deduplicate. `total_cmp` is NaN-safe; malformed PDFs can produce NaN
+    // coordinates that would otherwise panic `partial_cmp`.
+    points.sort_by(|a, b| a.0.total_cmp(&b.0).then(a.1.total_cmp(&b.1)));
     points.dedup_by(|a, b| (a.0 - b.0).abs() < snap && (a.1 - b.1).abs() < snap);
 
     points
