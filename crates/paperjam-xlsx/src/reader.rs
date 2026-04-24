@@ -9,7 +9,9 @@ pub fn read_xlsx(bytes: &[u8]) -> Result<XlsxDocument, XlsxError> {
     let mut workbook: Xlsx<_> = Xlsx::new(cursor)?;
 
     let sheet_names = workbook.sheet_names().to_vec();
-    let mut sheets = Vec::with_capacity(sheet_names.len());
+    // Cap the initial allocation — sheet_names comes from the workbook
+    // header and is attacker-controlled.
+    let mut sheets = Vec::with_capacity(sheet_names.len().min(1024));
 
     for name in &sheet_names {
         if let Ok(range) = workbook.worksheet_range(name) {

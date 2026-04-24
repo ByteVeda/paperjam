@@ -20,6 +20,10 @@ pub enum PptxError {
     /// The PPTX structure is invalid or unsupported.
     #[error("invalid PPTX structure: {0}")]
     InvalidStructure(String),
+
+    /// A ZIP entry exceeded the per-entry decompressed byte limit.
+    #[error("PPTX entry `{name}` is too large ({size} bytes, limit {limit})")]
+    EntryTooLarge { name: String, size: u64, limit: u64 },
 }
 
 impl From<quick_xml::Error> for PptxError {

@@ -17,6 +17,9 @@ pub enum EpubError {
 
     #[error("invalid EPUB structure: {0}")]
     InvalidStructure(String),
+
+    #[error("EPUB entry `{name}` is too large ({size} bytes, limit {limit})")]
+    EntryTooLarge { name: String, size: u64, limit: u64 },
 }
 
 impl From<quick_xml::Error> for EpubError {

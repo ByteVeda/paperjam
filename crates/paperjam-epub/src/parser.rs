@@ -1,11 +1,11 @@
 use std::collections::HashMap;
-use std::io::Read;
 
 use quick_xml::events::Event;
 use quick_xml::Reader;
 
 use crate::document::{ChapterData, EpubDocument, OpfMetadata, TocEntry};
 use crate::error::{EpubError, Result};
+use crate::safe_read::{read_entry_bytes, read_entry_string};
 use crate::toc;
 
 /// Parse an EPUB document from raw bytes.
@@ -14,7 +14,7 @@ pub fn parse_epub(bytes: &[u8]) -> Result<EpubDocument> {
     let mut archive = zip::ZipArchive::new(cursor)?;
 
     // 1. Find the OPF path from container.xml.
-    let container_xml = read_zip_entry_string(&mut archive, "META-INF/container.xml")?;
+    let container_xml = read_entry_string(&mut archive, "META-INF/container.xml")?;
     let opf_path = parse_container_xml(&container_xml)?;
     let opf_base_dir = opf_path
         .rsplit_once('/')
@@ -22,7 +22,7 @@ pub fn parse_epub(bytes: &[u8]) -> Result<EpubDocument> {
         .unwrap_or_default();
 
     // 2. Parse OPF: metadata, manifest, spine.
-    let opf_xml = read_zip_entry_string(&mut archive, &opf_path)?;
+    let opf_xml = read_entry_string(&mut archive, &opf_path)?;
     let (opf_metadata, manifest, spine) = parse_opf(&opf_xml)?;
 
     // 3. Parse TOC.
@@ -33,7 +33,7 @@ pub fn parse_epub(bytes: &[u8]) -> Result<EpubDocument> {
     for (idx, spine_idref) in spine.iter().enumerate() {
         if let Some(href) = manifest.get(spine_idref) {
             let full_path = resolve_path(&opf_base_dir, href);
-            match read_zip_entry_bytes(&mut archive, &full_path) {
+            match read_entry_bytes(&mut archive, &full_path) {
                 Ok(html_bytes) => {
                     let html_doc = paperjam_html::HtmlDocument::from_bytes(&html_bytes)?;
                     let title = find_toc_title(&toc_entries, href);
@@ -66,30 +66,6 @@ pub fn parse_epub(bytes: &[u8]) -> Result<EpubDocument> {
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
-
-fn read_zip_entry_string(
-    archive: &mut zip::ZipArchive<std::io::Cursor<&[u8]>>,
-    name: &str,
-) -> Result<String> {
-    let mut file = archive
-        .by_name(name)
-        .map_err(|_| EpubError::MissingEntry(name.to_string()))?;
-    let mut buf = String::new();
-    file.read_to_string(&mut buf)?;
-    Ok(buf)
-}
-
-fn read_zip_entry_bytes(
-    archive: &mut zip::ZipArchive<std::io::Cursor<&[u8]>>,
-    name: &str,
-) -> Result<Vec<u8>> {
-    let mut file = archive
-        .by_name(name)
-        .map_err(|_| EpubError::MissingEntry(name.to_string()))?;
-    let mut buf = Vec::new();
-    file.read_to_end(&mut buf)?;
-    Ok(buf)
-}
 
 fn resolve_path(base_dir: &str, href: &str) -> String {
     if base_dir.is_empty() {
@@ -284,7 +260,7 @@ fn parse_toc_from_manifest(
     for (id, href) in manifest {
         if id == "ncx" || href.ends_with(".ncx") {
             let full_path = resolve_path(opf_base_dir, href);
-            if let Ok(xml) = read_zip_entry_string(archive, &full_path) {
+            if let Ok(xml) = read_entry_string(archive, &full_path) {
                 let entries = toc::parse_ncx(&xml);
                 if !entries.is_empty() {
                     return entries;
@@ -297,7 +273,7 @@ fn parse_toc_from_manifest(
     for href in manifest.values() {
         if href.contains("nav") && (href.ends_with(".xhtml") || href.ends_with(".html")) {
             let full_path = resolve_path(opf_base_dir, href);
-            if let Ok(html_bytes) = read_zip_entry_bytes(archive, &full_path) {
+            if let Ok(html_bytes) = read_entry_bytes(archive, &full_path) {
                 let entries = toc::parse_nav_xhtml(&html_bytes);
                 if !entries.is_empty() {
                     return entries;
@@ -322,7 +298,7 @@ fn collect_images(
         let lower = href.to_ascii_lowercase();
         if image_extensions.iter().any(|ext| lower.ends_with(ext)) {
             let full_path = resolve_path(opf_base_dir, href);
-            if let Ok(data) = read_zip_entry_bytes(archive, &full_path) {
+            if let Ok(data) = read_entry_bytes(archive, &full_path) {
                 images.push((href.clone(), data));
             }
         }

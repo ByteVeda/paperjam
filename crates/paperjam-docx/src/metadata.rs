@@ -34,13 +34,29 @@ impl DocxDocument {
     }
 }
 
-/// Read `docProps/core.xml` from the DOCX ZIP archive.
+/// Per-entry decompressed byte limit when reading the DOCX archive.
+/// `docProps/core.xml` is a tiny metadata file; anything claiming more than
+/// this is almost certainly malicious.
+const MAX_ENTRY_BYTES: u64 = 16 * 1024 * 1024;
+
+/// Read `docProps/core.xml` from the DOCX ZIP archive with a size cap.
 fn read_core_xml_from_zip(bytes: &[u8]) -> Option<String> {
     let cursor = Cursor::new(bytes);
     let mut archive = zip::ZipArchive::new(cursor).ok()?;
     let mut file = archive.by_name("docProps/core.xml").ok()?;
+
+    if file.size() > MAX_ENTRY_BYTES {
+        return None;
+    }
+
     let mut contents = String::new();
-    file.read_to_string(&mut contents).ok()?;
+    let read = (&mut file)
+        .take(MAX_ENTRY_BYTES + 1)
+        .read_to_string(&mut contents)
+        .ok()?;
+    if read as u64 > MAX_ENTRY_BYTES {
+        return None;
+    }
     Some(contents)
 }
 

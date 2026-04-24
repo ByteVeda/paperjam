@@ -1,6 +1,7 @@
 use crate::document::{PptxDocument, SlideData, TextBlock};
 use crate::error::{PptxError, Result};
 use crate::metadata;
+use crate::safe_read::read_entry_string;
 use paperjam_model::table::{Cell, Row, Table, TableStrategy};
 use quick_xml::events::Event;
 use quick_xml::Reader;
@@ -15,11 +16,13 @@ pub fn parse_pptx(bytes: &[u8]) -> Result<PptxDocument> {
     let meta = metadata::parse_metadata(&mut archive)?;
     let slide_names = find_slide_files(&archive);
 
-    let mut slides = Vec::with_capacity(slide_names.len());
+    // Cap the initial allocation — slide_names comes from the archive
+    // listing and is attacker-controlled.
+    let mut slides = Vec::with_capacity(slide_names.len().min(4096));
     for (idx, name) in slide_names.iter().enumerate() {
-        let slide_xml = read_zip_entry(&mut archive, name)?;
+        let slide_xml = read_entry_string(&mut archive, name)?;
         let notes_path = format!("ppt/notesSlides/notesSlide{}.xml", idx + 1);
-        let notes_xml = read_zip_entry(&mut archive, &notes_path).ok();
+        let notes_xml = read_entry_string(&mut archive, &notes_path).ok();
         let slide = parse_slide(&slide_xml, idx + 1, notes_xml.as_deref())?;
         slides.push(slide);
     }
@@ -57,19 +60,6 @@ fn extract_slide_number(name: &str) -> usize {
         .strip_suffix(".xml")
         .unwrap_or("");
     stem.parse::<usize>().unwrap_or(usize::MAX)
-}
-
-/// Read a ZIP entry by path and return its contents as a UTF-8 string.
-fn read_zip_entry<R: Read + std::io::Seek>(
-    archive: &mut ZipArchive<R>,
-    path: &str,
-) -> Result<String> {
-    let mut entry = archive
-        .by_name(path)
-        .map_err(|_| PptxError::MissingEntry(path.to_string()))?;
-    let mut buf = String::new();
-    entry.read_to_string(&mut buf)?;
-    Ok(buf)
 }
 
 // ---------------------------------------------------------------------------
