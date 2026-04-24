@@ -34,3 +34,11 @@ pptx = ["dep:paperjam-pptx", "paperjam-convert/pptx"]
 html = ["dep:paperjam-html", "paperjam-convert/html"]
 epub = ["dep:paperjam-epub", "paperjam-convert/epub"]
 all-formats = ["pdf", "docx", "xlsx", "pptx", "html", "epub"]
+
+# wasm-pack reads this block to decide how to invoke wasm-opt on the
+# release bundle. rustc 1.82+ emits bulk-memory and sign-extension ops
+# by default, and wasm-pack's default wasm-opt invocation ("-O") leaves
+# those features disabled — we enable them here so the optimiser can
+# validate the input. Everything else mirrors wasm-pack's -O level 2.
+[package.metadata.wasm-pack.profile.release]
+wasm-opt = ["-O", "--enable-bulk-memory", "--enable-sign-ext"]
