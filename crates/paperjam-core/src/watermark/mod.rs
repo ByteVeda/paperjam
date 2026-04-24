@@ -52,8 +52,10 @@ fn apply_watermark_to_page(
     height: f64,
     options: &WatermarkOptions,
 ) -> Result<()> {
-    let font_resource_name = b"WMFont1";
-    let gs_resource_name = b"WMgs1";
+    const FONT_RESOURCE_NAME: &str = "WMFont1";
+    const GS_RESOURCE_NAME: &str = "WMgs1";
+    let font_resource_name = FONT_RESOURCE_NAME.as_bytes();
+    let gs_resource_name = GS_RESOURCE_NAME.as_bytes();
 
     // 1. Create ExtGState for opacity
     let gs_dict = dictionary! {
@@ -180,17 +182,11 @@ fn apply_watermark_to_page(
     // Add font
     match resources_dict.get_mut(b"Font") {
         Ok(Object::Dictionary(font_resources)) => {
-            font_resources.set(
-                std::str::from_utf8(font_resource_name).unwrap(),
-                Object::Reference(font_id),
-            );
+            font_resources.set(FONT_RESOURCE_NAME, Object::Reference(font_id));
         }
         _ => {
             let mut font_resources = lopdf::Dictionary::new();
-            font_resources.set(
-                std::str::from_utf8(font_resource_name).unwrap(),
-                Object::Reference(font_id),
-            );
+            font_resources.set(FONT_RESOURCE_NAME, Object::Reference(font_id));
             resources_dict.set("Font", Object::Dictionary(font_resources));
         }
     }
@@ -198,17 +194,11 @@ fn apply_watermark_to_page(
     // Add ExtGState
     match resources_dict.get_mut(b"ExtGState") {
         Ok(Object::Dictionary(gs_resources)) => {
-            gs_resources.set(
-                std::str::from_utf8(gs_resource_name).unwrap(),
-                Object::Reference(gs_id),
-            );
+            gs_resources.set(GS_RESOURCE_NAME, Object::Reference(gs_id));
         }
         _ => {
             let mut gs_resources = lopdf::Dictionary::new();
-            gs_resources.set(
-                std::str::from_utf8(gs_resource_name).unwrap(),
-                Object::Reference(gs_id),
-            );
+            gs_resources.set(GS_RESOURCE_NAME, Object::Reference(gs_id));
             resources_dict.set("ExtGState", Object::Dictionary(gs_resources));
         }
     }
@@ -280,8 +270,12 @@ fn ensure_page_resources(doc: &mut lopdf::Document, page_id: ObjectId) -> Result
             let res_id = *res_id;
             if let Ok(res_obj) = doc.get_object(res_id) {
                 let cloned = res_obj.clone();
-                let page_obj = doc.get_object_mut(page_id).unwrap();
-                let page_dict = page_obj.as_dict_mut().unwrap();
+                let page_obj = doc
+                    .get_object_mut(page_id)
+                    .map_err(|e| PdfError::Watermark(format!("Cannot get page: {}", e)))?;
+                let page_dict = page_obj
+                    .as_dict_mut()
+                    .map_err(|e| PdfError::Watermark(format!("Page not a dict: {}", e)))?;
                 page_dict.set("Resources", cloned);
             }
         }
@@ -293,7 +287,9 @@ fn ensure_page_resources(doc: &mut lopdf::Document, page_id: ObjectId) -> Result
         let page_obj = doc
             .get_object(page_id)
             .map_err(|e| PdfError::Watermark(format!("Cannot get page: {}", e)))?;
-        let page_dict = page_obj.as_dict().unwrap();
+        let page_dict = page_obj
+            .as_dict()
+            .map_err(|e| PdfError::Watermark(format!("Page not a dict: {}", e)))?;
 
         if let Ok(parent_ref) = page_dict.get(b"Parent") {
             if let Ok(parent_id) = parent_ref.as_reference() {

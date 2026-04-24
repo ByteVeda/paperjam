@@ -339,8 +339,12 @@ fn ensure_page_resources(doc: &mut lopdf::Document, page_id: ObjectId) -> Result
             let res_id = *res_id;
             if let Ok(res_obj) = doc.get_object(res_id) {
                 let cloned = res_obj.clone();
-                let page_obj = doc.get_object_mut(page_id).unwrap();
-                let page_dict = page_obj.as_dict_mut().unwrap();
+                let page_obj = doc
+                    .get_object_mut(page_id)
+                    .map_err(|e| PdfError::Annotation(format!("Cannot get page: {}", e)))?;
+                let page_dict = page_obj
+                    .as_dict_mut()
+                    .map_err(|e| PdfError::Annotation(format!("Page not a dict: {}", e)))?;
                 page_dict.set("Resources", cloned);
             }
         }
@@ -352,7 +356,9 @@ fn ensure_page_resources(doc: &mut lopdf::Document, page_id: ObjectId) -> Result
         let page_obj = doc
             .get_object(page_id)
             .map_err(|e| PdfError::Annotation(format!("Cannot get page: {}", e)))?;
-        let page_dict = page_obj.as_dict().unwrap();
+        let page_dict = page_obj
+            .as_dict()
+            .map_err(|e| PdfError::Annotation(format!("Page not a dict: {}", e)))?;
 
         if let Ok(parent_ref) = page_dict.get(b"Parent") {
             if let Ok(parent_id) = parent_ref.as_reference() {

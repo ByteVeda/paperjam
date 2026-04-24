@@ -170,9 +170,9 @@ fn build_outline_children(
 
         // Recursively build children
         let child_ids = build_outline_children(doc, &spec.children, item_id, page_map)?;
-        if !child_ids.is_empty() {
-            item_dict.set("First", Object::Reference(child_ids[0]));
-            item_dict.set("Last", Object::Reference(*child_ids.last().unwrap()));
+        if let (Some(first), Some(last)) = (child_ids.first(), child_ids.last()) {
+            item_dict.set("First", Object::Reference(*first));
+            item_dict.set("Last", Object::Reference(*last));
             let child_count = count_all_items(&spec.children);
             item_dict.set("Count", Object::Integer(child_count as i64));
         }
