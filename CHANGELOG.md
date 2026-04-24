@@ -7,6 +7,64 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Security
+
+- Bound ZIP entry reads in EPUB, PPTX, and DOCX parsers. A crafted archive
+  declaring a tiny compressed size could previously expand to multi-GB on
+  decompression; entries are now rejected when the declared or observed
+  decompressed size exceeds a per-entry cap.
+- Cap `Vec::with_capacity` preallocations in XLSX sheet parsing and PPTX
+  slide parsing at reasonable ceilings so attacker-controlled counts can
+  no longer trigger large allocations up front.
+- `paperjam-mcp`: resolved paths are now sandboxed to the configured
+  working directory by default. Absolute paths and `..` traversal that
+  escape the working dir are rejected with a structured error. Operators
+  can opt out with `--allow-absolute-paths` (or
+  `ServerConfig::allow_absolute_paths`).
+
+### Fixed
+
+- Replace panic-prone `f64::partial_cmp(..).unwrap()` in table detection
+  (`table/{grid,lattice,stream}.rs`) with `total_cmp`, so malformed PDFs
+  producing NaN coordinates no longer crash the parser.
+- Replace `get_object_mut().unwrap()` / `as_dict_mut().unwrap()` /
+  `from_utf8().unwrap()` across the stamp, watermark, bookmarks, and
+  PDF/UA validation modules with structured `PdfError` returns. Malformed
+  PDFs now surface typed errors instead of panicking the process.
+- Stub drift: add `modify_form_field`, `add_form_field`, and the
+  `fill_form.generate_appearances` parameter to `_paperjam.pyi` so mypy
+  sees the full PyO3 surface.
+
+### Added
+
+- Crate-level `//!` rustdoc summaries on every workspace crate.
+- `rust-toolchain.toml` pins the contributor toolchain to stable with
+  `rustfmt`, `clippy`, and the `wasm32-unknown-unknown` target.
+- `justfile` with shortcuts for common build / test / lint tasks.
+- `[profile.release]` with thin LTO, `codegen-units = 1`, and symbol
+  strip. Adds a `release-with-debug` profile for profiling.
+
+### Changed
+
+- `paperjam-async` no longer force-enables `signatures` and `validation`
+  on `paperjam-core`. Consumers that need them (e.g. `paperjam-py`)
+  continue to enable them explicitly; lightweight async users no longer
+  drag in the full signing / validation stack.
+- Docs site CI now builds on pull requests (without deploying) so docs
+  regressions are caught pre-merge. Binaryen's `wasm-opt` is installed
+  so release WASM bundles are size-optimized.
+
+### Docs
+
+- README: CLI examples now use the correct `pj` binary name and accurate
+  flags; removed the nonexistent `extract tables --format csv` flag.
+- `docs-site/docs/getting-started/installation.md`: replace leftover
+  Sphinx build instructions with the Docusaurus workflow, fix the
+  clone org, expand the feature-flag table.
+- `pyproject.toml`: fill in multi-format description, `readme`,
+  `project.urls`, and extra classifiers/keywords so the PyPI page is
+  populated. Drop the stale Sphinx `[docs]` extra.
+
 ## [0.2.0] — 2026-04-04
 
 ### Added
