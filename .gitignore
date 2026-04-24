@@ -33,17 +33,11 @@ CLAUDE.md
 .DS_Store
 Thumbs.db
 
-# Bundled native libraries (binary artifacts)
-python/paperjam/libpdfium.so
-
 # Test fixtures (generated)
 tests/fixtures/large_*.pdf
 
 # Per-session test artifacts (accuracy reports, etc.)
 tests/output/
-
-# Sphinx
-_build
 
 # Lock file (library)
 uv.lock
