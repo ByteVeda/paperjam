@@ -6,7 +6,12 @@ license.workspace = true
 description = "Async wrappers for paperjam operations via tokio::spawn_blocking"
 
 [dependencies]
-paperjam-core = { path = "../paperjam-core", features = ["render", "signatures", "validation"] }
+# paperjam-async currently only uses `paperjam_core::render`, so we enable
+# that feature here but leave `signatures`/`validation` to be opted in by
+# the downstream crate that actually needs them (paperjam-py does this
+# explicitly). Keeps the async surface lightweight for callers that only
+# want basic document operations.
+paperjam-core = { path = "../paperjam-core", features = ["render"] }
 paperjam-model = { path = "../paperjam-model" }
 paperjam-convert = { path = "../paperjam-convert", optional = true }
 tokio = { workspace = true }

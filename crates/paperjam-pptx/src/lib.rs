@@ -1,3 +1,9 @@
+//! PPTX (Office Open XML presentation) support for the paperjam ecosystem.
+//!
+//! Parses `.pptx` archives slide-by-slide, extracts text blocks and
+//! tables from slide XML, and implements `DocumentTrait` so presentations
+//! participate in the shared model (slide → page).
+
 pub mod document;
 pub mod error;
 pub mod markdown;

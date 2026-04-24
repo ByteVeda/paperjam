@@ -1,3 +1,10 @@
+//! HTML document support for the paperjam ecosystem.
+//!
+//! Parses HTML bytes via `scraper`, extracts text and tables, and
+//! implements `DocumentTrait` so HTML documents share the same API
+//! surface as the office formats. Also used by `paperjam-epub` for
+//! chapter content (EPUB spine entries are XHTML).
+
 mod document;
 mod error;
 pub mod image;

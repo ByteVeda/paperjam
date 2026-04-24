@@ -1,3 +1,10 @@
+//! XLSX (Office Open XML spreadsheet) support for the paperjam ecosystem.
+//!
+//! Reads `.xlsx` workbooks via `calamine` and writes them via
+//! `rust_xlsxwriter`. Each sheet's rows are exposed as stringified cells,
+//! and the crate implements `DocumentTrait` so workbooks participate in
+//! the shared model (sheet → page, cell → text).
+
 pub mod document;
 pub mod error;
 pub mod markdown;

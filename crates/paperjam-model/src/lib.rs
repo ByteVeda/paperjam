@@ -1,3 +1,13 @@
+//! Format-agnostic types and traits shared across the paperjam workspace.
+//!
+//! Holds the stable data model — bookmarks, metadata, tables, text layout,
+//! annotations, structure blocks — plus the `DocumentTrait` that every
+//! format crate (`paperjam-docx`, `paperjam-xlsx`, ...) implements.
+//!
+//! This crate intentionally has no format-specific dependencies, so
+//! downstream crates can depend on it without pulling in parsers they
+//! do not use.
+
 pub mod document;
 pub mod format;
 

@@ -1,3 +1,11 @@
+//! WebAssembly bindings for paperjam, exposed via `wasm-bindgen`.
+//!
+//! Builds with `wasm-pack build --target web`. The generated JS + WASM
+//! pair powers the interactive playground on the docs site.
+//! Functionality is a subset of the native engine — rendering and
+//! signatures are omitted on wasm, and compression is pure-Rust to avoid
+//! `libz-sys` on `wasm32-unknown-unknown`.
+
 use std::sync::Arc;
 
 use paperjam_core::document::Document;

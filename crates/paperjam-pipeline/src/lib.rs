@@ -1,3 +1,13 @@
+//! Declarative multi-step document workflows defined in YAML or JSON.
+//!
+//! A pipeline is a sequence of steps — open, extract, convert, redact,
+//! merge, save — applied to one or more input files. The engine runs
+//! steps serially or in parallel and returns a per-file summary
+//! (success / failure / skipped).
+//!
+//! Used by the `pj pipeline` CLI subcommand and the `run_pipeline` MCP
+//! tool.
+
 pub mod builder;
 pub mod context;
 pub mod definition;

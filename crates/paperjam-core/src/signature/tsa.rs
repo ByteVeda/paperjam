@@ -54,7 +54,7 @@ pub fn build_timestamp_request(signature_value: &[u8]) -> Result<Vec<u8>> {
 
 /// Parse an RFC 3161 timestamp response and extract the TimeStampToken.
 ///
-/// The response is: SEQUENCE { status PKIStatusInfo, timeStampToken [OPTIONAL] }
+/// The response is: `SEQUENCE { status PKIStatusInfo, timeStampToken [OPTIONAL] }`
 /// We check the status integer and return the token bytes.
 pub fn parse_timestamp_response(resp_bytes: &[u8]) -> Result<Vec<u8>> {
     // Minimal DER parsing: skip the outer SEQUENCE, read PKIStatusInfo, extract token

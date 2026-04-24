@@ -6,7 +6,13 @@ use std::sync::Arc;
 use crate::errors::to_py_err;
 use crate::page::PyPage;
 
-/// Internal Rust document, exposed to Python as _paperjam.RustDocument.
+/// Native PDF document handle, exposed to Python as `_paperjam.RustDocument`.
+///
+/// Users normally access this via the higher-level `paperjam.Document`
+/// wrapper in `py_src/paperjam/_document.py`, which adds ergonomic
+/// defaults and composed operations on top of the raw bindings.
+/// Holds an `Arc<Document>` so the same underlying PDF can be shared
+/// across threads and Python tasks without copying.
 #[pyclass(name = "RustDocument")]
 pub struct PyDocument {
     pub(crate) inner: Arc<Document>,

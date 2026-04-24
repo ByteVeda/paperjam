@@ -34,3 +34,19 @@ pptx = ["dep:paperjam-pptx", "paperjam-convert/pptx"]
 html = ["dep:paperjam-html", "paperjam-convert/html"]
 epub = ["dep:paperjam-epub", "paperjam-convert/epub"]
 all-formats = ["pdf", "docx", "xlsx", "pptx", "html", "epub"]
+
+# wasm-pack reads this block to decide how to invoke wasm-opt on the
+# release bundle. Modern rustc (1.82+) emits several wasm 2.0 features
+# in its default output — we enable the same set here so wasm-opt can
+# validate and optimise the module. The list mirrors the feature set
+# rustc enables by default on wasm32-unknown-unknown.
+[package.metadata.wasm-pack.profile.release]
+wasm-opt = [
+    "-O",
+    "--enable-bulk-memory",
+    "--enable-sign-ext",
+    "--enable-nontrapping-float-to-int",
+    "--enable-mutable-globals",
+    "--enable-reference-types",
+    "--enable-multivalue",
+]
