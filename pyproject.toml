@@ -44,7 +44,7 @@ Issues = "https://github.com/ByteVeda/paperjam/issues"
 Changelog = "https://github.com/ByteVeda/paperjam/blob/main/CHANGELOG.md"
 
 [project.optional-dependencies]
-pandas = ["pandas>=2.0"]
+pandas = ["pandas>=3.0.2"]
 dev = [
     "pre-commit>=4.0",
     "pytest>=8.0",
@@ -55,7 +55,7 @@ dev = [
     "mypy>=1.8",
     "ruff>=0.3",
     "reportlab>=4.0,<4.2",
-    "pandas>=2.0",
+    "pandas>=3.0.2",
 ]
 
 [tool.maturin]
