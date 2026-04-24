@@ -1,3 +1,11 @@
+//! PyO3 bindings that expose paperjam's Rust engine to Python as the
+//! `_paperjam` native extension module.
+//!
+//! The Python package (`py_src/paperjam/`) wraps these raw bindings with
+//! a more idiomatic API. Every PyO3-exposed symbol registered here must
+//! also appear in `py_src/paperjam/_paperjam.pyi` so static type checkers
+//! can see the extension's surface.
+
 use pyo3::prelude::*;
 
 #[cfg(feature = "formats")]

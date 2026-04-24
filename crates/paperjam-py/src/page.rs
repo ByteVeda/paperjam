@@ -5,6 +5,12 @@ use std::sync::Arc;
 
 use crate::errors::to_py_err;
 
+/// Native PDF page handle, exposed to Python as `_paperjam.RustPage`.
+///
+/// Obtained via `RustDocument.page(n)`. Users normally access this
+/// through the higher-level `paperjam.Page` wrapper in
+/// `py_src/paperjam/_page.py`, which adds ergonomic defaults and
+/// composed operations on top of the raw bindings.
 #[pyclass(name = "RustPage")]
 pub struct PyPage {
     pub(crate) inner: Arc<Page>,

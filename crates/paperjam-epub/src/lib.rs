@@ -1,3 +1,12 @@
+//! EPUB document support for the paperjam ecosystem.
+//!
+//! Parses EPUB archives (container.xml → OPF → spine) and exposes each
+//! chapter as an `HtmlDocument`, delegating per-chapter rendering to
+//! `paperjam-html`. Implements `DocumentTrait` so EPUB files participate
+//! in the shared model (chapter → page).
+//!
+//! Archive reads are size-capped internally to mitigate zip-bomb attacks.
+
 mod document;
 mod error;
 mod image;

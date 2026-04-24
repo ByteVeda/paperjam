@@ -1,3 +1,13 @@
+//! Model Context Protocol server for paperjam.
+//!
+//! Exposes document operations (open, extract, convert, manipulate,
+//! render, sign, validate, run pipelines, …) as MCP tools that a local
+//! assistant (Claude Code, Cursor, Claude Desktop) can invoke. All
+//! path resolution goes through a sandbox rooted at the server's
+//! configured working directory; absolute paths escaping the sandbox
+//! are rejected unless the operator opts out with
+//! `--allow-absolute-paths`.
+
 pub mod error;
 pub mod session;
 

@@ -1,7 +1,7 @@
 /// Where a link annotation points to.
 #[derive(Debug, Clone)]
 pub enum LinkDestination {
-    /// External URI (e.g. "https://example.com").
+    /// External URI (e.g. `https://example.com`).
     Uri(String),
     /// Go to a specific page within the document.
     GoTo { page: u32 },

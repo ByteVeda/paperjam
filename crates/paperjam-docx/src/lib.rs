@@ -1,3 +1,11 @@
+//! DOCX (Office Open XML word-processing) support for the paperjam
+//! ecosystem.
+//!
+//! Reads and writes `.docx` files and exposes text, tables, and metadata
+//! through the `DocumentTrait` implementation on `DocxDocument`. Body
+//! parsing is delegated to `docx-rs`; an internal size-capped ZIP reader
+//! handles the metadata parts the upstream API does not expose.
+
 mod document;
 mod error;
 mod image;

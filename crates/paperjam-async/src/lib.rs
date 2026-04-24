@@ -1,3 +1,11 @@
+//! Tokio-native async wrappers around paperjam's blocking operations.
+//!
+//! Each heavy operation (`open`, `save`, `render`, `to_markdown`,
+//! `merge`, `redact_text`, ...) is re-exposed as an `async fn` that runs
+//! the blocking work on `tokio::spawn_blocking`. This is what powers the
+//! `paperjam.aopen` / `paperjam.arender_*` / `paperjam.amerge` helpers on
+//! the Python side.
+
 pub mod document;
 pub mod generic;
 pub mod page;
