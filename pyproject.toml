@@ -4,7 +4,7 @@ build-backend = "maturin"
 
 [project]
 name = "paperjam"
-version = "0.2.0"
+version = "0.2.1"
 description = "Fast multi-format document processing (PDF, DOCX, XLSX, PPTX, HTML, EPUB) powered by Rust"
 readme = "README.md"
 license = { text = "MIT" }
