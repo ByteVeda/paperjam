@@ -133,9 +133,16 @@ class AnyDocument:
         return bytes(self._ensure_open().convert_to(format))
 
     def save(self, path: str | os.PathLike[str]) -> None:
-        """Save the document to a file."""
-        data = self.save_bytes()
-        with builtins_open(str(path), "wb") as f:
+        """Save the document to a file.
+
+        The target format is inferred from the file extension. If it differs
+        from the source format, the document is converted via :meth:`convert_to`;
+        otherwise the original bytes are written unchanged.
+        """
+        path_str = str(path)
+        target_ext = os.path.splitext(path_str)[1].lstrip(".").lower()
+        data = self.convert_to(target_ext) if target_ext and target_ext != self.format else self.save_bytes()
+        with builtins_open(path_str, "wb") as f:
             f.write(data)
 
     def save_bytes(self) -> bytes:
