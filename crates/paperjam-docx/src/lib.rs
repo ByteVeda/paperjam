@@ -74,12 +74,11 @@ impl DocumentTrait for DocxDocument {
     }
 
     fn save_to_bytes(&self) -> Result<Vec<u8>, Self::Error> {
-        let mut buf = std::io::Cursor::new(Vec::new());
-        self.inner
-            .clone()
-            .build()
-            .pack(&mut buf)
-            .map_err(|e| DocxError::Io(std::io::Error::other(e)))?;
-        Ok(buf.into_inner())
+        // Return the original input bytes. This crate exposes no mutation API,
+        // so a rebuild via `inner.build().pack()` would be lossy and — for any
+        // DOCX containing complex fields (TOC, PAGE, PAGEREF, HYPERLINK, …) —
+        // panics in docx-rs 0.4 (`RunChild::InstrTextString` is reader-only;
+        // its writer arm is `unreachable!()`). See bokuweb/docx-rs#750.
+        Ok(self.raw_bytes.clone())
     }
 }

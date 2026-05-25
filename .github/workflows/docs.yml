@@ -49,7 +49,7 @@ jobs:
       # SHA256, and cache it across runs.
       - name: Cache binaryen
         id: cache-binaryen
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         env:
           BINARYEN_VERSION: version_119
         with:
