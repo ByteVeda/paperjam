@@ -115,21 +115,17 @@ fn canonicalize_with_fallback(path: &Path) -> Option<PathBuf> {
         if let Some(name) = cur.file_name() {
             tail.push(name);
         }
-        match cur.parent() {
-            Some(parent) => {
-                if let Ok(canon) = parent.canonicalize() {
-                    let mut out = canon;
-                    for name in tail.iter().rev() {
-                        out.push(name);
-                    }
-                    return Some(out);
-                }
-                cur = parent;
-                if cur.as_os_str().is_empty() {
-                    return None;
-                }
+        let parent = cur.parent()?;
+        if let Ok(canon) = parent.canonicalize() {
+            let mut out = canon;
+            for name in tail.iter().rev() {
+                out.push(name);
             }
-            None => return None,
+            return Some(out);
+        }
+        cur = parent;
+        if cur.as_os_str().is_empty() {
+            return None;
         }
     }
 }
