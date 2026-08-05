@@ -1,0 +1,51 @@
+# Rust
+target/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+dist/
+build/
+*.so
+*.dylib
+*.dll
+.venv/
+venv/
+junk/
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
+
+# Claude Code
+CLAUDE.md
+.claude/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Test fixtures (generated)
+tests/fixtures/large_*.pdf
+
+# Per-session test artifacts (accuracy reports, etc.)
+tests/output/
+
+# Lock file (library)
+uv.lock
+
+# Docusaurus
+docs-site/node_modules/
+docs-site/build/
+docs-site/.docusaurus/
+
+# WASM build artifacts
+crates/paperjam-wasm/pkg/
+docs-site/static/wasm/

@@ -1,0 +1,50 @@
+rust:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'crates/**'
+          - '**/*.rs'
+          - 'Cargo.toml'
+          - 'Cargo.lock'
+
+python:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'py_src/**'
+          - 'mcp-server/**'
+          - '**/*.py'
+          - 'pyproject.toml'
+
+javascript:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'docs-site/**/*.js'
+          - 'docs-site/**/*.jsx'
+          - 'docs-site/**/*.ts'
+          - 'docs-site/**/*.tsx'
+          - 'docs-site/**/*.mjs'
+          - 'docs-site/**/*.cjs'
+
+documentation:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'docs-site/**'
+          - 'docs/**'
+          - '**/*.md'
+          - 'README*'
+
+github_actions:
+  - changed-files:
+      - any-glob-to-any-file:
+          - '.github/workflows/**'
+          - '.github/actions/**'
+
+mcp:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'crates/paperjam-mcp/**'
+          - 'mcp-server/**'
+
+wasm:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'crates/paperjam-wasm/**'

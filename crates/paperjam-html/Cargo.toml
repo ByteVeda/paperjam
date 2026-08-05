@@ -1,0 +1,13 @@
+[package]
+name = "paperjam-html"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+description = "HTML document processing for the paperjam ecosystem"
+
+[dependencies]
+paperjam-model = { path = "../paperjam-model" }
+scraper = "0.22"
+thiserror = { workspace = true }
+base64 = "0.22"

@@ -1,0 +1,155 @@
+%PDF-1.3
+%“Œ‹ž ReportLab Generated PDF document http://www.reportlab.com
+1 0 obj
+<<
+/F1 2 0 R
+>>
+endobj
+2 0 obj
+<<
+/BaseFont /Helvetica /Encoding /WinAnsiEncoding /Name /F1 /Subtype /Type1 /Type /Font
+>>
+endobj
+3 0 obj
+<<
+/Contents 7 0 R /MediaBox [ 0 0 612 792 ] /Parent 6 0 R /Resources <<
+/Font 1 0 R /ProcSet [ /PDF /Text /ImageB /ImageC /ImageI ]
+>> /Rotate 0 /Trans <<
+
+>> 
+  /Type /Page
+>>
+endobj
+4 0 obj
+<<
+/PageMode /UseNone /Pages 6 0 R /Type /Catalog
+>>
+endobj
+5 0 obj
+<<
+/Author (anonymous) /CreationDate (D:20000101000000+00'00') /Creator (paperjam-test-fixtures) /Keywords () /ModDate (D:20000101000000+00'00') /Producer (ReportLab PDF Library - www.reportlab.com) 
+  /Subject (Table extraction accuracy fixture) /Title (bordered_merged) /Trapped /False
+>>
+endobj
+6 0 obj
+<<
+/Count 1 /Kids [ 3 0 R ] /Type /Pages
+>>
+endobj
+7 0 obj
+<<
+/Length 1782
+>>
+stream
+1 0 0 1 0 0 cm  BT /F1 12 Tf 14.4 TL ET
+0 0 0 RG
+.5 w
+n 72 652 80 48 re S
+BT /F1 10 Tf 12 TL ET
+BT 1 0 0 1 101.44 672.6667 Tm (Year) Tj T* ET
+0 0 0 RG
+.5 w
+n 152 676 160 24 re S
+BT /F1 10 Tf 12 TL ET
+BT 1 0 0 1 211.99 684.6667 Tm (Revenue) Tj T* ET
+0 0 0 RG
+.5 w
+n 312 652 80 48 re S
+BT /F1 10 Tf 12 TL ET
+BT 1 0 0 1 338.94 672.6667 Tm (Notes) Tj T* ET
+0 0 0 RG
+.5 w
+n 152 652 80 24 re S
+BT /F1 10 Tf 12 TL ET
+BT 1 0 0 1 185.33 660.6667 Tm (Q1) Tj T* ET
+0 0 0 RG
+.5 w
+n 232 652 80 24 re S
+BT /F1 10 Tf 12 TL ET
+BT 1 0 0 1 265.33 660.6667 Tm (Q2) Tj T* ET
+0 0 0 RG
+.5 w
+n 72 628 80 24 re S
+BT /F1 10 Tf 12 TL ET
+BT 1 0 0 1 100.88 636.6667 Tm (2020) Tj T* ET
+0 0 0 RG
+.5 w
+n 152 628 80 24 re S
+BT /F1 10 Tf 12 TL ET
+BT 1 0 0 1 183.66 636.6667 Tm (100) Tj T* ET
+0 0 0 RG
+.5 w
+n 232 628 80 24 re S
+BT /F1 10 Tf 12 TL ET
+BT 1 0 0 1 263.66 636.6667 Tm (120) Tj T* ET
+0 0 0 RG
+.5 w
+n 312 628 80 24 re S
+BT /F1 10 Tf 12 TL ET
+BT 1 0 0 1 338.66 636.6667 Tm (stable) Tj T* ET
+0 0 0 RG
+.5 w
+n 72 604 80 24 re S
+BT /F1 10 Tf 12 TL ET
+BT 1 0 0 1 100.88 612.6667 Tm (2021) Tj T* ET
+0 0 0 RG
+.5 w
+n 152 604 80 24 re S
+BT /F1 10 Tf 12 TL ET
+BT 1 0 0 1 183.66 612.6667 Tm (110) Tj T* ET
+0 0 0 RG
+.5 w
+n 232 604 80 24 re S
+BT /F1 10 Tf 12 TL ET
+BT 1 0 0 1 263.66 612.6667 Tm (130) Tj T* ET
+0 0 0 RG
+.5 w
+n 312 604 80 24 re S
+BT /F1 10 Tf 12 TL ET
+BT 1 0 0 1 346.44 612.6667 Tm (up) Tj T* ET
+0 0 0 RG
+.5 w
+n 72 580 80 24 re S
+BT /F1 10 Tf 12 TL ET
+BT 1 0 0 1 100.88 588.6667 Tm (2022) Tj T* ET
+0 0 0 RG
+.5 w
+n 152 580 80 24 re S
+BT /F1 10 Tf 12 TL ET
+BT 1 0 0 1 183.66 588.6667 Tm (120) Tj T* ET
+0 0 0 RG
+.5 w
+n 232 580 80 24 re S
+BT /F1 10 Tf 12 TL ET
+BT 1 0 0 1 263.66 588.6667 Tm (140) Tj T* ET
+0 0 0 RG
+.5 w
+n 312 580 80 24 re S
+BT /F1 10 Tf 12 TL ET
+BT 1 0 0 1 346.44 588.6667 Tm (up) Tj T* ET
+ 
+endstream
+endobj
+xref
+0 8
+0000000000 65535 f 
+0000000073 00000 n 
+0000000104 00000 n 
+0000000211 00000 n 
+0000000404 00000 n 
+0000000472 00000 n 
+0000000778 00000 n 
+0000000837 00000 n 
+trailer
+<<
+/ID 
+[<5ed0babfdfff4a57de62eb76cf23f4e0><5ed0babfdfff4a57de62eb76cf23f4e0>]
+% ReportLab generated PDF document -- digest (http://www.reportlab.com)
+
+/Info 5 0 R
+/Root 4 0 R
+/Size 8
+>>
+startxref
+2670
+%%EOF

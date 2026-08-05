@@ -1,0 +1,88 @@
+[build-system]
+requires = ["maturin>=1.13.3,<2.0"]
+build-backend = "maturin"
+
+[project]
+name = "paperjam"
+version = "0.2.1"
+description = "Fast multi-format document processing (PDF, DOCX, XLSX, PPTX, HTML, EPUB) powered by Rust"
+readme = "README.md"
+license = { text = "MIT" }
+requires-python = ">=3.12"
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: Implementation :: CPython",
+    "Programming Language :: Rust",
+    "Topic :: Office/Business",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Text Processing",
+    "Typing :: Typed",
+]
+keywords = [
+    "pdf",
+    "docx",
+    "xlsx",
+    "pptx",
+    "html",
+    "epub",
+    "text-extraction",
+    "table-extraction",
+    "document-conversion",
+    "rust",
+]
+
+[project.urls]
+Homepage = "https://docs.byteveda.org/paperjam/"
+Documentation = "https://docs.byteveda.org/paperjam/"
+Repository = "https://github.com/ByteVeda/paperjam"
+Issues = "https://github.com/ByteVeda/paperjam/issues"
+Changelog = "https://github.com/ByteVeda/paperjam/blob/main/CHANGELOG.md"
+
+[project.optional-dependencies]
+pandas = ["pandas>=3.0.3"]
+dev = [
+    "pre-commit>=4.0",
+    "pytest>=8.0",
+    "pytest-asyncio>=0.24",
+    "pytest-benchmark>=4.0",
+    "pypdf>=6.12.1",
+    "pdfplumber>=0.10",
+    "mypy>=1.8",
+    "ruff>=0.3",
+    "reportlab>=4.0,<4.2",
+    "pandas>=3.0.3",
+]
+
+[tool.maturin]
+python-source = "py_src"
+module-name = "paperjam._paperjam"
+features = ["pyo3/extension-module"]
+manifest-path = "crates/paperjam-py/Cargo.toml"
+include = [
+    { path = "py_src/paperjam/libpdfium.so", format = "wheel" },
+    { path = "LICENSE", format = "sdist" },
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests/python"]
+markers = [
+    "accuracy: table extraction accuracy harness (run with -m accuracy)",
+]
+
+[tool.ruff]
+target-version = "py312"
+line-length = 150
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "UP", "B", "SIM", "TCH", "RUF"]
+
+[tool.mypy]
+python_version = "3.12"
+warn_return_any = true
+warn_unused_configs = true
+ignore_missing_imports = true

@@ -1,0 +1,57 @@
+repos:
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.15.2
+    hooks:
+      - id: ruff-check
+        args: [--fix]
+      - id: ruff-format
+
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.19.0
+    hooks:
+      - id: mypy
+        args: [--ignore-missing-imports]
+        additional_dependencies: []
+        pass_filenames: false
+        entry: mypy py_src/paperjam/ tests/ examples/
+
+  - repo: local
+    hooks:
+      - id: cargo-fmt
+        name: cargo fmt
+        entry: cargo fmt --all --check
+        language: system
+        types: [rust]
+        pass_filenames: false
+      - id: clippy
+        name: clippy
+        entry: cargo clippy --workspace --all-targets -- -D warnings
+        language: system
+        types: [rust]
+        pass_filenames: false
+      - id: wasm-check
+        name: wasm check
+        entry: cargo check -p paperjam-wasm --target wasm32-unknown-unknown
+        language: system
+        files: ^crates/paperjam-(wasm|core)/
+        pass_filenames: false
+      - id: biome
+        name: biome
+        entry: bash -c 'cd docs-site && npx biome ci src/'
+        language: system
+        files: ^docs-site/src/
+        pass_filenames: false
+      - id: docs-typecheck
+        name: docs typecheck
+        entry: bash -c 'cd docs-site && npx tsc --noEmit'
+        language: system
+        files: ^docs-site/src/
+        pass_filenames: false
+
+  - repo: local
+    hooks:
+      - id: strip-ai-attribution
+        name: strip AI attribution from commit messages
+        entry: .claude/hooks/strip-ai-attribution.sh
+        language: script
+        stages: [commit-msg]

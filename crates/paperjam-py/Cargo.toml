@@ -1,0 +1,35 @@
+[package]
+name = "paperjam-py"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "Python bindings for paperjam via PyO3"
+
+[lib]
+name = "_paperjam"
+crate-type = ["cdylib"]
+
+[dependencies]
+paperjam-core = { path = "../paperjam-core", features = ["render", "signatures", "ltv", "validation"] }
+paperjam-model = { path = "../paperjam-model" }
+pyo3 = { version = "0.23", features = ["extension-module", "abi3-py312"] }
+
+# Format crates (feature-gated)
+paperjam-convert = { path = "../paperjam-convert", optional = true }
+paperjam-docx = { path = "../paperjam-docx", optional = true }
+paperjam-xlsx = { path = "../paperjam-xlsx", optional = true }
+paperjam-pptx = { path = "../paperjam-pptx", optional = true }
+paperjam-html = { path = "../paperjam-html", optional = true }
+paperjam-epub = { path = "../paperjam-epub", optional = true }
+paperjam-pipeline = { path = "../paperjam-pipeline", optional = true }
+
+# Async support (feature-gated, default on)
+paperjam-async = { path = "../paperjam-async", optional = true }
+pyo3-async-runtimes = { version = "0.23", features = ["tokio-runtime"], optional = true }
+tokio = { workspace = true, optional = true }
+
+[features]
+default = ["async", "formats", "pipeline"]
+async = ["dep:paperjam-async", "dep:pyo3-async-runtimes", "dep:tokio"]
+formats = ["dep:paperjam-convert", "dep:paperjam-docx", "dep:paperjam-xlsx", "dep:paperjam-pptx", "dep:paperjam-html", "dep:paperjam-epub"]
+pipeline = ["dep:paperjam-pipeline", "formats"]

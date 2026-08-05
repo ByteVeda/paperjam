@@ -1,0 +1,17 @@
+---
+title: Text Extraction
+description: Extract text from PDF pages in your browser
+---
+
+# Text Extraction
+
+Extract text from any PDF page. Switch between plain text and structured text lines with bounding box coordinates. Use search to find and highlight text across all pages.
+
+import BrowserOnly from '@docusaurus/BrowserOnly';
+
+<BrowserOnly>
+  {() => {
+    const TextExtraction = require('@site/src/components/playground/TextExtraction').default;
+    return <TextExtraction />;
+  }}
+</BrowserOnly>

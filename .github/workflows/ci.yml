@@ -1,0 +1,187 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+
+      - uses: Swatinem/rust-cache@v2.9.1
+
+      - uses: astral-sh/setup-uv@v7
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: docs-site/package-lock.json
+
+      - name: Install docs-site dependencies
+        run: cd docs-site && npm ci
+
+      - name: Add WASM target
+        run: rustup target add wasm32-unknown-unknown
+
+      - name: Check Rust formatting
+        run: cargo fmt --all --check
+
+      - name: Run pre-commit
+        uses: pre-commit/action@v3.0.1
+
+  rust-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - uses: Swatinem/rust-cache@v2.9.1
+        with:
+          save-if: false
+
+      - name: Run Rust tests
+        run: cargo test --workspace
+
+  msrv:
+    name: MSRV (rust-version) check
+    runs-on: ubuntu-latest
+    env:
+      # rust-toolchain.toml pins stable for contributors; override here
+      # so the MSRV job actually exercises the declared minimum. Keep
+      # this in sync with `rust-version` in the workspace Cargo.toml.
+      RUSTUP_TOOLCHAIN: "1.88"
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Install MSRV toolchain
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: "1.88"
+
+      - uses: Swatinem/rust-cache@v2.9.1
+        with:
+          prefix-key: v0-rust-msrv
+          save-if: ${{ github.ref == 'refs/heads/main' }}
+
+      - name: Compile-check workspace on MSRV
+        # `--locked` keeps the MSRV deterministic: versions resolve from
+        # the committed Cargo.lock rather than the latest compatible
+        # crates.io release, so the declared MSRV stays honest until a
+        # deliberate `cargo update` changes the lockfile.
+        run: cargo check --workspace --locked
+
+  test:
+    needs: lint
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        python-version: ["3.12", "3.13"]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v6
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - uses: Swatinem/rust-cache@v2.9.1
+        with:
+          # Share one Rust cache across the two Python versions —
+          # pyo3 / abi3 builds don't vary by Python minor version.
+          shared-key: maturin-${{ matrix.os }}
+          # Keep the total-cache quota under control: only the main
+          # branch writes new cache entries; PRs read-only.
+          save-if: ${{ github.ref == 'refs/heads/main' }}
+
+      - uses: astral-sh/setup-uv@v7
+        with:
+          cache-dependency-glob: pyproject.toml
+
+      - name: Install dependencies
+        run: uv sync --extra dev
+
+      - name: Build native extension
+        uses: PyO3/maturin-action@v1
+        with:
+          command: develop
+          args: --release
+
+      - name: Run tests
+        run: uv run pytest tests/python/ -v --tb=short --junit-xml=results.xml
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: test-results-${{ matrix.os }}-py${{ matrix.python-version }}
+          path: results.xml
+
+  accuracy:
+    name: Table Extraction Accuracy
+    needs: lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Set up Python 3.13
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - uses: Swatinem/rust-cache@v2.9.1
+        with:
+          save-if: false
+
+      - uses: astral-sh/setup-uv@v7
+        with:
+          cache-dependency-glob: pyproject.toml
+
+      - name: Install dependencies
+        run: uv sync --extra dev
+
+      - name: Build native extension
+        uses: PyO3/maturin-action@v1
+        with:
+          command: develop
+          args: --release
+
+      - name: Verify fixtures are up to date
+        run: |
+          cp -r tests/fixtures/tables /tmp/tables_snapshot
+          uv run python scripts/generate_table_fixtures.py
+          diff -r /tmp/tables_snapshot tests/fixtures/tables
+
+      - name: Run accuracy harness
+        run: uv run pytest tests/python/ -m accuracy -v --tb=short
+
+      - name: Upload accuracy report
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: accuracy-report
+          path: tests/output/table_accuracy.json

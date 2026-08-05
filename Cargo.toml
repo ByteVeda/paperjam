@@ -1,0 +1,62 @@
+[workspace]
+resolver = "2"
+members = [
+    "crates/paperjam-model",
+    "crates/paperjam-core",
+    "crates/paperjam-cli",
+    "crates/paperjam-async",
+    "crates/paperjam-py",
+    "crates/paperjam-wasm",
+    "crates/paperjam-docx",
+    "crates/paperjam-xlsx",
+    "crates/paperjam-pptx",
+    "crates/paperjam-convert",
+    "crates/paperjam-html",
+    "crates/paperjam-epub",
+    "crates/paperjam-pipeline",
+    "crates/paperjam-mcp",
+    "crates/paperjam-studio",
+]
+
+[workspace.package]
+version = "0.2.1"
+edition = "2021"
+# Tracks the committed Cargo.lock: the highest MSRV among any
+# transitive crate in the lockfile determines the workspace floor.
+# Bump together with `RUSTUP_TOOLCHAIN` in .github/workflows/ci.yml
+# whenever a `cargo update` pulls in a crate with a higher MSRV.
+rust-version = "1.88"
+license = "MIT"
+
+[workspace.dependencies]
+thiserror = "2"
+log = "0.4"
+flate2 = "1"
+encoding_rs = "0.8"
+rayon = "1"
+memmap2 = "0.9"
+pdfium-render = "0.8"
+image = "0.25"
+x509-parser = "0.18"
+cms = "0.2"
+der = "0.7"
+sha2 = { version = "0.10", features = ["oid"] }
+spki = "0.7"
+sha1 = "0.10"
+rsa = "0.9"
+p256 = { version = "0.13", features = ["ecdsa"] }
+pkcs8 = "0.10"
+roxmltree = "0.20"
+ureq = { version = "3", default-features = false, features = ["rustls-no-provider"] }
+rustls = { version = "0.23", default-features = false, features = ["aws_lc_rs", "logging", "std", "tls12"] }
+tokio = { version = "1", features = ["rt-multi-thread"] }
+
+[profile.release]
+lto = "thin"
+codegen-units = 1
+strip = "symbols"
+
+[profile.release-with-debug]
+inherits = "release"
+strip = "none"
+debug = true

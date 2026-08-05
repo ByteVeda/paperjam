@@ -1,0 +1,32 @@
+[package]
+name = "paperjam-convert"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+description = "Universal document format converter for the paperjam ecosystem"
+
+[dependencies]
+paperjam-model = { path = "../paperjam-model" }
+paperjam-core = { path = "../paperjam-core", optional = true }
+paperjam-docx = { path = "../paperjam-docx", optional = true }
+paperjam-xlsx = { path = "../paperjam-xlsx", optional = true }
+paperjam-pptx = { path = "../paperjam-pptx", optional = true }
+paperjam-html = { path = "../paperjam-html", optional = true }
+paperjam-epub = { path = "../paperjam-epub", optional = true }
+zip = { version = "2", default-features = false, features = ["deflate"] }
+thiserror = { workspace = true }
+
+# Generation dependencies (gated behind the same features as their format crate)
+lopdf = { version = "0.34", optional = true }
+docx-rs = { version = "0.4", optional = true }
+rust_xlsxwriter = { version = "0.82", optional = true, default-features = false }
+
+[features]
+default = ["pdf", "docx", "xlsx", "pptx", "html", "epub"]
+pdf = ["dep:paperjam-core", "dep:lopdf"]
+docx = ["dep:paperjam-docx", "dep:docx-rs"]
+xlsx = ["dep:paperjam-xlsx", "dep:rust_xlsxwriter"]
+pptx = ["dep:paperjam-pptx"]
+html = ["dep:paperjam-html"]
+epub = ["dep:paperjam-epub"]

@@ -1,0 +1,17 @@
+---
+title: Document Info
+description: View PDF metadata and document structure in your browser
+---
+
+# Document Info
+
+Upload a PDF to view its metadata, page dimensions, and document structure.
+
+import BrowserOnly from '@docusaurus/BrowserOnly';
+
+<BrowserOnly>
+  {() => {
+    const DocumentInfo = require('@site/src/components/playground/DocumentInfo').default;
+    return <DocumentInfo />;
+  }}
+</BrowserOnly>
