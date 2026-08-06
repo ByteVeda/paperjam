@@ -18,7 +18,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           echo "Cleaning caches for PR #${{ github.event.pull_request.number }}"
-          gh cache list --ref refs/pull/${{ github.event.pull_request.number }}/merge --json id -q '.[].id' | while read id; do
+          gh cache list --ref refs/pull/${{ github.event.pull_request.number }}/merge --json id -q '.[].id' | while read -r id; do
             echo "Deleting cache $id"
             gh cache delete "$id" || true
           done
