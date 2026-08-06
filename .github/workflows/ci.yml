@@ -74,10 +74,16 @@ jobs:
               - '.github/actions/setup-node/**'
               - '.github/actions/pre-commit/**'
               - '.github/workflows/ci-docs.yml'
+            # ci-mcp's lint job runs `uv sync`, which resolves paperjam from
+            # the repo root via tool.uv.sources and compiles the workspace —
+            # so the shared Rust inputs and the Python package can break MCP
+            # lint without any mcp-server/ file being touched.
             mcp:
+              - *shared
+              - 'paperjam/**'
+              - 'pyproject.toml'
               - 'mcp-server/**'
               - '.github/actions/setup-python/**'
-              - '.github/actions/setup-rust/**'
               - '.github/workflows/ci-mcp.yml'
 
       - name: Decide which suites run
