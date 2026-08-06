@@ -20,8 +20,9 @@
             - "minor"
             - "patch"
 
+    # The "npm" ecosystem covers npm, yarn and pnpm; the docs site uses pnpm.
     - package-ecosystem: "npm"
-      directory: "/docs-site"
+      directory: "/docs"
       schedule:
         interval: "weekly"
       groups:

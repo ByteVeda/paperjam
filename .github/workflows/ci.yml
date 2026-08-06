@@ -25,15 +25,20 @@ jobs:
 
       - uses: astral-sh/setup-uv@v7
 
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          package_json_file: docs/package.json
+
       - name: Set up Node.js
         uses: actions/setup-node@v7
         with:
           node-version: "22"
-          cache: npm
-          cache-dependency-path: docs-site/package-lock.json
+          cache: pnpm
+          cache-dependency-path: docs/pnpm-lock.yaml
 
-      - name: Install docs-site dependencies
-        run: cd docs-site && npm ci
+      - name: Install docs dependencies
+        run: cd docs && pnpm install --frozen-lockfile
 
       - name: Add WASM target
         run: rustup target add wasm32-unknown-unknown

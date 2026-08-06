@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs-site/static/img/logo.jpeg" alt="paperjam logo" width="250">
+  <img src="docs/static/img/logo.png" alt="paperjam logo" width="250">
 </p>
 
 <p align="center">

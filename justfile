@@ -25,7 +25,7 @@ build-wasm:
 
 # Build the Docusaurus docs site.
 build-docs:
-    cd docs-site && npm ci && npm run build
+    cd docs && pnpm install --frozen-lockfile && pnpm run build
 
 # Render crate API docs into target/doc.
 rustdoc:
