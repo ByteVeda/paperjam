@@ -9,7 +9,7 @@ use crate::page::PyPage;
 /// Native PDF document handle, exposed to Python as `_paperjam.RustDocument`.
 ///
 /// Users normally access this via the higher-level `paperjam.Document`
-/// wrapper in `py_src/paperjam/_document.py`, which adds ergonomic
+/// wrapper in `paperjam/_document.py`, which adds ergonomic
 /// defaults and composed operations on top of the raw bindings.
 /// Holds an `Arc<Document>` so the same underlying PDF can be shared
 /// across threads and Python tasks without copying.

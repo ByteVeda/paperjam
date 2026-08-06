@@ -9,7 +9,7 @@ use crate::errors::to_py_err;
 ///
 /// Obtained via `RustDocument.page(n)`. Users normally access this
 /// through the higher-level `paperjam.Page` wrapper in
-/// `py_src/paperjam/_page.py`, which adds ergonomic defaults and
+/// `paperjam/_page.py`, which adds ergonomic defaults and
 /// composed operations on top of the raw bindings.
 #[pyclass(name = "RustPage")]
 pub struct PyPage {
