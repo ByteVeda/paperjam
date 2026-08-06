@@ -5,7 +5,13 @@ on:
     branches: [main]
     paths:
       - "docs/**"
-      - "crates/paperjam-wasm/**"
+      # The site embeds a wasm bundle built from the workspace, so any crate
+      # or lockfile change can alter the shipped artifact — not just
+      # paperjam-wasm's own sources.
+      - "crates/**"
+      - "Cargo.toml"
+      - "Cargo.lock"
+      - "rust-toolchain.toml"
       - ".github/actions/setup-node/**"
       - ".github/actions/setup-rust/**"
       - ".github/workflows/docs.yml"
@@ -13,7 +19,13 @@ on:
     branches: [main]
     paths:
       - "docs/**"
-      - "crates/paperjam-wasm/**"
+      # The site embeds a wasm bundle built from the workspace, so any crate
+      # or lockfile change can alter the shipped artifact — not just
+      # paperjam-wasm's own sources.
+      - "crates/**"
+      - "Cargo.toml"
+      - "Cargo.lock"
+      - "rust-toolchain.toml"
       - ".github/actions/setup-node/**"
       - ".github/actions/setup-rust/**"
       - ".github/workflows/docs.yml"
