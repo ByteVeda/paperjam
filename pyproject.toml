@@ -1,5 +1,5 @@
 [build-system]
-requires = ["maturin>=1.13.3,<2.0"]
+requires = ["maturin>=1.14.1,<2.0"]
 build-backend = "maturin"
 
 [project]
@@ -46,13 +46,13 @@ Changelog = "https://github.com/ByteVeda/paperjam/blob/main/CHANGELOG.md"
 [project.optional-dependencies]
 pandas = ["pandas>=3.0.3"]
 dev = [
-    "pre-commit>=4.0",
+    "pre-commit>=4.6.1",
     "pytest>=8.0",
-    "pytest-asyncio>=0.24",
+    "pytest-asyncio>=1.4.0",
     "pytest-benchmark>=4.0",
     "pypdf>=6.12.1",
-    "pdfplumber>=0.10",
-    "mypy>=1.8",
+    "pdfplumber>=0.11.10",
+    "mypy>=2.3.0",
     "ruff>=0.3",
     "reportlab>=4.0,<4.2",
     "pandas>=3.0.3",
