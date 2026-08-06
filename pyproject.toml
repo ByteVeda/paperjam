@@ -54,7 +54,7 @@ dev = [
     "pdfplumber>=0.11.10",
     "mypy>=2.3.0",
     "ruff>=0.3",
-    "reportlab>=4.0,<4.2",
+    "reportlab>=5.0.0,<5.1",
     "pandas>=3.0.3",
 ]
 
