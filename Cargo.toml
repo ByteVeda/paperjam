@@ -44,7 +44,7 @@ cms = "0.2"
 # `der` major. `der` 0.8 needs `cms` 0.3, which only exists as a pre-release
 # that pulls the whole RustCrypto stack (aes, cbc, digest, rsa, sha2, …) onto
 # release candidates. Bump all of them together once `cms` 0.3 is stable.
-der = "0.7"
+der = "0.8"
 sha2 = { version = "0.10", features = ["oid"] }
 spki = "0.7"
 sha1 = "0.10"
