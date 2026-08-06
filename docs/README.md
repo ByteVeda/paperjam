@@ -5,8 +5,8 @@ Documentation site built with [Docusaurus](https://docusaurus.io/) and a WASM pl
 ## Development
 
 ```bash
-npm ci
-npm start
+pnpm install
+pnpm start
 ```
 
 ## Build
@@ -16,13 +16,13 @@ npm start
 wasm-pack build crates/paperjam-wasm --target web --release --out-dir ../../docs/static/wasm
 
 # Build site
-npm run build
+pnpm run build
 ```
 
 ## Linting
 
 ```bash
-npm run lint        # biome check
-npm run lint:fix    # biome auto-fix
-npm run typecheck   # typescript check
+pnpm run lint        # biome check
+pnpm run lint:fix    # biome auto-fix
+pnpm run typecheck   # typescript check
 ```

@@ -2,6 +2,7 @@
   "name": "paperjam-docs",
   "version": "0.0.0",
   "private": true,
+  "packageManager": "pnpm@10.33.0",
   "scripts": {
     "docusaurus": "docusaurus",
     "start": "docusaurus start",
@@ -51,5 +52,11 @@
   },
   "engines": {
     "node": ">=20.0"
+  },
+  "pnpm": {
+    "ignoredBuiltDependencies": [
+      "@swc/core",
+      "core-js"
+    ]
   }
 }

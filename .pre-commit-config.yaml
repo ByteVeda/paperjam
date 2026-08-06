@@ -37,13 +37,13 @@ repos:
         pass_filenames: false
       - id: biome
         name: biome
-        entry: bash -c 'cd docs && npx biome ci src/'
+        entry: bash -c 'cd docs && pnpm exec biome ci src/'
         language: system
         files: ^docs/src/
         pass_filenames: false
       - id: docs-typecheck
         name: docs typecheck
-        entry: bash -c 'cd docs && npx tsc --noEmit'
+        entry: bash -c 'cd docs && pnpm exec tsc --noEmit'
         language: system
         files: ^docs/src/
         pass_filenames: false
