@@ -39,6 +39,11 @@ pdfium-render = "0.8"
 image = "0.25"
 x509-parser = "0.18"
 cms = "0.2"
+# Held at 0.7 to match `cms` 0.2 and `spki` 0.7: the signature code passes
+# `der` types straight into `cms` structures, so all three must share one
+# `der` major. `der` 0.8 needs `cms` 0.3, which only exists as a pre-release
+# that pulls the whole RustCrypto stack (aes, cbc, digest, rsa, sha2, …) onto
+# release candidates. Bump all of them together once `cms` 0.3 is stable.
 der = "0.7"
 sha2 = { version = "0.10", features = ["oid"] }
 spki = "0.7"
