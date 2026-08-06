@@ -1,0 +1,20 @@
+name: Build the native extension
+description: >-
+  Compiles crates/paperjam-py into the active virtualenv with maturin. Call it
+  after setup-rust (so the release build reuses the Cargo cache) and after the
+  Python dependencies are synced (maturin develop installs into that venv).
+
+inputs:
+  args:
+    description: "Arguments passed to `maturin develop`."
+    required: false
+    default: "--release"
+
+runs:
+  using: composite
+  steps:
+    - name: Build native extension
+      uses: PyO3/maturin-action@v1
+      with:
+        command: develop
+        args: ${{ inputs.args }}

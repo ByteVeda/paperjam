@@ -1,0 +1,32 @@
+name: Set up Node + pnpm
+description: >-
+  Installs pnpm and Node and, by default, installs the docs site's
+  dependencies. Only the docs jobs need this, so no Rust- or Python-only job
+  pays for a pnpm install.
+
+inputs:
+  install:
+    description: "Run `pnpm install --frozen-lockfile` in docs/."
+    required: false
+    default: "true"
+
+runs:
+  using: composite
+  steps:
+    - name: Set up pnpm
+      uses: pnpm/action-setup@v6
+      with:
+        version: 10
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v7
+      with:
+        node-version: "22"
+        cache: pnpm
+        cache-dependency-path: docs/pnpm-lock.yaml
+
+    - name: Install docs dependencies
+      if: inputs.install == 'true'
+      shell: bash
+      working-directory: docs
+      run: pnpm install --frozen-lockfile
