@@ -1,192 +1,154 @@
 name: CI
 
+# Thin orchestrator. Every check lives in a per-language reusable workflow;
+# this file only decides which of them a given event needs to run.
 on:
   push:
     branches: [main]
   pull_request:
     branches: [main]
+  # Manual re-trigger, for when back-to-back squash merges leave main HEAD
+  # without a run because concurrency cancelled it.
+  workflow_dispatch:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+# CI only reads the repo. pull-requests:read lets dorny/paths-filter enumerate
+# a PR's changed files.
+permissions:
+  contents: read
+  pull-requests: read
+
 jobs:
-  lint:
+  changes:
+    name: Detect changed paths
     runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      rust: ${{ steps.decide.outputs.rust }}
+      python: ${{ steps.decide.outputs.python }}
+      docs: ${{ steps.decide.outputs.docs }}
+      mcp: ${{ steps.decide.outputs.mcp }}
     steps:
       - uses: actions/checkout@v7
 
-      - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@stable
+      - name: Filter paths
+        id: filter
+        uses: dorny/paths-filter@v4
         with:
-          components: rustfmt, clippy
+          # Each suite reruns when its own sources, the shared Rust workspace,
+          # the composite actions it uses, or its own workflow change.
+          filters: |
+            shared: &shared
+              - 'crates/**'
+              - 'Cargo.toml'
+              - 'Cargo.lock'
+              - 'rust-toolchain.toml'
+              - '.pre-commit-config.yaml'
+              - '.github/actions/setup-rust/**'
+              - '.github/actions/pre-commit/**'
+              - '.github/workflows/ci.yml'
+            rust:
+              - *shared
+              - '.github/workflows/ci-rust.yml'
+            # The bindings are compiled into the extension, so a crates/ change
+            # can break Python at runtime even when no Python source is touched.
+            python:
+              - *shared
+              - 'paperjam/**'
+              - 'tests/**'
+              - 'examples/**'
+              - 'scripts/**'
+              - 'pyproject.toml'
+              - '.github/actions/setup-python/**'
+              - '.github/actions/maturin-build/**'
+              - '.github/workflows/ci-python.yml'
+            # Deliberately not *shared: these are the biome and tsc hooks over
+            # the site's own TypeScript, with no build-time dependency on the
+            # Rust workspace. The wasm-backed site build lives in docs.yml.
+            docs:
+              - 'docs/**'
+              - '.pre-commit-config.yaml'
+              - '.github/actions/setup-node/**'
+              - '.github/actions/pre-commit/**'
+              - '.github/workflows/ci-docs.yml'
+            mcp:
+              - 'mcp-server/**'
+              - '.github/actions/setup-python/**'
+              - '.github/actions/setup-rust/**'
+              - '.github/workflows/ci-mcp.yml'
 
-      - uses: Swatinem/rust-cache@v2.9.1
-
-      - uses: astral-sh/setup-uv@v7
-
-      - name: Set up pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          package_json_file: docs/package.json
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v7
-        with:
-          node-version: "22"
-          cache: pnpm
-          cache-dependency-path: docs/pnpm-lock.yaml
-
-      - name: Install docs dependencies
-        run: cd docs && pnpm install --frozen-lockfile
-
-      - name: Add WASM target
-        run: rustup target add wasm32-unknown-unknown
-
-      - name: Check Rust formatting
-        run: cargo fmt --all --check
-
-      - name: Run pre-commit
-        uses: pre-commit/action@v3.0.1
-
-  rust-test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v7
-
-      - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@stable
-
-      - uses: Swatinem/rust-cache@v2.9.1
-        with:
-          save-if: false
-
-      - name: Run Rust tests
-        run: cargo test --workspace
-
-  msrv:
-    name: MSRV (rust-version) check
-    runs-on: ubuntu-latest
-    env:
-      # rust-toolchain.toml pins stable for contributors; override here
-      # so the MSRV job actually exercises the declared minimum. Keep
-      # this in sync with `rust-version` in the workspace Cargo.toml.
-      RUSTUP_TOOLCHAIN: "1.88"
-    steps:
-      - uses: actions/checkout@v7
-
-      - name: Install MSRV toolchain
-        uses: dtolnay/rust-toolchain@master
-        with:
-          toolchain: "1.88"
-
-      - uses: Swatinem/rust-cache@v2.9.1
-        with:
-          prefix-key: v0-rust-msrv
-          save-if: ${{ github.ref == 'refs/heads/main' }}
-
-      - name: Compile-check workspace on MSRV
-        # `--locked` keeps the MSRV deterministic: versions resolve from
-        # the committed Cargo.lock rather than the latest compatible
-        # crates.io release, so the declared MSRV stays honest until a
-        # deliberate `cargo update` changes the lockfile.
-        run: cargo check --workspace --locked
-
-  test:
-    needs: lint
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
-        python-version: ["3.12", "3.13"]
-    runs-on: ${{ matrix.os }}
-    steps:
-      - uses: actions/checkout@v7
-
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v7
-        with:
-          python-version: ${{ matrix.python-version }}
-
-      - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@stable
-
-      - uses: Swatinem/rust-cache@v2.9.1
-        with:
-          # Share one Rust cache across the two Python versions —
-          # pyo3 / abi3 builds don't vary by Python minor version.
-          shared-key: maturin-${{ matrix.os }}
-          # Keep the total-cache quota under control: only the main
-          # branch writes new cache entries; PRs read-only.
-          save-if: ${{ github.ref == 'refs/heads/main' }}
-
-      - uses: astral-sh/setup-uv@v7
-        with:
-          cache-dependency-glob: pyproject.toml
-
-      - name: Install dependencies
-        run: uv sync --extra dev
-
-      - name: Build native extension
-        uses: PyO3/maturin-action@v1
-        with:
-          command: develop
-          args: --release
-
-      - name: Run tests
-        run: uv run pytest tests/python/ -v --tb=short --junit-xml=results.xml
-
-      - name: Upload test results
-        if: always()
-        uses: actions/upload-artifact@v7
-        with:
-          name: test-results-${{ matrix.os }}-py${{ matrix.python-version }}
-          path: results.xml
-
-  accuracy:
-    name: Table Extraction Accuracy
-    needs: lint
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v7
-
-      - name: Set up Python 3.13
-        uses: actions/setup-python@v7
-        with:
-          python-version: "3.13"
-
-      - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@stable
-
-      - uses: Swatinem/rust-cache@v2.9.1
-        with:
-          save-if: false
-
-      - uses: astral-sh/setup-uv@v7
-        with:
-          cache-dependency-glob: pyproject.toml
-
-      - name: Install dependencies
-        run: uv sync --extra dev
-
-      - name: Build native extension
-        uses: PyO3/maturin-action@v1
-        with:
-          command: develop
-          args: --release
-
-      - name: Verify fixtures are up to date
+      - name: Decide which suites run
+        id: decide
+        # FORCE is true on push and workflow_dispatch — run everything there,
+        # so main is always covered by a full run. PRs honor the filter.
+        env:
+          FORCE: ${{ github.event_name != 'pull_request' }}
+          RUST: ${{ steps.filter.outputs.rust }}
+          PYTHON: ${{ steps.filter.outputs.python }}
+          DOCS: ${{ steps.filter.outputs.docs }}
+          MCP: ${{ steps.filter.outputs.mcp }}
         run: |
-          cp -r tests/fixtures/tables /tmp/tables_snapshot
-          uv run python scripts/generate_table_fixtures.py
-          diff -r /tmp/tables_snapshot tests/fixtures/tables
+          decide() {
+            if [ "$FORCE" = "true" ] || [ "$2" = "true" ]; then
+              echo "$1=true" >> "$GITHUB_OUTPUT"
+            else
+              echo "$1=false" >> "$GITHUB_OUTPUT"
+            fi
+          }
+          decide rust "$RUST"
+          decide python "$PYTHON"
+          decide docs "$DOCS"
+          decide mcp "$MCP"
 
-      - name: Run accuracy harness
-        run: uv run pytest tests/python/ -m accuracy -v --tb=short
+  rust:
+    name: Rust
+    needs: changes
+    if: needs.changes.outputs.rust == 'true'
+    uses: ./.github/workflows/ci-rust.yml
 
-      - name: Upload accuracy report
-        if: always()
-        uses: actions/upload-artifact@v7
-        with:
-          name: accuracy-report
-          path: tests/output/table_accuracy.json
+  python:
+    name: Python
+    needs: changes
+    if: needs.changes.outputs.python == 'true'
+    uses: ./.github/workflows/ci-python.yml
+
+  docs:
+    name: Docs
+    needs: changes
+    if: needs.changes.outputs.docs == 'true'
+    uses: ./.github/workflows/ci-docs.yml
+
+  mcp:
+    name: MCP
+    needs: changes
+    if: needs.changes.outputs.mcp == 'true'
+    uses: ./.github/workflows/ci-mcp.yml
+
+  # Single required status check. Every suite is skippable, so branch
+  # protection cannot depend on them individually — a skipped job never
+  # reports. This one always runs and fails if anything it needs did not
+  # succeed or skip.
+  ci-status:
+    name: CI status
+    if: always()
+    needs: [changes, rust, python, docs, mcp]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check that no required job failed
+        env:
+          RESULTS: ${{ toJson(needs) }}
+        run: |
+          echo "$RESULTS"
+          failed=$(echo "$RESULTS" | python3 -c "
+          import json, sys
+          data = json.load(sys.stdin)
+          print(','.join(k for k, v in data.items() if v['result'] not in ('success', 'skipped')))
+          ")
+          if [ -n "$failed" ]; then
+            echo "::error::Failing or cancelled jobs: $failed"
+            exit 1
+          fi
