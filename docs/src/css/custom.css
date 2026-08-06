@@ -1,4 +1,16 @@
+/* Self-hosted IBM Plex Sans — no Google Fonts CDN, works offline. */
+@import "@fontsource/ibm-plex-sans/400.css";
+@import "@fontsource/ibm-plex-sans/400-italic.css";
+@import "@fontsource/ibm-plex-sans/500.css";
+@import "@fontsource/ibm-plex-sans/600.css";
+@import "@fontsource/ibm-plex-sans/700.css";
+
 :root {
+  --ifm-font-family-base:
+    "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  /* Infima defaults headings to the base family, but set it explicitly so a
+     future theme upgrade can't quietly opt headings out. */
+  --ifm-heading-font-family: var(--ifm-font-family-base);
   --ifm-color-primary: #dc4a2f;
   --ifm-color-primary-dark: #c7402a;
   --ifm-color-primary-darker: #bc3c28;
