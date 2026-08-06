@@ -8,7 +8,7 @@ description = "Pure Rust PDF engine — parsing, text extraction, table detectio
 
 [dependencies]
 paperjam-model = { path = "../paperjam-model" }
-lopdf = "0.34"
+lopdf = "0.44"
 regex = "1"
 # Pinned to 0.10 so the whole RustCrypto stack (digest, block-buffer,
 # sha2, sha1, rsa, p256, hmac, ecdsa, elliptic-curve, pkcs8) resolves
