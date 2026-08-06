@@ -128,7 +128,7 @@ export default function Home(): React.JSX.Element {
         }}
       >
         <img
-          src={useBaseUrl('/img/logo.jpeg')}
+          src={useBaseUrl('/img/logo.png')}
           alt="paperjam logo"
           style={{
             width: '180px',
