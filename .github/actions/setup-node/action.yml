@@ -16,7 +16,9 @@ runs:
     - name: Set up pnpm
       uses: pnpm/action-setup@v6
       with:
-        version: 10
+        # Version comes from `packageManager` in docs/package.json — passing a
+        # `version` input as well makes action-setup fail on the disagreement.
+        package_json_file: docs/package.json
 
     - name: Set up Node.js
       uses: actions/setup-node@v7
