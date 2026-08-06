@@ -16,9 +16,10 @@ from __future__ import annotations
 import json
 import pathlib
 
-import paperjam
 import pytest
 from grits import predicted_tables_to_gt_shape, score_document
+
+import paperjam
 
 FIXTURES_DIR = pathlib.Path(__file__).resolve().parent.parent / "fixtures" / "tables"
 BASELINE_PATH = FIXTURES_DIR / ".accuracy_baseline.json"

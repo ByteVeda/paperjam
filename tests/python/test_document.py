@@ -1,5 +1,6 @@
-import paperjam
 import pytest
+
+import paperjam
 
 
 def test_open_file(simple_text_pdf):

@@ -4,9 +4,10 @@ from __future__ import annotations
 
 import asyncio
 
-import paperjam
 import pytest
 import pytest_asyncio
+
+import paperjam
 
 pytestmark = pytest.mark.asyncio
 

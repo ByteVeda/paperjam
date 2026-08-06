@@ -9,7 +9,7 @@ rust:
 python:
   - changed-files:
       - any-glob-to-any-file:
-          - 'py_src/**'
+          - 'paperjam/**'
           - 'mcp-server/**'
           - '**/*.py'
           - 'pyproject.toml'
