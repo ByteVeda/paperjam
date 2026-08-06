@@ -31,7 +31,7 @@ function StructureLayoutInner({ wasm }: { wasm: WasmModule }) {
   const [layoutError, setLayoutError] = useState<string | null>(null);
 
   const handleFileLoaded = useCallback(
-    (data: Uint8Array, name: string) => {
+    (data: Uint8Array<ArrayBuffer>, name: string) => {
       loadFile(data, name);
       setStructureError(null);
       setLayoutError(null);

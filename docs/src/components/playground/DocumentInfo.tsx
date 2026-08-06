@@ -26,7 +26,7 @@ function DocumentInfoInner({ wasm }: { wasm: WasmModule }) {
   const [activeTab, setActiveTab] = useState('metadata');
 
   const handleFileLoaded = useCallback(
-    (data: Uint8Array, name: string) => {
+    (data: Uint8Array<ArrayBuffer>, name: string) => {
       loadFile(data, name);
       try {
         const d = new wasm.WasmDocument(data);

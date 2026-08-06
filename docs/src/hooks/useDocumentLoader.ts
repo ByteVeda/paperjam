@@ -6,7 +6,7 @@ interface DocumentLoaderState {
   pageCount: number;
   error: string | null;
   fileName: string | null;
-  loadFile: (data: Uint8Array, name: string) => void;
+  loadFile: (data: Uint8Array<ArrayBuffer>, name: string) => void;
 }
 
 const MAX_FILE_SIZE = 100 * 1024 * 1024; // 100 MB
@@ -18,7 +18,7 @@ export function useDocumentLoader(wasm: WasmModule): DocumentLoaderState {
   const [fileName, setFileName] = useState<string | null>(null);
 
   const loadFile = useCallback(
-    (data: Uint8Array, name: string) => {
+    (data: Uint8Array<ArrayBuffer>, name: string) => {
       if (data.byteLength > MAX_FILE_SIZE) {
         setError(
           `File too large (${(data.byteLength / 1024 / 1024).toFixed(1)} MB). Maximum is 100 MB.`,

@@ -2,7 +2,7 @@ import { useCallback, useState } from 'react';
 import styles from './playground.module.css';
 
 interface Props {
-  onFileLoaded: (data: Uint8Array, fileName: string) => void;
+  onFileLoaded: (data: Uint8Array<ArrayBuffer>, fileName: string) => void;
 }
 
 export default function PdfUploader({ onFileLoaded }: Props) {

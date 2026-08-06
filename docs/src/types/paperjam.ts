@@ -1,8 +1,15 @@
-/** Type definitions for the paperjam WASM module. */
+/**
+ * Type definitions for the paperjam WASM module.
+ *
+ * Byte payloads returned by wasm-bindgen are copied out of the WASM linear
+ * memory into a fresh `ArrayBuffer`, never a `SharedArrayBuffer`, so they are
+ * declared as `Uint8Array<ArrayBuffer>`. That keeps them assignable to
+ * `BlobPart` and friends.
+ */
 
 export interface WasmModule {
   WasmDocument: new (data: Uint8Array) => WasmDocument;
-  mergePdfs(pdfArrays: number[][]): Uint8Array;
+  mergePdfs(pdfArrays: number[][]): Uint8Array<ArrayBuffer>;
 }
 
 export interface WasmDocument {
@@ -21,8 +28,8 @@ export interface WasmDocument {
   metadata(): MetadataResult;
   extractStructure(): StructureBlock[];
   searchText(query: string, caseSensitive?: boolean): SearchMatch[];
-  saveBytes(): Uint8Array;
-  split(ranges: [number, number][]): Uint8Array[];
+  saveBytes(): Uint8Array<ArrayBuffer>;
+  split(ranges: [number, number][]): Uint8Array<ArrayBuffer>[];
   sanitize(
     removeJs?: boolean,
     removeFiles?: boolean,
@@ -34,7 +41,10 @@ export interface WasmDocument {
     caseSensitive?: boolean,
     fillColor?: number[],
   ): RedactOutput;
-  encrypt(userPassword: string, ownerPassword?: string): Uint8Array;
+  encrypt(
+    userPassword: string,
+    ownerPassword?: string,
+  ): Uint8Array<ArrayBuffer>;
   analyzeLayout(pageNumber: number): LayoutResult;
 }
 
@@ -98,7 +108,7 @@ export interface SearchMatch {
 }
 
 export interface SanitizeOutput {
-  doc_bytes: Uint8Array;
+  doc_bytes: Uint8Array<ArrayBuffer>;
   result: SanitizeResult;
 }
 
@@ -110,7 +120,7 @@ export interface SanitizeResult {
 }
 
 export interface RedactOutput {
-  doc_bytes: Uint8Array;
+  doc_bytes: Uint8Array<ArrayBuffer>;
   result: RedactResult;
 }
 

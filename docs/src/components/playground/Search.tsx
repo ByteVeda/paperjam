@@ -38,7 +38,7 @@ function SearchInner({ wasm }: { wasm: WasmModule }) {
   const [searched, setSearched] = useState(false);
 
   const handleFileLoaded = useCallback(
-    (data: Uint8Array, name: string) => {
+    (data: Uint8Array<ArrayBuffer>, name: string) => {
       loadFile(data, name);
       setResults([]);
       setSearched(false);

@@ -12,7 +12,7 @@ const TABS = [
   { id: 'merge', label: 'Merge' },
 ];
 
-function downloadPdf(bytes: Uint8Array, filename: string) {
+function downloadPdf(bytes: Uint8Array<ArrayBuffer>, filename: string) {
   const blob = new Blob([bytes], { type: 'application/pdf' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
@@ -43,14 +43,14 @@ function parseRanges(input: string): [number, number][] {
 
 interface SplitPart {
   index: number;
-  bytes: Uint8Array;
+  bytes: Uint8Array<ArrayBuffer>;
   rangeLabel: string;
 }
 
 interface MergeFile {
   id: number;
   name: string;
-  data: Uint8Array;
+  data: Uint8Array<ArrayBuffer>;
 }
 
 function SplitMergeInner({ wasm }: { wasm: WasmModule }) {
@@ -75,7 +75,7 @@ function SplitMergeInner({ wasm }: { wasm: WasmModule }) {
     try {
       const rawParts = doc.split(ranges);
       setSplitParts(
-        rawParts.map((raw: number[] | Uint8Array, i: number) => ({
+        rawParts.map((raw: number[] | Uint8Array<ArrayBuffer>, i: number) => ({
           index: i,
           bytes: raw instanceof Uint8Array ? raw : new Uint8Array(raw),
           rangeLabel: `${ranges[i][0]}-${ranges[i][1]}`,
@@ -88,7 +88,7 @@ function SplitMergeInner({ wasm }: { wasm: WasmModule }) {
   }, [doc, rangeInput]);
 
   const handleAddMergeFile = useCallback(
-    (data: Uint8Array, name: string) => {
+    (data: Uint8Array<ArrayBuffer>, name: string) => {
       setMergeFiles((prev) => [...prev, { id: nextId, name, data }]);
       setNextId((prev) => prev + 1);
     },

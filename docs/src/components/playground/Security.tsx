@@ -17,7 +17,7 @@ const TABS = [
   { id: 'encrypt', label: 'Encrypt' },
 ];
 
-function downloadPdf(bytes: Uint8Array, filename: string) {
+function downloadPdf(bytes: Uint8Array<ArrayBuffer>, filename: string) {
   const blob = new Blob([bytes], { type: 'application/pdf' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
@@ -39,24 +39,27 @@ function SecurityInner({ wasm }: { wasm: WasmModule }) {
   const [sanitizeResult, setSanitizeResult] = useState<SanitizeResult | null>(
     null,
   );
-  const [sanitizeBytes, setSanitizeBytes] = useState<Uint8Array | null>(null);
+  const [sanitizeBytes, setSanitizeBytes] =
+    useState<Uint8Array<ArrayBuffer> | null>(null);
   const [sanitizeError, setSanitizeError] = useState<string | null>(null);
 
   // Redact state
   const [redactQuery, setRedactQuery] = useState('');
   const [redactCaseSensitive, setRedactCaseSensitive] = useState(false);
   const [redactResult, setRedactResult] = useState<RedactResult | null>(null);
-  const [redactBytes, setRedactBytes] = useState<Uint8Array | null>(null);
+  const [redactBytes, setRedactBytes] =
+    useState<Uint8Array<ArrayBuffer> | null>(null);
   const [redactError, setRedactError] = useState<string | null>(null);
 
   // Encrypt state
   const [userPassword, setUserPassword] = useState('');
   const [ownerPassword, setOwnerPassword] = useState('');
-  const [encryptBytes, setEncryptBytes] = useState<Uint8Array | null>(null);
+  const [encryptBytes, setEncryptBytes] =
+    useState<Uint8Array<ArrayBuffer> | null>(null);
   const [encryptError, setEncryptError] = useState<string | null>(null);
 
   const handleFileLoaded = useCallback(
-    (data: Uint8Array, name: string) => {
+    (data: Uint8Array<ArrayBuffer>, name: string) => {
       loadFile(data, name);
       setSanitizeResult(null);
       setSanitizeBytes(null);
