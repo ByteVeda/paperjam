@@ -4,8 +4,9 @@ Note: These tests require pdfium to be installed on the system.
 They are skipped if pdfium is not available.
 """
 
-import paperjam
 import pytest
+
+import paperjam
 
 _MINIMAL_PDF = (
     b"%PDF-1.4\n1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj\n"

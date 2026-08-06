@@ -1,0 +1,29 @@
+name: Run pre-commit
+description: >-
+  Runs the repo's pre-commit hooks, minus the ones the calling suite does not
+  own. The hooks stay defined once in .pre-commit-config.yaml, so CI and local
+  runs cannot drift.
+
+inputs:
+  skip:
+    description: >-
+      Comma-separated hook ids this suite does not run. Exclusion rather than
+      inclusion is deliberate: a newly added hook runs in every suite until it
+      is explicitly skipped, which fails loud instead of silently going
+      unchecked.
+    required: false
+    default: ""
+
+runs:
+  using: composite
+  steps:
+    - name: Select hooks to skip
+      shell: bash
+      env:
+        SKIP_HOOKS: ${{ inputs.skip }}
+      # Exported through $GITHUB_ENV rather than a step-level env so it also
+      # reaches pre-commit inside the nested action below.
+      run: echo "SKIP=$SKIP_HOOKS" >> "$GITHUB_ENV"
+
+    - name: Run pre-commit
+      uses: pre-commit/action@v3.0.1

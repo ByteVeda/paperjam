@@ -28,7 +28,7 @@ paperjam-model (shared types, traits)
 flowchart LR
     User(["User Code"])
 
-    subgraph PY["Python  —  py_src/paperjam/"]
+    subgraph PY["Python  —  paperjam/"]
         direction TB
         TopFns["open · merge · diff · render · to_markdown · convert · run_pipeline"]
         DocPage["Document  ·  Page  ·  AnyDocument"]

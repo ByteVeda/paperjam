@@ -1,0 +1,71 @@
+name: Set up Rust
+description: >-
+  Installs a Rust toolchain and restores the Cargo build cache with the repo's
+  standard settings. Every Rust-touching job goes through this, so the toolchain
+  install and the cache policy live in exactly one place.
+
+inputs:
+  toolchain:
+    description: >-
+      Toolchain to install. "stable" uses dtolnay/rust-toolchain's stable ref;
+      any other value (e.g. an MSRV like "1.88") is installed from @master,
+      which takes the version as an input.
+    required: false
+    default: stable
+  components:
+    description: "Comma-separated rustup components (e.g. 'rustfmt, clippy')."
+    required: false
+    default: ""
+  targets:
+    description: "Comma-separated rustup targets (e.g. 'wasm32-unknown-unknown')."
+    required: false
+    default: ""
+  save-if:
+    description: >-
+      Whether this job may write the Cargo cache. Mirrors rust-cache's own
+      default of true. Read-only jobs pass "false" so they restore an existing
+      entry without minting a new one on every run, and jobs whose cache is
+      worth keeping pass an expression that only writes from main — a PR-ref
+      entry cannot be read by any other PR anyway, so saving on PRs just burns
+      the repo's cache quota.
+    required: false
+    default: "true"
+  shared-key:
+    description: >-
+      rust-cache shared-key, giving a set of jobs one cache namespace instead
+      of the per-job default. Use it where several matrix cells produce the
+      same target/ contents.
+    required: false
+    default: ""
+  prefix-key:
+    description: >-
+      rust-cache prefix-key. Mirrors rust-cache's own default; override it to
+      keep a differently-compiled target/ (e.g. the MSRV build) out of the
+      main namespace.
+    required: false
+    default: v0-rust
+
+runs:
+  using: composite
+  steps:
+    - name: Install Rust toolchain (stable)
+      if: inputs.toolchain == 'stable'
+      uses: dtolnay/rust-toolchain@stable
+      with:
+        components: ${{ inputs.components }}
+        targets: ${{ inputs.targets }}
+
+    - name: Install Rust toolchain (${{ inputs.toolchain }})
+      if: inputs.toolchain != 'stable'
+      uses: dtolnay/rust-toolchain@master
+      with:
+        toolchain: ${{ inputs.toolchain }}
+        components: ${{ inputs.components }}
+        targets: ${{ inputs.targets }}
+
+    - name: Restore Cargo cache
+      uses: Swatinem/rust-cache@v2.9.1
+      with:
+        save-if: ${{ inputs.save-if }}
+        shared-key: ${{ inputs.shared-key }}
+        prefix-key: ${{ inputs.prefix-key }}

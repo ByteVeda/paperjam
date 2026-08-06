@@ -5,13 +5,29 @@ on:
     branches: [main]
     paths:
       - "docs/**"
-      - "crates/paperjam-wasm/**"
+      # The site embeds a wasm bundle built from the workspace, so any crate
+      # or lockfile change can alter the shipped artifact — not just
+      # paperjam-wasm's own sources.
+      - "crates/**"
+      - "Cargo.toml"
+      - "Cargo.lock"
+      - "rust-toolchain.toml"
+      - ".github/actions/setup-node/**"
+      - ".github/actions/setup-rust/**"
       - ".github/workflows/docs.yml"
   pull_request:
     branches: [main]
     paths:
       - "docs/**"
-      - "crates/paperjam-wasm/**"
+      # The site embeds a wasm bundle built from the workspace, so any crate
+      # or lockfile change can alter the shipped artifact — not just
+      # paperjam-wasm's own sources.
+      - "crates/**"
+      - "Cargo.toml"
+      - "Cargo.lock"
+      - "rust-toolchain.toml"
+      - ".github/actions/setup-node/**"
+      - ".github/actions/setup-rust/**"
       - ".github/workflows/docs.yml"
   workflow_dispatch:
 
@@ -30,13 +46,10 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      - name: Install Rust
-        uses: dtolnay/rust-toolchain@stable
+      - name: Set up Rust
+        uses: ./.github/actions/setup-rust
         with:
           targets: wasm32-unknown-unknown
-
-      - name: Rust cache
-        uses: Swatinem/rust-cache@v2.9.1
 
       - name: Install wasm-pack
         run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
@@ -76,23 +89,12 @@ jobs:
       - name: Build WASM
         run: wasm-pack build crates/paperjam-wasm --target web --release --out-dir ../../docs/static/wasm
 
-      - name: Set up pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          package_json_file: docs/package.json
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v7
-        with:
-          node-version: "22"
-          cache: pnpm
-          cache-dependency-path: docs/pnpm-lock.yaml
-
-      - name: Install dependencies
-        run: cd docs && pnpm install --frozen-lockfile
+      - name: Set up Node + pnpm
+        uses: ./.github/actions/setup-node
 
       - name: Build Docusaurus
-        run: cd docs && pnpm run build
+        working-directory: docs
+        run: pnpm run build
 
       - name: Upload Pages artifact
         if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'

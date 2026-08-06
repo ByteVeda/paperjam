@@ -1,0 +1,110 @@
+name: CI Python
+
+# Reusable workflow: the Python pre-commit hooks, the cross-platform pytest
+# matrix, and the table-extraction accuracy harness. Called by ci.yml when
+# Python-relevant paths change.
+#
+# Every job that builds the extension sets Rust up *before* Python: `uv sync`
+# installs the project itself, which compiles the bindings, so the Cargo cache
+# has to be restored first or that build starts cold.
+on:
+  workflow_call:
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    name: Lint (Python)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Set up Python + uv
+        uses: ./.github/actions/setup-python
+        with:
+          # The ruff and mypy hooks build their own environments; nothing here
+          # imports paperjam, so the extension does not need to be built.
+          sync: "false"
+
+      - name: Run Python hooks
+        uses: ./.github/actions/pre-commit
+        with:
+          skip: cargo-fmt,clippy,wasm-check,biome,docs-typecheck
+
+  test:
+    name: Tests (${{ matrix.os }} / Python ${{ matrix.python-version }})
+    needs: lint
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        python-version: ["3.12", "3.13"]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Set up Rust
+        uses: ./.github/actions/setup-rust
+        with:
+          # Share one Rust cache across the two Python versions —
+          # pyo3 / abi3 builds don't vary by Python minor version.
+          shared-key: maturin-${{ matrix.os }}
+          # Keep the total-cache quota under control: only the main
+          # branch writes new cache entries; PRs read-only.
+          save-if: ${{ github.ref == 'refs/heads/main' }}
+
+      - name: Set up Python + uv
+        uses: ./.github/actions/setup-python
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Build native extension
+        uses: ./.github/actions/maturin-build
+
+      - name: Run tests
+        run: uv run pytest tests/python/ -v --tb=short --junit-xml=results.xml
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: test-results-${{ matrix.os }}-py${{ matrix.python-version }}
+          path: results.xml
+
+  accuracy:
+    name: Table Extraction Accuracy
+    needs: lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Set up Rust
+        uses: ./.github/actions/setup-rust
+        with:
+          # Read-only: the test matrix already writes the Linux namespace.
+          save-if: "false"
+
+      - name: Set up Python + uv
+        uses: ./.github/actions/setup-python
+        with:
+          python-version: "3.13"
+
+      - name: Build native extension
+        uses: ./.github/actions/maturin-build
+
+      - name: Verify fixtures are up to date
+        run: |
+          cp -r tests/fixtures/tables /tmp/tables_snapshot
+          uv run python scripts/generate_table_fixtures.py
+          diff -r /tmp/tables_snapshot tests/fixtures/tables
+
+      - name: Run accuracy harness
+        run: uv run pytest tests/python/ -m accuracy -v --tb=short
+
+      - name: Upload accuracy report
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: accuracy-report
+          path: tests/output/table_accuracy.json

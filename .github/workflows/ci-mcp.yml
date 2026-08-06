@@ -1,20 +1,13 @@
-name: CI (MCP Server)
+name: CI MCP
 
+# Reusable workflow: lint and wheel build for the Python MCP server, which is
+# a separate package under mcp-server/. Called by ci.yml when mcp-server
+# paths change.
 on:
-  push:
-    branches: [main]
-    paths:
-      - "mcp-server/**"
-      - ".github/workflows/ci-mcp.yml"
-  pull_request:
-    branches: [main]
-    paths:
-      - "mcp-server/**"
-      - ".github/workflows/ci-mcp.yml"
+  workflow_call:
 
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+permissions:
+  contents: read
 
 defaults:
   run:
@@ -22,16 +15,23 @@ defaults:
 
 jobs:
   lint:
+    name: Lint (MCP)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
 
-      - uses: astral-sh/setup-uv@v7
+      - name: Set up Rust
+        # `uv sync` resolves paperjam from the repo root (tool.uv.sources), so
+        # this job compiles the workspace — restore the Cargo cache first.
+        uses: ./.github/actions/setup-rust
 
-      - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@stable
-
-      - uses: Swatinem/rust-cache@v2.9.1
+      - name: Set up Python + uv
+        uses: ./.github/actions/setup-python
+        with:
+          # mcp-server is its own project; sync it from the working directory
+          # below rather than the repository root.
+          sync: "false"
+          cache-dependency-glob: mcp-server/pyproject.toml
 
       - name: Install dependencies (builds paperjam from source)
         run: uv sync
@@ -46,6 +46,7 @@ jobs:
         run: uv run mypy src/
 
   build:
+    name: Build (Python ${{ matrix.python-version }})
     runs-on: ubuntu-latest
     needs: lint
     strategy:
@@ -54,11 +55,13 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      - uses: actions/setup-python@v7
+      - name: Set up Python + uv
+        uses: ./.github/actions/setup-python
         with:
           python-version: ${{ matrix.python-version }}
-
-      - uses: astral-sh/setup-uv@v7
+          # A pure-setuptools wheel: no project sync, no Rust build.
+          sync: "false"
+          cache-dependency-glob: mcp-server/pyproject.toml
 
       - name: Build wheel
         run: uv build

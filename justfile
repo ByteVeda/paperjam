@@ -61,15 +61,15 @@ check-rust:
 
 # Python-only checks (ruff + mypy).
 check-py:
-    uv run ruff check py_src/ tests/
-    uv run ruff format --check py_src/ tests/
-    uv run mypy py_src/ tests/ examples/ --ignore-missing-imports
+    uv run ruff check paperjam/ tests/
+    uv run ruff format --check paperjam/ tests/
+    uv run mypy paperjam/ tests/ examples/ --ignore-missing-imports
 
 # Apply autoformatters (doesn't fail on remaining lint issues).
 fmt:
     cargo fmt --all
-    uv run ruff format py_src/ tests/
-    uv run ruff check --fix py_src/ tests/
+    uv run ruff format paperjam/ tests/
+    uv run ruff check --fix paperjam/ tests/
 
 # --- Clean ---------------------------------------------------------------
 

@@ -1,0 +1,82 @@
+name: CI Rust
+
+# Reusable workflow: Rust formatting, the Rust pre-commit hooks, the workspace
+# test suite, and the MSRV compile check. Called by ci.yml when Rust-relevant
+# paths change.
+on:
+  workflow_call:
+
+permissions:
+  contents: read
+
+env:
+  # Single source of truth for the minimum supported Rust version. Keep it in
+  # sync with `rust-version` in the workspace Cargo.toml; nothing else in
+  # .github/ hardcodes a Rust version.
+  MSRV: "1.88"
+
+jobs:
+  lint:
+    name: Lint (Rust)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Set up Rust
+        uses: ./.github/actions/setup-rust
+        with:
+          components: rustfmt, clippy
+          # The wasm-check hook compile-checks paperjam-wasm.
+          targets: wasm32-unknown-unknown
+
+      - name: Check Rust formatting
+        run: cargo fmt --all --check
+
+      - name: Run Rust hooks
+        uses: ./.github/actions/pre-commit
+        with:
+          skip: ruff-check,ruff-format,mypy,biome,docs-typecheck
+
+  rust-test:
+    name: Rust tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Set up Rust
+        uses: ./.github/actions/setup-rust
+        with:
+          # Read-only: the lint job already writes this namespace.
+          save-if: "false"
+
+      - name: Run Rust tests
+        run: cargo test --workspace
+
+  msrv:
+    name: MSRV (rust-version) check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Pin this job to the MSRV toolchain
+        # rust-toolchain.toml pins stable for contributors; override it for the
+        # whole job so the MSRV check actually exercises the declared minimum.
+        # Set before setup-rust so rust-cache keys its entry on the MSRV rustc
+        # rather than stable's.
+        run: echo "RUSTUP_TOOLCHAIN=$MSRV" >> "$GITHUB_ENV"
+
+      - name: Set up Rust
+        uses: ./.github/actions/setup-rust
+        with:
+          toolchain: ${{ env.MSRV }}
+          # The MSRV target/ differs from the stable one; keep it in its own
+          # namespace, and only let main write it.
+          prefix-key: v0-rust-msrv
+          save-if: ${{ github.ref == 'refs/heads/main' }}
+
+      - name: Compile-check workspace on MSRV
+        # `--locked` keeps the MSRV deterministic: versions resolve from the
+        # committed Cargo.lock rather than the latest compatible crates.io
+        # release, so the declared MSRV stays honest until a deliberate
+        # `cargo update` changes the lockfile.
+        run: cargo check --workspace --locked
