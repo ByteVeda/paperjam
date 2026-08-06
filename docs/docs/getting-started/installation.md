@@ -29,10 +29,10 @@ The docs site uses [Docusaurus](https://docusaurus.io/). To build it locally:
 
 ```bash
 git clone https://github.com/ByteVeda/paperjam
-cd paperjam/docs-site
+cd paperjam/docs
 npm ci
 npm run start   # dev server with hot reload
-npm run build   # static site under docs-site/build/
+npm run build   # static site under docs/build/
 ```
 
 ## Installing from source

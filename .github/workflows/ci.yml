@@ -30,10 +30,10 @@ jobs:
         with:
           node-version: "22"
           cache: npm
-          cache-dependency-path: docs-site/package-lock.json
+          cache-dependency-path: docs/package-lock.json
 
-      - name: Install docs-site dependencies
-        run: cd docs-site && npm ci
+      - name: Install docs dependencies
+        run: cd docs && npm ci
 
       - name: Add WASM target
         run: rustup target add wasm32-unknown-unknown

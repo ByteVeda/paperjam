@@ -42,10 +42,10 @@ tests/output/
 uv.lock
 
 # Docusaurus
-docs-site/node_modules/
-docs-site/build/
-docs-site/.docusaurus/
+docs/node_modules/
+docs/build/
+docs/.docusaurus/
 
 # WASM build artifacts
 crates/paperjam-wasm/pkg/
-docs-site/static/wasm/
+docs/static/wasm/

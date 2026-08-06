@@ -17,17 +17,16 @@ python:
 javascript:
   - changed-files:
       - any-glob-to-any-file:
-          - 'docs-site/**/*.js'
-          - 'docs-site/**/*.jsx'
-          - 'docs-site/**/*.ts'
-          - 'docs-site/**/*.tsx'
-          - 'docs-site/**/*.mjs'
-          - 'docs-site/**/*.cjs'
+          - 'docs/**/*.js'
+          - 'docs/**/*.jsx'
+          - 'docs/**/*.ts'
+          - 'docs/**/*.tsx'
+          - 'docs/**/*.mjs'
+          - 'docs/**/*.cjs'
 
 documentation:
   - changed-files:
       - any-glob-to-any-file:
-          - 'docs-site/**'
           - 'docs/**'
           - '**/*.md'
           - 'README*'

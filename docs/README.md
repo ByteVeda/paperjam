@@ -13,7 +13,7 @@ npm start
 
 ```bash
 # Build WASM (from project root)
-wasm-pack build crates/paperjam-wasm --target web --release --out-dir ../../docs-site/static/wasm
+wasm-pack build crates/paperjam-wasm --target web --release --out-dir ../../docs/static/wasm
 
 # Build site
 npm run build
